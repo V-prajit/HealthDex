@@ -1,6 +1,7 @@
 package com.example.phms
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -172,6 +173,14 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit){
                 auth.signInWithEmailAndPassword(email.value, password.value)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            auth.currentUser?.getIdToken(true)?.addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val token = task.result?.token
+                                    sendAuthTokenToBackend(token)
+                                } else {
+                                    Log.e("Auth", "Failed to get token: ${task.exception?.message}")
+                                }
+                            }
                             message.value = "Login Successful!"
                             println("Login Success")
                         } else {

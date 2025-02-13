@@ -1,3 +1,7 @@
 /PHMS-Android/.idea
 .DS_Store
 PHMS-Android/app/google-services.json
+/PHMS-Backend/.idea
+/PHMS-Backend/.gradle
+/PHMS-Backend/build
+PHMS-Backend/src/main/resources/serviceAccountKey.json
