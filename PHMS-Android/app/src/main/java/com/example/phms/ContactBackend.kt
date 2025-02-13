@@ -1,8 +1,10 @@
 package com.example.phms
 
 import android.util.Log
+import com.google.gson.Gson
 import okhttp3.ResponseBody
 import retrofit2.Call
+
 
 fun sendAuthTokenToBackend(token: String?) {
     if (token == null) {
@@ -26,3 +28,34 @@ fun sendAuthTokenToBackend(token: String?) {
         }
     })
 }
+
+fun sendUserDataToBackend(firebaseUid: String?, email: String, name: String, age: String, height: String, weight: String, callback: (String) -> Unit) {
+    if (firebaseUid == null) {
+        callback("Empty token")
+        return
+    }
+
+    val request = UserDataRequest(
+        firebaseUid = firebaseUid,
+        name = name,
+        email = email,
+        age = age.toIntOrNull(),
+        height = height.toDoubleOrNull(),
+        weight = weight.toDoubleOrNull()
+    )
+
+    RetrofitClient.apiService.sendUserData(request).enqueue(object : retrofit2.Callback<ResponseBody> {
+        override fun onResponse(call: Call<ResponseBody>, response: retrofit2.Response<ResponseBody>) {
+            if (response.isSuccessful) {
+                callback("User details saved successfully!")
+            } else {
+                callback("Failed to save user details: ${response.errorBody()?.string()}")
+            }
+        }
+
+        override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            callback("Error: ${t.message}")
+        }
+    })
+}
+

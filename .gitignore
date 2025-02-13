@@ -5,3 +5,4 @@ PHMS-Android/app/google-services.json
 /PHMS-Backend/.gradle
 /PHMS-Backend/build
 PHMS-Backend/src/main/resources/serviceAccountKey.json
+PHMS-Backend/data.db

@@ -32,4 +32,5 @@ dependencies {
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
     implementation("com.google.firebase:firebase-admin:9.2.0")
+    implementation("org.xerial:sqlite-jdbc:3.45.1.0")
 }

@@ -9,10 +9,21 @@ import retrofit2.http.POST
 
 data class AuthRequest(val token: String)
 
+data class UserDataRequest(
+    val firebaseUid: String?,
+    val name: String,
+    val email: String,
+    val age: Int?,
+    val height: Double?,
+    val weight: Double?
+)
 
 interface ApiService {
     @POST("/auth")
     fun authenticateUser(@Body request: AuthRequest): Call<ResponseBody>
+
+    @POST("/users/register")
+    fun sendUserData(@Body request: UserDataRequest): Call<ResponseBody>
 }
 
 

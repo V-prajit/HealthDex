@@ -2,6 +2,7 @@ package com.example.phms
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View.OnLongClickListener
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -26,20 +27,30 @@ class MainActivity : ComponentActivity() {
         auth = FirebaseAuth.getInstance()
 
         setContent{
-            AuthScreen(auth)
+            var isLoggedIn by remember { mutableStateOf(false) }
+            var userToken by remember { mutableStateOf<String?>(null) }
+
+            if (isLoggedIn) {
+                UserDetailsScreen(userToken)
+            } else {
+                AuthScreen(auth) { token ->
+                    isLoggedIn = true
+                    userToken = token
+                }
+            }
         }
     }
 }
 
 @Composable
-fun AuthScreen(auth: FirebaseAuth){
+fun AuthScreen(auth: FirebaseAuth, onLoginSuccess: (String) -> Unit){
     var isRegistering by remember { mutableStateOf(true) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         if (isRegistering){
             RegisterScreen(auth, onSwitch = { isRegistering = false })
         } else {
-            LoginScreen(auth, onSwitch = { isRegistering = true })
+            LoginScreen(auth, onSwitch = { isRegistering = true }, onLoginSuccess)
         }
     }
 
@@ -121,7 +132,7 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit){
 }
 
 @Composable
-fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit){
+fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String) -> Unit){
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
@@ -173,19 +184,12 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit){
                 auth.signInWithEmailAndPassword(email.value, password.value)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            auth.currentUser?.getIdToken(true)?.addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    val token = task.result?.token
-                                    sendAuthTokenToBackend(token)
-                                } else {
-                                    Log.e("Auth", "Failed to get token: ${task.exception?.message}")
-                                }
+                            val firebaseUser = auth.currentUser
+                            if (firebaseUser != null) {
+                                onLoginSuccess(firebaseUser.uid) // ✅ Sends the correct UID (not token)
                             }
-                            message.value = "Login Successful!"
-                            println("Login Success")
                         } else {
-                            message.value = "Error: ${task.exception?.message}"
-                            println("Login Failed: ${task.exception?.message}")
+                            Log.e("Auth", "Login Failed: ${task.exception?.message}")
                         }
                     }
             },
