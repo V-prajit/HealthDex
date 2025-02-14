@@ -5,6 +5,18 @@ import com.google.gson.Gson
 import okhttp3.ResponseBody
 import retrofit2.Call
 
+import com.google.gson.annotations.SerializedName
+
+data class UserDTO(
+    @SerializedName("firebaseUid") val firebaseUid: String,
+    @SerializedName("firstName") val firstName: String,
+    @SerializedName("lastName") val lastName: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("age") val age: Int?,
+    @SerializedName("height") val height: Double?,
+    @SerializedName("weight") val weight: Double?
+)
+
 
 fun sendAuthTokenToBackend(token: String?) {
     if (token == null) {
@@ -56,6 +68,29 @@ fun sendUserDataToBackend(firebaseUid: String?, email: String, firstName: String
 
         override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
             callback("Error: ${t.message}")
+        }
+    })
+}
+
+fun fetchUserData(firebaseUid: String, callback: (UserDTO?) -> Unit) {
+    if (firebaseUid.isBlank()) {
+        callback(null)
+        return
+    }
+
+    RetrofitClient.apiService.getUser(firebaseUid).enqueue(object : retrofit2.Callback<UserDTO> {
+        override fun onResponse(call: Call<UserDTO>, response: retrofit2.Response<UserDTO>) {
+            if (response.isSuccessful) {
+                callback(response.body())
+            } else {
+                Log.e("Backend", "Failed to fetch user data: ${response.errorBody()?.string()}")
+                callback(null)
+            }
+        }
+
+        override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+            Log.e("Backend", "Error fetching user data: ${t.message}")
+            callback(null)
         }
     })
 }

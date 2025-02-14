@@ -1,20 +1,15 @@
 package com.example.phms
 
 import android.os.Bundle
-import android.util.Log
-import android.view.View.OnLongClickListener
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -22,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
@@ -29,13 +25,15 @@ class MainActivity : ComponentActivity() {
         setContent{
             var isLoggedIn by remember { mutableStateOf(false) }
             var userToken by remember { mutableStateOf<String?>(null) }
+            var firstName by remember { mutableStateOf<String?>(null) }
 
             if (isLoggedIn) {
-                UserDetailsScreen(userToken)
+                HomeScreen(firstName)
             } else {
-                AuthScreen(auth) { token ->
+                AuthScreen(auth) { token, name ->
                     isLoggedIn = true
                     userToken = token
+                    firstName = name
                 }
             }
         }
@@ -43,21 +41,34 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AuthScreen(auth: FirebaseAuth, onLoginSuccess: (String) -> Unit){
+fun AuthScreen(auth: FirebaseAuth, onLoginSuccess: (String, String?) -> Unit){
     var isRegistering by remember { mutableStateOf(true) }
+    var userToken by remember { mutableStateOf<String?>(null) }
+    var showUserDetailsScreen by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        if (isRegistering){
-            RegisterScreen(auth, onSwitch = { isRegistering = false })
-        } else {
-            LoginScreen(auth, onSwitch = { isRegistering = true }, onLoginSuccess)
+        when {
+            showUserDetailsScreen -> {
+                UserDetailsScreen(userToken) { token, firstName ->
+                    onLoginSuccess(token, firstName)
+                }
+            }
+            isRegistering -> {
+                RegisterScreen(auth, onSwitch = { isRegistering = false }) { token ->
+                    userToken = token
+                    showUserDetailsScreen = true
+                }
+            }
+            else -> {
+                LoginScreen(auth, onSwitch = { isRegistering = true }, onLoginSuccess)
+            }
         }
     }
 
 }
 
 @Composable
-fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit){
+fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit, onRegistrationSuccess: (String) -> Unit){
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
@@ -106,7 +117,10 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit){
                 auth.createUserWithEmailAndPassword(email.value, password.value)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            message.value = "Registration Successful!"
+                            val firebaseUser = auth.currentUser
+                            if(firebaseUser != null){
+                                onRegistrationSuccess(firebaseUser.uid)
+                            }
                         } else {
                             message.value = "Error: ${task.exception?.message}"
                         }
@@ -132,10 +146,11 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit){
 }
 
 @Composable
-fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String) -> Unit){
+fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String, String?) -> Unit){
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
+    val firstName = remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -186,10 +201,13 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
                         if (task.isSuccessful) {
                             val firebaseUser = auth.currentUser
                             if (firebaseUser != null) {
-                                onLoginSuccess(firebaseUser.uid) // ✅ Sends the correct UID (not token)
+                                fetchUserData(firebaseUser.uid){ user ->
+                                    firstName.value = user?.firstName
+                                    onLoginSuccess(firebaseUser.uid, user?.firstName)
+                                }
                             }
                         } else {
-                            Log.e("Auth", "Login Failed: ${task.exception?.message}")
+                            message.value = "Login Failed: ${task.exception?.message}"
                         }
                     }
             },

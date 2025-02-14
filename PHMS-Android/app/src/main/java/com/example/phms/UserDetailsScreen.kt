@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun UserDetailsScreen(userToken: String?) {
+fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) -> Unit ) {
     val firstName = remember { mutableStateOf("") }
     val lastName = remember { mutableStateOf("") }
     val age = remember { mutableStateOf("") }
@@ -21,7 +21,6 @@ fun UserDetailsScreen(userToken: String?) {
 
     val user = FirebaseAuth.getInstance().currentUser
     val userEmail = user?.email ?: ""
-    val userName = user?.displayName ?: "User"
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -91,6 +90,12 @@ fun UserDetailsScreen(userToken: String?) {
             onClick = {
                 sendUserDataToBackend(userToken, userEmail, firstName.value, lastName.value, age.value, height.value, weight.value) {
                     message.value = it
+
+                    if (userToken != null){
+                        fetchUserData(userToken) { userData ->
+                            onDetailsSubmitted(userToken, userData?.firstName)
+                        }
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(0.6f)

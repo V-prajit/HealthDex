@@ -6,6 +6,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.GET
 
 data class AuthRequest(val token: String)
 
@@ -25,6 +27,9 @@ interface ApiService {
 
     @POST("/users/register")
     fun sendUserData(@Body request: UserDataRequest): Call<ResponseBody>
+
+    @GET("/users/{firebaseUid}")
+    fun getUser(@Path("firebaseUid") firebaseUid: String): Call<UserDTO>
 }
 
 
