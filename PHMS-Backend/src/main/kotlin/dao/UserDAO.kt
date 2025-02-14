@@ -8,7 +8,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 @Serializable
 data class User(
     val firebaseUid: String,
-    val name: String,
+    val firstName: String,
+    val lastName: String,
     val email: String,
     val age: Int?,
     val height: Double?,
@@ -20,7 +21,8 @@ object UserDAO {
         transaction {
             Users.insert {
                 it[firebaseUid] = user.firebaseUid
-                it[name] = user.name
+                it[firstName] = user.firstName
+                it[lastName] = user.lastName
                 it[email] = user.email
                 it[age] = user.age
                 it[height] = user.height
@@ -35,7 +37,8 @@ object UserDAO {
                 .map {
                     User(
                         it[Users.firebaseUid],
-                        it[Users.name],
+                        it[Users.firstName],
+                        it[Users.lastName],
                         it[Users.email],
                         it[Users.age],
                         it[Users.height],

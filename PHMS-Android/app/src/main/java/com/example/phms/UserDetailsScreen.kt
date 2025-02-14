@@ -12,6 +12,8 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun UserDetailsScreen(userToken: String?) {
+    val firstName = remember { mutableStateOf("") }
+    val lastName = remember { mutableStateOf("") }
     val age = remember { mutableStateOf("") }
     val height = remember { mutableStateOf("") }
     val weight = remember { mutableStateOf("") }
@@ -27,6 +29,28 @@ fun UserDetailsScreen(userToken: String?) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "User Details", style = MaterialTheme.typography.headlineLarge)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = firstName.value,
+            onValueChange = { firstName.value = it },
+            label = { Text("First Name") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = lastName.value,
+            onValueChange = { lastName.value = it },
+            label = { Text("Last Name") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -65,7 +89,7 @@ fun UserDetailsScreen(userToken: String?) {
 
         Button(
             onClick = {
-                sendUserDataToBackend(userToken, userEmail, userName, age.value, height.value, weight.value) {
+                sendUserDataToBackend(userToken, userEmail, firstName.value, lastName.value, age.value, height.value, weight.value) {
                     message.value = it
                 }
             },

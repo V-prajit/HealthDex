@@ -11,7 +11,8 @@ data class AuthRequest(val token: String)
 
 data class UserDataRequest(
     val firebaseUid: String?,
-    val name: String,
+    val firstName: String,
+    val lastName: String,
     val email: String,
     val age: Int?,
     val height: Double?,

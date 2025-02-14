@@ -14,7 +14,7 @@ import java.rmi.server.UID
 data class AuthRequest(val token: String)
 
 @Serializable
-data class UserDTO(val firebaseUid: String, val name: String, val email: String, val age: Int?, val height: Double?, val weight: Double?)
+data class UserDTO(val firebaseUid: String, val firstName: String, val lastName: String, val email: String, val age: Int?, val height: Double?, val weight: Double?)
 
 fun Application.configureRouting() {
     routing {
@@ -40,7 +40,7 @@ fun Application.configureRouting() {
         route("/users"){
             post("/register"){
                 val user = call.receive<UserDTO>()
-                UserDAO.addUser(User( user.firebaseUid, user.name, user.email, user.age, user.height, user.weight ))
+                UserDAO.addUser(User( user.firebaseUid, user.firstName, user.lastName, user.email, user.age, user.height, user.weight ))
                 call.respond(HttpStatusCode.Created, "User added successfully")
             }
 

@@ -29,7 +29,7 @@ fun sendAuthTokenToBackend(token: String?) {
     })
 }
 
-fun sendUserDataToBackend(firebaseUid: String?, email: String, name: String, age: String, height: String, weight: String, callback: (String) -> Unit) {
+fun sendUserDataToBackend(firebaseUid: String?, email: String, firstName: String, lastName:String, age: String, height: String, weight: String, callback: (String) -> Unit) {
     if (firebaseUid == null) {
         callback("Empty token")
         return
@@ -37,7 +37,8 @@ fun sendUserDataToBackend(firebaseUid: String?, email: String, name: String, age
 
     val request = UserDataRequest(
         firebaseUid = firebaseUid,
-        name = name,
+        firstName = firstName,
+        lastName = lastName,
         email = email,
         age = age.toIntOrNull(),
         height = height.toDoubleOrNull(),
