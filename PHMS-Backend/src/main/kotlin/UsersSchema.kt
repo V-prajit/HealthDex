@@ -8,13 +8,17 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
-data class ExposedUser(val name: String, val age: Int)
+data class ExposedUser(
+    val firstName: String,
+    val lastName: String,
+    val age: Int?)
 
 class UserService(database: Database) {
     object Users : Table() {
         val id = integer("id").autoIncrement()
-        val name = varchar("name", length = 50)
-        val age = integer("age")
+        val firstName = varchar("first_name", 100)
+        val lastName = varchar("last_name", 100)
+        val age = integer("age").nullable()
 
         override val primaryKey = PrimaryKey(id)
     }
@@ -27,7 +31,8 @@ class UserService(database: Database) {
 
     suspend fun create(user: ExposedUser): Int = dbQuery {
         Users.insert {
-            it[name] = user.name
+            it[firstName] = user.firstName
+            it[lastName] = user.lastName
             it[age] = user.age
         }[Users.id]
     }
@@ -36,7 +41,7 @@ class UserService(database: Database) {
         return dbQuery {
             Users.selectAll()
                 .where { Users.id eq id }
-                .map { ExposedUser(it[Users.name], it[Users.age]) }
+                .map { ExposedUser(it[Users.firstName], it[Users.lastName], it[Users.age]) }
                 .singleOrNull()
         }
     }
@@ -44,7 +49,8 @@ class UserService(database: Database) {
     suspend fun update(id: Int, user: ExposedUser) {
         dbQuery {
             Users.update({ Users.id eq id }) {
-                it[name] = user.name
+                it[firstName] = user.firstName
+                it[lastName] = user.lastName
                 it[age] = user.age
             }
         }
