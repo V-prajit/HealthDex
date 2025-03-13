@@ -14,6 +14,15 @@ class BiometricAuth(private val context:Context,private val authCallback: (Boole
     private val authentication= FirebaseAuth.getInstance //gets the current user logged into firebase
     private var cancellationSignal: CancellationSignal? = null //lets user cancel bio authentication
     private val executor: Executor = ContextCompat.getMainExecutor(context)
-    
+    private fun getCancellationSignal(): CancellationSignal{
+        cancellationSignal= CancellationSignal()
+        cancellationSignal!!.setOnCancelListener {
+            Toast.makeText(context, "Biometric Authentication Cancelled. Please check again!", Toast.LENGTH_SHORT).show()
+            // it displays the message- for a short duation of time (about 2 secs is the default) if the user presses cancel
+            //basically function runs if cancellationsignal is not null(ie user pressed cancel)
+        }
+        return cancellationSignal!!
+        
+    }
 }
 
