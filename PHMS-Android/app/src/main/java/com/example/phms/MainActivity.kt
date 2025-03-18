@@ -1,39 +1,63 @@
 package com.example.phms
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
+import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
 
-        setContent{
-            var isLoggedIn by remember { mutableStateOf(false) }
-            var userToken by remember { mutableStateOf<String?>(null) }
-            var firstName by remember { mutableStateOf<String?>(null) }
+        AppCompatDelegate.setApplicationLocales(
+            LocaleListCompat.getEmptyLocaleList()
+        )
 
-            if (isLoggedIn) {
-                HomeScreen(firstName)
-            } else {
-                AuthScreen(auth) { token, name ->
-                    isLoggedIn = true
-                    userToken = token
-                    firstName = name
+        setContent {
+            PHMSTheme {
+                var isLoggedIn by remember { mutableStateOf(false) }
+                var userToken by remember { mutableStateOf<String?>(null) }
+                var firstName by remember { mutableStateOf<String?>(null) }
+                var showSettings by remember { mutableStateOf(false) }
+
+                if (showSettings) {
+                    SettingScreen(onBackClick = { showSettings = false })
+                } else if (isLoggedIn) {
+                    HomeScreen(
+                        firstName = firstName ?: "No_Name",
+                        onSettingsClick = { showSettings = true }
+                    )
+                } else {
+                    AuthScreen(
+                        auth = auth,
+                        onLoginSuccess =  { token, name ->
+                            isLoggedIn = true
+                            userToken = token
+                            firstName = name
+                        },
+                        onSettingsClick = { showSettings = true }
+                    )
                 }
             }
         }
@@ -41,12 +65,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AuthScreen(auth: FirebaseAuth, onLoginSuccess: (String, String?) -> Unit){
+fun AuthScreen(auth: FirebaseAuth, onLoginSuccess: (String, String?) -> Unit, onSettingsClick: () -> Unit){
     var isRegistering by remember { mutableStateOf(true) }
     var userToken by remember { mutableStateOf<String?>(null) }
     var showUserDetailsScreen by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(onClick = onSettingsClick) {
+                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+            }
+        }
         when {
             showUserDetailsScreen -> {
                 UserDetailsScreen(userToken) { token, firstName ->
@@ -74,8 +108,8 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucces
     val message = remember { mutableStateOf("") }
 
     Column ( modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+        .fillMaxSize()
+        .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -187,7 +221,7 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        val loginFailedTemplate = stringResource(R.string.login_failed)
         // Login Button
         Button(
             onClick = {
@@ -201,19 +235,21 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
                         if (task.isSuccessful) {
                             val firebaseUser = auth.currentUser
                             if (firebaseUser != null) {
+                                Log.d("LoginScreen", "Login successful, fetching user data for ${firebaseUser.uid}")
                                 fetchUserData(firebaseUser.uid){ user ->
+                                    Log.d("LoginScreen", "User data fetched: ${user?.firstName}")
                                     firstName.value = user?.firstName
                                     onLoginSuccess(firebaseUser.uid, user?.firstName)
                                 }
                             }
                         } else {
-                            message.value = "Login Failed: ${task.exception?.message}"
+                            message.value = String.format(loginFailedTemplate, task.exception?.message ?: "")
                         }
                     }
             },
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {
-            Text("Login")
+            Text(stringResource(R.string.login_button))
         }
 
         Spacer(modifier = Modifier.height(16.dp))

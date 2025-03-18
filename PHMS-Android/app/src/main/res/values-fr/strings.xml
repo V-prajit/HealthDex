@@ -1,0 +1,40 @@
+<resources>
+    <!-- App Name -->
+    <string name="app_name">PHMS</string>
+    
+    <!-- Authentication screens -->
+    <string name="login">Connexion</string>
+    <string name="register">S\'inscrire</string>
+    <string name="email">Email:</string>
+    <string name="password">Mot de passe</string>
+    <string name="login_button">Se connecter</string>
+    <string name="register_button">S\'inscrire</string>
+    <string name="already_have_account">Vous avez déjà un compte? Connectez-vous ici</string>
+    <string name="dont_have_account">Vous n\'avez pas de compte? Inscrivez-vous ici</string>
+    <string name="error_empty_fields">L\'email et le mot de passe ne peuvent pas être vides</string>
+    
+    <!-- User details screen -->
+    <string name="user_details">Détails de l\'utilisateur</string>
+    <string name="first_name">Prénom</string>
+    <string name="last_name">Nom</string>
+    <string name="age">Âge</string>
+    <string name="height">Taille (cm)</string>
+    <string name="weight">Poids (kg)</string>
+    <string name="submit">Soumettre</string>
+    <string name="details_saved">Informations utilisateur enregistrées avec succès!</string>
+    
+    <!-- Home screen -->
+    <string name="welcome">Bienvenue!</string>
+    <string name="hello_user">Bonjour, %1$s!</string>
+    
+    <!-- Settings screen -->
+    <string name="settings">Paramètres</string>
+    <string name="language">Langue</string>
+    <string name="select_language">Sélectionner la langue</string>
+    <string name="cancel">Annuler</string>
+    
+    <!-- Error messages -->
+    <string name="login_failed">Échec de connexion: %1$s</string>
+    <string name="registration_failed">Erreur: %1$s</string>
+    <string name="empty_token">Jeton vide</string>
+</resources>
