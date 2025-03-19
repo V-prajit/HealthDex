@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,7 +22,7 @@ import androidx.core.os.LocaleListCompat
 import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,14 +112,14 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucces
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Register", style = MaterialTheme.typography.headlineLarge)
+        Text(text = stringResource(R.string.register), style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
         // Email Input
         OutlinedTextField(
             value = email.value,
             onValueChange = { email.value = it },
-            label = {Text("Email:")},
+            label = {Text(stringResource(R.string.email))},
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -132,7 +131,7 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucces
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = {Text("Password")},
+            label = {Text(stringResource(R.string.password))},
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -162,7 +161,7 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucces
             },
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {
-            Text("Register")
+            Text(stringResource(R.string.register))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -174,7 +173,7 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucces
         Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(onClick = onSwitch) {
-            Text("Already have an account? Login here")
+            Text(stringResource( R.string.already_have_account))
         }
     }
 }
@@ -185,6 +184,8 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
     val password = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
     val firstName = remember { mutableStateOf<String?>(null) }
+    val errorEmptyFieldsText = stringResource(R.string.error_empty_fields)
+
 
     Column(
         modifier = Modifier
@@ -193,7 +194,7 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Login", style = MaterialTheme.typography.headlineLarge)
+        Text(text = stringResource(R.string.login), style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -201,7 +202,7 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
         OutlinedTextField(
             value = email.value,
             onValueChange = { email.value = it },
-            label = {Text("Email:")},
+            label = {Text(stringResource(R.string.email))},
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -213,7 +214,7 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = {Text("Password")},
+            label = {Text(stringResource(R.string.password))},
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -226,7 +227,7 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
         Button(
             onClick = {
                 if (email.value.isBlank() || password.value.isBlank()) {
-                    message.value = "Email and password cannot be empty"
+                    message.value =  errorEmptyFieldsText
                     return@Button
                 }
 
@@ -263,7 +264,7 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
 
         // Switch to Register
         TextButton(onClick = onSwitch) {
-            Text("Don't have an account? Register here")
+            Text(stringResource(R.string.dont_have_account))
         }
     }
 }

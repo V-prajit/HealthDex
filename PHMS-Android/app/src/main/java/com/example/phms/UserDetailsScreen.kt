@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
@@ -27,14 +28,14 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "User Details", style = MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.user_details), style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = firstName.value,
             onValueChange = { firstName.value = it },
-            label = { Text("First Name") },
+            label = { Text(stringResource(R.string.first_name)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -45,7 +46,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
         OutlinedTextField(
             value = lastName.value,
             onValueChange = { lastName.value = it },
-            label = { Text("Last Name") },
+            label = { Text(stringResource(R.string.last_name)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -56,7 +57,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
         OutlinedTextField(
             value = age.value,
             onValueChange = { age.value = it },
-            label = { Text("Age") },
+            label = { Text(stringResource(R.string.age)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -67,7 +68,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
         OutlinedTextField(
             value = height.value,
             onValueChange = { height.value = it },
-            label = { Text("Height (cm)") },
+            label = { Text(stringResource(R.string.height)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -78,7 +79,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
         OutlinedTextField(
             value = weight.value,
             onValueChange = { weight.value = it },
-            label = { Text("Weight (kg)") },
+            label = { Text(stringResource(R.string.weight)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             modifier = Modifier.fillMaxWidth()
@@ -100,7 +101,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
             },
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {
-            Text("Submit")
+            Text(stringResource(R.string.submit))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
