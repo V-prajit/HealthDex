@@ -1,6 +1,7 @@
 package com.example.phms
 
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -17,16 +18,23 @@ import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
-
+    private lateinit var biometricAuth: BiometricAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
-
+        biometricAuth=BiometricAuth(this){success->
+            if (success){
+                isLoggedIn= true
+                firstName= auth.currentUser?.displayName
+            }
+        }
         setContent{
             var isLoggedIn by remember { mutableStateOf(false) }
             var userToken by remember { mutableStateOf<String?>(null) }
             var firstName by remember { mutableStateOf<String?>(null) }
-
+            if (auth.currentUser!=null){
+                biometricAuth.authenticate()
+            }
             if (isLoggedIn) {
                 HomeScreen(firstName)
             } else {
@@ -74,8 +82,8 @@ fun RegisterScreen(auth:FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucces
     val message = remember { mutableStateOf("") }
 
     Column ( modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+        .fillMaxSize()
+        .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -162,7 +170,14 @@ fun LoginScreen(auth: FirebaseAuth, onSwitch: ()-> Unit, onLoginSuccess: (String
         Text(text = "Login", style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        Button(
+            onClick = {
+                biometricAuth.authenticate()
+            },
+            modifier = Modifier.fillMaxWidth(0.6f)
+        ){
+            Text("Login using Biometrics")
+        }
         // Email Input
         OutlinedTextField(
             value = email.value,
