@@ -111,7 +111,11 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        Row {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Checkbox(checked = enableBiometric.value, onCheckedChange = { enableBiometric.value = it })
             Text("Enable Biometric")
         }
@@ -230,7 +234,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                biometricAuth.authenticateFace()
+                biometricAuth.authenticateBiometric()
             },
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {

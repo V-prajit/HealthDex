@@ -87,7 +87,7 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
         }
     }
 
-    fun authenticateFace() {
+    fun authenticateBiometric() {
         val bioManager = BiometricManager.from(context)
         when (bioManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS -> {
