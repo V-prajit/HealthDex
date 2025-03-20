@@ -56,7 +56,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.firebase.auth)
-    implementation(libs.androidx.biometric.ktx)
+    implementation ("androidx.biometric:biometric-ktx:1.4.0-alpha02")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
