@@ -46,10 +46,16 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
         }
     }
     private fun showBiometricPrompt() {
+        /**
+         * Displays a BiometricPrompt to the user for authentication using face, fingerprint,
+         * or other supported biometric methods.
+         */
         val executor = ContextCompat.getMainExecutor(context)
         //to run on main thread
+        // Casting the context to a FragmentActivity ( this is required by BiometricPrompt).
         val activity = (context as? androidx.fragment.app.FragmentActivity) ?: return
         val biometricPrompt = BiometricPrompt(activity, executor, biometricCallback)
+        //dialog will appear to the user.
         val promptInformation = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Biometric Login")
             .setSubtitle("Use face recognition, fingerprint or other supported biometric login")
@@ -61,6 +67,7 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
     private val biometricCallback = object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
             super.onAuthenticationSucceeded(result)
+            // Retrieve the currently logged-in Firebase user.
             val user = FirebaseAuth.getInstance().currentUser
             if (user != null) {
                 Toast.makeText(context, "Biometric Authentication Successful!", Toast.LENGTH_SHORT).show()
@@ -72,7 +79,10 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
                 authCallback(false)
             }
         }
-
+        /**
+         * Called when a biometric is valid but not recognized or if the user fails to authenticate
+         * with the biometric sensor (e.g., an incorrect fingerprint, partial face match, etc.).
+         */
         override fun onAuthenticationFailed() {
             super.onAuthenticationFailed()
             Toast.makeText(context, "Biometric Authentication Failed", Toast.LENGTH_SHORT).show()
