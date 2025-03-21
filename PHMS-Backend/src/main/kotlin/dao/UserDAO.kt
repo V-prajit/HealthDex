@@ -18,18 +18,25 @@ data class User(
 
 object UserDAO {
     fun addUser(user: User) {
-        transaction {
-            Users.insert {
-                it[firebaseUid] = user.firebaseUid
-                it[firstName] = user.firstName
-                it[lastName] = user.lastName
-                it[email] = user.email
-                it[age] = user.age
-                it[height] = user.height
-                it[weight] = user.weight
+        try {
+            transaction {
+                Users.insert {
+                    it[firebaseUid] = user.firebaseUid
+                    it[firstName] = user.firstName
+                    it[lastName] = user.lastName
+                    it[email] = user.email
+                    it[age] = user.age
+                    it[height] = user.height
+                    it[weight] = user.weight
+                }
             }
+            println("Successfully added user: ${user.firstName} ${user.lastName}")
+        } catch(e: Exception) {
+            println("Error adding user to database: ${e.message}")
+            e.printStackTrace()
         }
     }
+
 
     fun getUserByFirebaseUid(firebaseUid: String): User? {
         return transaction {

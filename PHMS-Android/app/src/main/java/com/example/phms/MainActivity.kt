@@ -1,18 +1,25 @@
 package com.example.phms
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.os.LocaleListCompat
+import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
@@ -22,23 +29,39 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
+        AppCompatDelegate.setApplicationLocales(
+            LocaleListCompat.getEmptyLocaleList()
+        )
+
         setContent {
-            var isLoggedIn by remember { mutableStateOf(false) }
-            var userToken by remember { mutableStateOf<String?>(null) }
-            var firstName by remember { mutableStateOf<String?>(null) }
-            val biometricAuth = BiometricAuth(this@MainActivity) { success ->
+            PHMSTheme  {
+                var isLoggedIn by remember { mutableStateOf(false) }
+                var userToken by remember { mutableStateOf<String?>(null) }
+                var firstName by remember { mutableStateOf<String?>(null) }
+                var showSettings by remember { mutableStateOf(false) }
+
+                if (showSettings) {
+                    SettingScreen(onBackClick = { showSettings = false })            val biometricAuth = BiometricAuth(this@MainActivity) { success ->
                 if (success) {
                     isLoggedIn = true
                     firstName = auth.currentUser?.displayName
                 }
             }
-            if (isLoggedIn) {
-                HomeScreen(firstName)
-            } else {
-                AuthScreen(auth, biometricAuth) { token, name ->
-                    isLoggedIn = true
-                    userToken = token
-                    firstName = name
+                } else if (isLoggedIn) {
+                    HomeScreen(
+                        firstName = firstName ?: "No_Name",
+                        onSettingsClick = { showSettings = true }
+                    )
+                } else {
+                    AuthScreen(
+                        auth = auth, biometricAuth,
+                        onLoginSuccess =  { token, name ->
+                            isLoggedIn = true
+                            userToken = token
+                            firstName = name
+                        },
+                        onSettingsClick = { showSettings = true }
+                    )
                 }
             }
         }
@@ -46,12 +69,22 @@ class MainActivity : FragmentActivity() {
 }
 
 @Composable
-fun AuthScreen(auth: FirebaseAuth, biometricAuth: BiometricAuth, onLoginSuccess: (String, String?) -> Unit) {
+fun AuthScreen(auth: FirebaseAuth, biometricAuth: BiometricAuth, onLoginSuccess: (String, String?) -> Unit, onSettingsClick: () -> Unit) {
     var isRegistering by remember { mutableStateOf(true) }
     var userToken by remember { mutableStateOf<String?>(null) }
     var showUserDetailsScreen by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(onClick = onSettingsClick) {
+                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+            }
+        }
         when {
             showUserDetailsScreen -> {
                 UserDetailsScreen(userToken) { token, firstName ->
@@ -78,21 +111,20 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
     val message = remember { mutableStateOf("") }
     val enableBiometric = remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+    Column ( modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Register", style = MaterialTheme.typography.headlineLarge)
+        Text(text = stringResource(R.string.register), style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
         // Email Input
         OutlinedTextField(
             value = email.value,
             onValueChange = { email.value = it },
-            label = { Text("Email:") },
+            label = {Text(stringResource(R.string.email))},
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -103,7 +135,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = { Text("Password") },
+            label = {Text(stringResource(R.string.password))},
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -143,7 +175,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
             },
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {
-            Text("Register")
+            Text(stringResource(R.string.register))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -153,7 +185,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
 
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = onSwitch) {
-            Text("Already have an account? Login here")
+            Text(stringResource( R.string.already_have_account))
         }
     }
 }
@@ -169,6 +201,8 @@ fun LoginScreen(
     val password = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
     val firstName = remember { mutableStateOf<String?>(null) }
+    val errorEmptyFieldsText = stringResource(R.string.error_empty_fields)
+
 
     Column(
         modifier = Modifier
@@ -177,13 +211,13 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Login", style = MaterialTheme.typography.headlineLarge)
+        Text(text = stringResource(R.string.login), style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedTextField(
             value = email.value,
             onValueChange = { email.value = it },
-            label = { Text("Email:") },
+            label = {Text(stringResource(R.string.email))},
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -193,7 +227,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = { Text("Password") },
+            label = {Text(stringResource(R.string.password))},
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -201,10 +235,12 @@ fun LoginScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+        val loginFailedTemplate = stringResource(R.string.login_failed)
+        // Login Button
         Button(
             onClick = {
                 if (email.value.isBlank() || password.value.isBlank()) {
-                    message.value = "Email and password cannot be empty"
+                    message.value =  errorEmptyFieldsText
                     return@Button
                 }
 
@@ -213,22 +249,24 @@ fun LoginScreen(
                         if (task.isSuccessful) {
                             val firebaseUser = auth.currentUser
                             if (firebaseUser != null) {
+                                Log.d("LoginScreen", "Login successful, fetching user data for ${firebaseUser.uid}")
                                 if (biometricEnabledMap[firebaseUser.uid] == true) {
                                     biometricAuth.authenticate()
                                 }
                                 fetchUserData(firebaseUser.uid) { user ->
+                                    Log.d("LoginScreen", "User data fetched: ${user?.firstName}")
                                     firstName.value = user?.firstName
                                     onLoginSuccess(firebaseUser.uid, user?.firstName)
                                 }
                             }
                         } else {
-                            message.value = "Login Failed: ${task.exception?.message}"
+                            message.value = String.format(loginFailedTemplate, task.exception?.message ?: "")
                         }
                     }
             },
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {
-            Text("Login")
+            Text(stringResource(R.string.login_button))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -248,7 +286,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = onSwitch) {
-            Text("Don't have an account? Register here")
+            Text(stringResource(R.string.dont_have_account))
         }
     }
 }

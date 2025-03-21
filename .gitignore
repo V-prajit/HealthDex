@@ -7,5 +7,8 @@ PHMS-Android/app/google-services.json
 PHMS-Backend/src/main/resources/serviceAccountKey.json
 PHMS-Backend/data.db
 /Supporting/venv
+.vscode/settings.json
+/PHMS-Backend/bin
+/Supporting/venv
 /PHMS-Backend/bin
 /.vscode
