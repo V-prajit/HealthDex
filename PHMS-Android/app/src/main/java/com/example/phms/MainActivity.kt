@@ -41,13 +41,15 @@ class MainActivity : FragmentActivity() {
                 var showSettings by remember { mutableStateOf(false) }
 
                 if (showSettings) {
-                    SettingScreen(onBackClick = { showSettings = false })            val biometricAuth = BiometricAuth(this@MainActivity) { success ->
+                    SettingScreen(onBackClick = { showSettings = false })
+                }
+                val biometricAuth = BiometricAuth(this@MainActivity) { success ->
                 if (success) {
                     isLoggedIn = true
                     firstName = auth.currentUser?.displayName
                 }
             }
-                } else if (isLoggedIn) {
+                if (isLoggedIn) {
                     HomeScreen(
                         firstName = firstName ?: "No_Name",
                         onSettingsClick = { showSettings = true }
