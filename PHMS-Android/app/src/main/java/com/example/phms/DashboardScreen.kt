@@ -44,3 +44,7 @@ fun DashboardScreen(
         }
     }
 }
+@Composable
+fun NotesScreen(modifier: Modifier = Modifier) {
+    NotesFullApp()
+}
