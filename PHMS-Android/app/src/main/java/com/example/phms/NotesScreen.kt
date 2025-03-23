@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,6 +44,12 @@ fun NotesFullApp() {
                     selectedNoteIndex = null
                     noteContent = ""
                     currentScreen = "edit"
+                },
+                onNoteDelete = { index ->
+                    val mutableNotes = notes.toMutableList()
+                    mutableNotes.removeAt(index)
+                    notes = mutableNotes
+                    NotesRepository.saveNotes(context, notes)
                 }
             )
         }
@@ -81,7 +88,8 @@ fun NotesFullApp() {
 fun NotesFullListScreen(
     notes: List<String>,
     onNoteClick: (Int, String) -> Unit,
-    onNewNoteClick: () -> Unit
+    onNewNoteClick: () -> Unit,
+    onNoteDelete: (Int) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -108,6 +116,10 @@ fun NotesFullListScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 itemsIndexed(notes) { index, note ->
+                    var expanded by remember { mutableStateOf(false) }
+                    val parts = note.split("\n", limit = 2)
+                    val noteTitle = parts.getOrElse(0) { "" }
+                    val noteSummary = parts.getOrElse(1) { "" }
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -117,10 +129,42 @@ fun NotesFullListScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
+                                .padding(8.dp)
                         ) {
-                            Text(text = note)
+                            Column {
+                                Text(text = noteTitle, style = MaterialTheme.typography.titleMedium)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .background(Color.LightGray),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = noteSummary, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                            IconButton(
+                                onClick = { expanded = true },
+                                modifier = Modifier.align(Alignment.TopEnd)
+                            ) {
+                                Icon(Icons.Default.MoreVert, contentDescription = null)
+                            }
+                            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                                DropdownMenuItem(
+                                    text = { Text("Rename") },
+                                    onClick = {
+                                        onNoteClick(index, note)
+                                        expanded = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        onNoteDelete(index)
+                                        expanded = false
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -129,7 +173,9 @@ fun NotesFullListScreen(
         // a action button to create a new note.
         FloatingActionButton(
             onClick = onNewNoteClick,
-            modifier = Modifier.align(Alignment.BottomEnd)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 64.dp)  // minimal change to lift it above the nav bar
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add Note")
         }
@@ -144,6 +190,13 @@ fun NotesFullEditScreen(
     onSaveAs: (String) -> Unit,
     onCancel: () -> Unit
 ) {
+    var fileName by remember { mutableStateOf("") }
+    var fileBody by remember { mutableStateOf("") }
+    LaunchedEffect(noteContent) {
+        val lines = noteContent.split("\n", limit = 2)
+        fileName = lines.getOrElse(0) { "" }
+        fileBody = lines.getOrElse(1) { "" }
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         SimpleAppBar(title = "Edit Note", onBackClick = onCancel)
         // Main editing area.
@@ -153,9 +206,24 @@ fun NotesFullEditScreen(
                 .padding(16.dp)
         ) {
             OutlinedTextField(
-                value = noteContent,
-                onValueChange = onContentChange,
-                label = { Text("Note Content") },
+                value = fileName,
+                onValueChange = {
+                    fileName = it
+                    onContentChange(fileName + "\n" + fileBody)
+                },
+                label = { Text("File Name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = fileBody,
+                onValueChange = {
+                    fileBody = it
+                    onContentChange(fileName + "\n" + fileBody)
+                },
+                label = { Text("File Content") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp),
@@ -167,10 +235,10 @@ fun NotesFullEditScreen(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Button(onClick = { onSave(noteContent) }) {
+                Button(onClick = { onSave(fileName + "\n" + fileBody) }) {
                     Text("Save")
                 }
-                Button(onClick = { onSaveAs(noteContent) }) {
+                Button(onClick = { onSaveAs(fileName + "\n" + fileBody) }) {
                     Text("Save As")
                 }
             }
@@ -182,6 +250,8 @@ fun NotesFullEditScreen(
 fun SimpleAppBar(title: String, onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
+            // minimal addition below so the back arrow is visible and clickable
+            .padding(top = 24.dp)
             .fillMaxWidth()
             .height(56.dp)
             .background(MaterialTheme.colorScheme.primaryContainer)
