@@ -50,11 +50,12 @@ class MainActivity : FragmentActivity() {
                 }
             }
                 if (isLoggedIn) {
-                    HomeScreen(
-                        firstName = firstName ?: "No_Name",
+                    DashboardScreen(
+                        firstName = firstName,
                         onSettingsClick = { showSettings = true }
                     )
-                } else {
+                }
+                else {
                     AuthScreen(
                         auth = auth, biometricAuth,
                         onLoginSuccess =  { token, name ->
