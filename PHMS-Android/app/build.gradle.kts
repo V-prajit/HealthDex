@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation ("androidx.compose.material:material:<version>")
+
     implementation(libs.firebase.auth)
     implementation(libs.androidx.appcompat)
     implementation ("androidx.biometric:biometric-ktx:1.2.0-alpha05")
