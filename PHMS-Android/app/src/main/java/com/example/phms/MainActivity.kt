@@ -40,6 +40,13 @@ class MainActivity : FragmentActivity() {
                 var firstName by remember { mutableStateOf<String?>(null) }
                 var showSettings by remember { mutableStateOf(false) }
 
+                val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
+                    if (success) {
+                        isLoggedIn = true
+                        firstName = name
+                    }
+                }
+
                 LaunchedEffect(Unit) {
                     val currentUser = auth.currentUser
                     if (currentUser != null){
@@ -52,41 +59,49 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
-                if (showSettings) {
-                    SettingScreen(
-                        onBackClick = { showSettings = false },
-                        onLogout = {
-                            auth.signOut()
-                            isLoggedIn = false
-                            userToken = null
-                            firstName = null
-                            showSettings = false
-                        }
-                    )
-                }
-                val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
-                    if (success) {
-                        isLoggedIn = true
-                        firstName = name
-                    }
-                }
+                Log.d("MainActivity", "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings")
 
-                if (isLoggedIn) {
-                    DashboardScreen(
-                        firstName = firstName,
-                        onSettingsClick = { showSettings = true }
-                    )
-                }
-                else {
-                    AuthScreen(
-                        auth = auth, biometricAuth,
-                        onLoginSuccess =  { token, name ->
-                            isLoggedIn = true
-                            userToken = token
-                            firstName = name
-                        },
-                        onSettingsClick = { showSettings = true }
-                    )
+                when {
+                    showSettings -> {
+                        Log.d("MainActivity", "Showing Settings Screen")
+                        SettingScreen(
+                            onBackClick = {
+                                Log.d("MainActivity", "Settings Back clicked")
+                                showSettings = false
+                            },
+                            onLogout = {
+                                Log.d("MainActivity", "Logout clicked")
+                                auth.signOut()
+                                isLoggedIn = false
+                                userToken = null
+                                firstName = null
+                                showSettings = false
+                            }
+                        )
+                    }
+                    isLoggedIn -> {
+                        Log.d("MainActivity", "Showing Dashboard Screen")
+                        DashboardScreen(
+                            firstName = firstName,
+                            onSettingsClick = {
+                                Log.d("MainActivity", "Settings button clicked")
+                                showSettings = true
+                            }
+                        )
+                    }
+                    else -> {
+                        Log.d("MainActivity", "Showing Auth Screen")
+                        AuthScreen(
+                            auth = auth,
+                            biometricAuth = biometricAuth,
+                            onLoginSuccess = { token, name ->
+                                isLoggedIn = true
+                                userToken = token
+                                firstName = name
+                            },
+                            onSettingsClick = { showSettings = true }
+                        )
+                    }
                 }
             }
         }
@@ -94,7 +109,12 @@ class MainActivity : FragmentActivity() {
 }
 
 @Composable
-fun AuthScreen(auth: FirebaseAuth, biometricAuth: BiometricAuth, onLoginSuccess: (String, String?) -> Unit, onSettingsClick: () -> Unit) {
+fun AuthScreen(
+    auth: FirebaseAuth,
+    biometricAuth: BiometricAuth,
+    onLoginSuccess: (String, String?) -> Unit,
+    onSettingsClick: () -> Unit
+) {
     var isRegistering by remember { mutableStateOf(true) }
     var userToken by remember { mutableStateOf<String?>(null) }
     var showUserDetailsScreen by remember { mutableStateOf(false) }

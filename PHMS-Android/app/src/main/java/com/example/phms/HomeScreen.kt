@@ -1,5 +1,6 @@
 package com.example.phms
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -20,8 +21,18 @@ fun HomeScreen(firstName: String?,  onSettingsClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            IconButton(onClick = onSettingsClick) {
-                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+            Button(  // Changed from IconButton to Button for better visibility
+                onClick = {
+                    Log.d("HomeScreen", "Settings button clicked")
+                    onSettingsClick()
+                }
+            ) {
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.settings),
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Text("Settings")  // Added text for clarity
             }
         }
 
@@ -31,12 +42,12 @@ fun HomeScreen(firstName: String?,  onSettingsClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             Text(
                 text = if (firstName.isNullOrEmpty())
-                        stringResource(R.string.welcome)
-                    else
-                        stringResource(R.string.hello_user, firstName),
+                    stringResource(R.string.welcome)
+                else
+                    stringResource(R.string.hello_user, firstName),
                 style = MaterialTheme.typography.headlineLarge
             )
         }

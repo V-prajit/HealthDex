@@ -1,5 +1,6 @@
 package com.example.phms
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -29,21 +30,34 @@ fun DashboardScreen(
                 NavigationBarItem(
                     selected = selectedTab == "notes",
                     onClick = { selectedTab = "notes" },
-                    icon = { Icon(Icons.Filled.Note, contentDescription = "Notes") },
+                    icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
                     label = { Text("Notes") }
                 )
             }
         }
     ) { innerPadding ->
         when (selectedTab) {
-            "home" -> HomeScreen(
-                firstName = firstName,
-                onSettingsClick = onSettingsClick
-            )
-            "notes" -> NotesScreen(
-                modifier = Modifier.padding(innerPadding),
-                onSettingsClick = onSettingsClick
-            )
+            "home" -> {
+                Log.d("DashboardScreen", "Showing HomeScreen")
+                HomeScreen(
+                    firstName = firstName,
+                    onSettingsClick = {
+                        Log.d("DashboardScreen", "HomeScreen settings clicked")
+                        onSettingsClick()
+                    }
+                )
+            }
+
+            "notes" -> {
+                Log.d("DashboardScreen", "Showing NotesScreen")
+                NotesScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    onSettingsClick = {
+                        Log.d("DashboardScreen", "NotesScreen settings clicked")
+                        onSettingsClick()
+                    }
+                )
+            }
         }
     }
 }
