@@ -29,7 +29,7 @@ fun DashboardScreen(
                 NavigationBarItem(
                     selected = selectedTab == "notes",
                     onClick = { selectedTab = "notes" },
-                    icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
+                    icon = { Icon(Icons.Filled.Note, contentDescription = "Notes") },
                     label = { Text("Notes") }
                 )
             }
@@ -40,11 +40,14 @@ fun DashboardScreen(
                 firstName = firstName,
                 onSettingsClick = onSettingsClick
             )
-            "notes" -> NotesScreen(modifier = Modifier.padding(innerPadding))
+            "notes" -> NotesScreen(
+                modifier = Modifier.padding(innerPadding),
+                onSettingsClick = onSettingsClick
+            )
         }
     }
 }
 @Composable
-fun NotesScreen(modifier: Modifier = Modifier) {
-    NotesFullApp()
+fun NotesScreen(modifier: Modifier = Modifier, onSettingsClick: () -> Unit = {}) {
+    NotesFullApp(onSettingsClick = onSettingsClick)
 }

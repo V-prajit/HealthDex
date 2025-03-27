@@ -21,7 +21,7 @@ import android.app.Activity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen(onBackClick: () -> Unit) {
+fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
     val currentLanguageCode = remember { LocaleHelper.getCurrentLanguageCode(context) }
@@ -51,6 +51,17 @@ fun SettingScreen(onBackClick: () -> Unit) {
                     Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
                 },
                 modifier = Modifier.clickable { showLanguageDialog = true }
+            )
+
+            Divider()
+
+            ListItem(
+                headlineContent = { Text("Logout") },
+                supportingContent = { Text("Sign out of your account") },
+                trailingContent = {
+                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                },
+                modifier = Modifier.clickable { onLogout() }
             )
 
             Divider()

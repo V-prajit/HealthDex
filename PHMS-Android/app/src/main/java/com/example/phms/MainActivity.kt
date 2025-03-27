@@ -40,15 +40,37 @@ class MainActivity : FragmentActivity() {
                 var firstName by remember { mutableStateOf<String?>(null) }
                 var showSettings by remember { mutableStateOf(false) }
 
+                LaunchedEffect(Unit) {
+                    val currentUser = auth.currentUser
+                    if (currentUser != null){
+                        userToken = currentUser.uid
+
+                        fetchUserData(currentUser.uid){ userData ->
+                            firstName = userData?.firstName
+                            isLoggedIn = true
+                        }
+                    }
+                }
+
                 if (showSettings) {
-                    SettingScreen(onBackClick = { showSettings = false })
+                    SettingScreen(
+                        onBackClick = { showSettings = false },
+                        onLogout = {
+                            auth.signOut()
+                            isLoggedIn = false
+                            userToken = null
+                            firstName = null
+                            showSettings = false
+                        }
+                    )
                 }
-                val biometricAuth = BiometricAuth(this@MainActivity) { success ->
-                if (success) {
-                    isLoggedIn = true
-                    firstName = auth.currentUser?.displayName
+                val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
+                    if (success) {
+                        isLoggedIn = true
+                        firstName = name
+                    }
                 }
-            }
+
                 if (isLoggedIn) {
                     DashboardScreen(
                         firstName = firstName,
@@ -259,6 +281,7 @@ fun LoginScreen(
                                 fetchUserData(firebaseUser.uid) { user ->
                                     Log.d("LoginScreen", "User data fetched: ${user?.firstName}")
                                     firstName.value = user?.firstName
+                                    Log.d("LoginScreen", "First name set to: ${firstName.value}")
                                     onLoginSuccess(firebaseUser.uid, user?.firstName)
                                 }
                             }
