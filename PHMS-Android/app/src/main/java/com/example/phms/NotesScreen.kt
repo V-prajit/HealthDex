@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun NotesFullApp() {
+fun NotesFullApp(onSettingsClick: () -> Unit = {}) {
     val context = LocalContext.current
     var notes by remember { mutableStateOf(listOf<String>()) }
     LaunchedEffect(Unit) {
@@ -57,9 +57,7 @@ fun NotesFullApp() {
                     NotesRepository.saveNotes(context, notes)
                     // deletes note, removes it from the list and saves the updated list
                 },
-                onSettingsClick = {
-                    // TODO: integrate langauge change option successfully
-                }
+                onSettingsClick = onSettingsClick
             )
         }
         "edit" -> {

@@ -9,7 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import java.util.concurrent.Executor
 import androidx.core.content.ContextCompat
 
-class BiometricAuth(private val context: Context, private val authCallback: (Boolean) -> Unit) {
+class BiometricAuth(private val context: Context, private val authCallback: (Boolean, String?) -> Unit) {
     private val authentication = FirebaseAuth.getInstance() //gets the current user logged into firebase
     private var cancellationSignal: CancellationSignal? = null //lets user cancel bio authentication
     private val executor: Executor = ContextCompat.getMainExecutor(context)
@@ -72,11 +72,14 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
             if (user != null) {
                 Toast.makeText(context, "Biometric Authentication Successful!", Toast.LENGTH_SHORT).show()
                 Toast.makeText(context, "Welcome : ${user.email}", Toast.LENGTH_SHORT).show()
-                authCallback(true)
+                //Send the username from biometric auth as well
+                fetchUserData(user.uid){ userData ->
+                    authCallback(true, userData?.firstName)
+                }
                 //if user found
             } else {
                 Toast.makeText(context, "User not found on firebase!", Toast.LENGTH_SHORT).show()
-                authCallback(false)
+                authCallback(false, null)
             }
         }
         /**
@@ -86,14 +89,14 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
         override fun onAuthenticationFailed() {
             super.onAuthenticationFailed()
             Toast.makeText(context, "Biometric Authentication Failed", Toast.LENGTH_SHORT).show()
-            authCallback(false)
+            authCallback(false, null)
             //authentication failed case, displays appropraite message
         }
 
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
             Toast.makeText(context, "Authentication Error: $errString", Toast.LENGTH_SHORT).show()
-            authCallback(false)
+            authCallback(false, null)
         }
     }
 
