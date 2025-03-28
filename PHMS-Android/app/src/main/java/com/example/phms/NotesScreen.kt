@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -108,14 +109,14 @@ fun NotesListScreen(
         topBar = {
             // upper bar that to display the title and action icons.
             TopAppBar(
-                title = { Text("Notes", style = MaterialTheme.typography.headlineLarge) },
+                title = { Text(stringResource(R.string.notes), style = MaterialTheme.typography.headlineLarge) },
                 actions = {
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
                     // Toggle between list and grid view
                     TextButton(onClick = { isListLayout = !isListLayout }) {
-                        Text(text = if (isListLayout) "Switch to Grid" else "Switch to List")
+                        Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
                     }
                 }
             )
@@ -123,7 +124,7 @@ fun NotesListScreen(
         floatingActionButton = {
             //a floating button to create a nw note
             FloatingActionButton(onClick = onNewNoteClick) {
-                Icon(Icons.Default.Add, contentDescription = "Add Note")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
             }
         }
     ) { padding ->
@@ -166,14 +167,14 @@ fun NotesListScreen(
                                 onDismissRequest = { expanded = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Rename") },
+                                    text = { Text(stringResource(R.string.rename)) },
                                     onClick = {
                                         onNoteClick(index, note)
                                         expanded = false
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Delete") },
+                                    text = { Text(stringResource(R.string.delete)) },
                                     onClick = {
                                         onNoteDelete(index)
                                         expanded = false
@@ -232,14 +233,14 @@ fun NotesListScreen(
                                 onDismissRequest = { expanded = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Rename") },
+                                    text = { Text(stringResource(R.string.rename)) },
                                     onClick = {
                                         onNoteClick(index, note)
                                         expanded = false
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Delete") },
+                                    text = { Text(stringResource(R.string.delete)) },
                                     onClick = {
                                         onNoteDelete(index)
                                         expanded = false
@@ -268,6 +269,7 @@ fun NotesEditScreen(
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+    val duplicateNoteMessage = stringResource(R.string.duplicate_note_title)
 
     // system picker to insert an image
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -299,10 +301,10 @@ fun NotesEditScreen(
         //top bar with back arrow
         topBar = {
             TopAppBar(
-                title = { Text("Edit Note", style = MaterialTheme.typography.headlineLarge) },
+                title = { Text(stringResource(R.string.edit_note), style = MaterialTheme.typography.headlineLarge) },
                 navigationIcon = {
                     IconButton(onClick = onCancel) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -321,7 +323,7 @@ fun NotesEditScreen(
                     errorMessage = ""
                     onContentChange("$fileName\n$fileBody")
                 },
-                label = { Text("File Name") },
+                label = { Text(stringResource(R.string.file_name)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -332,7 +334,7 @@ fun NotesEditScreen(
                     fileBody = it
                     onContentChange("$fileName\n$fileBody")
                 },
-                label = { Text("File Content") },
+                label = { Text(stringResource(R.string.file_content)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
@@ -346,13 +348,13 @@ fun NotesEditScreen(
                     // Launch system picker to select an image
                     imagePickerLauncher.launch("image/*")
                 }) {
-                    Text("Insert Image")
+                    Text(stringResource(R.string.insert_image))
                 }
                 Button(onClick = {
                     // Launch system picker to select a video
                     videoPickerLauncher.launch("video/*")
                 }) {
-                    Text("Insert Video")
+                    Text(stringResource(R.string.insert_video))
                 }
             }
             if (errorMessage.isNotEmpty()) {
@@ -364,22 +366,22 @@ fun NotesEditScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(onClick = {
                     if (fileName in existingNoteNames && fileName != originalFileName) {
-                        errorMessage = "A note with this title already exists. Please choose a different title."
+                        errorMessage = duplicateNoteMessage
                     } else {
                         onSave("$fileName\n$fileBody")
                     }
                 }) {
-                    Text("Save")
+                    Text(stringResource(R.string.save))
                 }
                 Button(onClick = {
                     // Save As always creates a new note
                     if (fileName in existingNoteNames && fileName != originalFileName) {
-                        errorMessage = "A note with this title already exists. Please choose a different title."
+                        errorMessage = duplicateNoteMessage
                     } else {
                         onSaveAs("$fileName\n$fileBody")
                     }
                 }) {
-                    Text("Save As")
+                    Text(stringResource(R.string.save_as))
                 }
             }
         }

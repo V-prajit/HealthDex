@@ -1,40 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App Name -->
+    <!-- Auto-translated with LibreTranslate - Spanish -->
     <string name="app_name">PHMS</string>
-    
-    <!-- Authentication screens -->
     <string name="login">Iniciar sesión</string>
-    <string name="register">Registrarse</string>
+    <string name="register">Registro</string>
     <string name="email">Correo electrónico:</string>
     <string name="password">Contraseña</string>
     <string name="login_button">Iniciar sesión</string>
-    <string name="register_button">Registrarse</string>
-    <string name="already_have_account">¿Ya tienes una cuenta? Inicia sesión aquí</string>
+    <string name="register_button">Registro</string>
+    <string name="already_have_account">¿Ya tienes una cuenta? Login aquí</string>
     <string name="dont_have_account">¿No tienes una cuenta? Regístrate aquí</string>
-    <string name="error_empty_fields">El correo electrónico y la contraseña no pueden estar vacíos</string>
-    
-    <!-- User details screen -->
+    <string name="error_empty_fields">Correo electrónico y contraseña no pueden estar vacías</string>
+    <string name="enable_biometric">Activación biométrica</string>
     <string name="user_details">Detalles del usuario</string>
     <string name="first_name">Nombre</string>
     <string name="last_name">Apellido</string>
     <string name="age">Edad</string>
     <string name="height">Altura (cm)</string>
     <string name="weight">Peso (kg)</string>
-    <string name="submit">Enviar</string>
-    <string name="details_saved">¡Datos del usuario guardados con éxito!</string>
-    
-    <!-- Home screen -->
+    <string name="submit">Submit</string>
+    <string name="details_saved">Detalles de usuario guardados con éxito!</string>
     <string name="welcome">¡Bienvenido!</string>
     <string name="hello_user">¡Hola, %1$s!</string>
-    
-    <!-- Settings screen -->
-    <string name="settings">Configuración</string>
+    <string name="settings">Ajustes</string>
     <string name="language">Idioma</string>
     <string name="select_language">Seleccionar idioma</string>
     <string name="cancel">Cancelar</string>
-    
-    <!-- Error messages -->
-    <string name="login_failed">Error de inicio de sesión: %1$s</string>
+    <string name="back">Atrás</string>
+    <string name="login_failed">Login Failed: %1$s</string>
     <string name="registration_failed">Error: %1$s</string>
-    <string name="empty_token">Token vacío</string>
+    <string name="empty_token">Token vacía</string>
+    <string name="biometric_authentication">Autenticación biométrica</string>
+    <string name="biometric_cancelled">Autenticación biométrica Cancelada. ¡Por favor, mira de nuevo!</string>
+    <string name="no_biometrics_enrolled">No hay biometría inscrita. Compruebe la configuración.</string>
+    <string name="device_no_biometrics">El dispositivo no soporta biometría.</string>
+    <string name="biometric_unavailable">Herraje biométrico no disponible. Inténtalo de nuevo más tarde.</string>
+    <string name="biometric_update_required">Actualización necesaria para habilitar biometría.</string>
+    <string name="biometric_success">Autenticación biométrica exitosa!</string>
+    <string name="user_not_found">¡Usuario no encontrado en la base de fuego!</string>
+    <string name="biometric_failed">Autenticación biométrica fallecida</string>
+    <string name="insert_image">Insertar imagen</string>
+    <string name="insert_video">Insertar vídeo</string>
+    <string name="save">Guardar</string>
+    <string name="save_as">Guardar como</string>
+    <string name="edit_note">Editar la nota</string>
+    <string name="file_name">Nombre del archivo</string>
+    <string name="file_content">Contenido de archivo</string>
+    <string name="duplicate_note_title">Una nota con este título ya existe. Por favor, elija un título diferente.</string>
+    <string name="switch_to_grid">Cambiar a Grid</string>
+    <string name="switch_to_list">Cambiar a la lista</string>
+    <string name="rename">Rename</string>
+    <string name="delete">Suprimir</string>
+    <string name="notes">Notas</string>
+    <string name="add_note">Nota</string>
+    <string name="biometric_login">Biometric Login</string>
+    <string name="biometric_subtitle">Use reconocimiento facial, huella dactilar u otro acceso biométrico compatible</string>
+    <string name="welcome_user">Bienvenido: %1$s</string>
+    <string name="auth_error">Error de autenticación: %1$s</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="sign_out_description">Suscríbase a su cuenta</string>
+    <string name="home">Inicio</string>
 </resources>
