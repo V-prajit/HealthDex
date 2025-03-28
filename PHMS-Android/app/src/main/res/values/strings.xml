@@ -1,5 +1,4 @@
 <resources>
-
     <!-- App Name -->
     <string name="app_name">PHMS</string>
 
@@ -13,6 +12,7 @@
     <string name="already_have_account">Already have an account? Login here</string>
     <string name="dont_have_account">Don\'t have an account? Register here</string>
     <string name="error_empty_fields">Email and password cannot be empty</string>
+    <string name="enable_biometric">Enable Biometric</string>
 
     <!-- User details screen -->
     <string name="user_details">User Details</string>
@@ -33,9 +33,46 @@
     <string name="language">Language</string>
     <string name="select_language">Select Language</string>
     <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
 
     <!-- Error messages -->
     <string name="login_failed">Login Failed: %1$s</string>
     <string name="registration_failed">Error: %1$s</string>
     <string name="empty_token">Empty token</string>
+
+    <string name="biometric_authentication">Biometric Authentication</string>
+    <string name="biometric_cancelled">Biometric Authentication Cancelled. Please check again!</string>
+    <string name="no_biometrics_enrolled">No biometrics enrolled. Check settings.</string>
+    <string name="device_no_biometrics">Device doesn\'t support biometrics.</string>
+    <string name="biometric_unavailable">Biometric hardware unavailable. Try again later.</string>
+    <string name="biometric_update_required">Update required to enable biometrics.</string>
+    <string name="biometric_success">Biometric Authentication Successful!</string>
+    <string name="user_not_found">User not found on firebase!</string>
+    <string name="biometric_failed">Biometric Authentication Failed</string>
+
+    <!-- Notes screen -->
+    <string name="insert_image">Insert Image</string>
+    <string name="insert_video">Insert Video</string>
+    <string name="save">Save</string>
+    <string name="save_as">Save As</string>
+    <string name="edit_note">Edit Note</string>
+    <string name="file_name">File Name</string>
+    <string name="file_content">File Content</string>
+    <string name="duplicate_note_title">A note with this title already exists. Please choose a different title.</string>
+    <string name="switch_to_grid">Switch to Grid</string>
+    <string name="switch_to_list">Switch to List</string>
+    <string name="rename">Rename</string>
+    <string name="delete">Delete</string>
+    <string name="notes">Notes</string>
+    <string name="add_note">Add Note</string>
+    <string name="biometric_login">Biometric Login</string>
+    <string name="biometric_subtitle">Use face recognition, fingerprint or other supported biometric login</string>
+    <string name="welcome_user">Welcome: %1$s</string>
+    <string name="auth_error">Authentication Error: %1$s</string>
+    <!-- Settings screen -->
+    <string name="logout">Logout</string>
+    <string name="sign_out_description">Sign out of your account</string>
+
+    <!-- Dashboard -->
+    <string name="home">Home</string>
 </resources>

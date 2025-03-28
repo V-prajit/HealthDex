@@ -56,8 +56,8 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
             Divider()
 
             ListItem(
-                headlineContent = { Text("Logout") },
-                supportingContent = { Text("Sign out of your account") },
+                headlineContent = { Text(stringResource(R.string.logout)) },
+                supportingContent = { Text(stringResource(R.string.sign_out_description)) },
                 trailingContent = {
                     Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
                 },
