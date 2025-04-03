@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DashboardScreen(
     firstName: String? = null,
+    userToken: String? = null,
     onSettingsClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf("home") }
@@ -51,6 +52,7 @@ fun DashboardScreen(
             "notes" -> {
                 Log.d("DashboardScreen", "Showing NotesScreen")
                 NotesScreen(
+                    userToken = userToken,
                     modifier = Modifier.padding(innerPadding),
                     onSettingsClick = {
                         Log.d("DashboardScreen", "NotesScreen settings clicked")
@@ -62,6 +64,6 @@ fun DashboardScreen(
     }
 }
 @Composable
-fun NotesScreen(modifier: Modifier = Modifier, onSettingsClick: () -> Unit = {}) {
-    NotesFullApp(onSettingsClick = onSettingsClick)
+fun NotesScreen(userToken: String? = null, modifier: Modifier = Modifier, onSettingsClick: () -> Unit = {}) {
+    NotesFullApp(userToken = userToken, onSettingsClick = onSettingsClick)
 }

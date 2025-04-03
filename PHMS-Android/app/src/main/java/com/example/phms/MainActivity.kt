@@ -10,7 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context.MODE_PRIVATE
+import androidx.compose.runtime.Composable as Composable1
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -29,6 +31,11 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
+        val appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        if (!appPrefs.contains("has_launched_before")) {
+            appPrefs.edit().putBoolean("has_launched_before", true).apply()
+            auth.signOut()
+        }
         AppCompatDelegate.setApplicationLocales(
             LocaleListCompat.getEmptyLocaleList()
         )
@@ -48,19 +55,20 @@ class MainActivity : FragmentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    val currentUser = auth.currentUser
-                    if (currentUser != null){
-                        userToken = currentUser.uid
-
-                        fetchUserData(currentUser.uid){ userData ->
-                            firstName = userData?.firstName
-                            isLoggedIn = true
+                    val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                    val biometricEnabled = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
+                    if (!biometricEnabled) {
+                        val currentUser = auth.currentUser
+                        if (currentUser != null) {
+                            userToken = currentUser.uid
+                            fetchUserData(currentUser.uid) { userData ->
+                                firstName = userData?.firstName
+                                isLoggedIn = true
+                            }
                         }
                     }
                 }
-
                 Log.d("MainActivity", "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings")
-
                 when {
                     showSettings -> {
                         Log.d("MainActivity", "Showing Settings Screen")
@@ -83,6 +91,7 @@ class MainActivity : FragmentActivity() {
                         Log.d("MainActivity", "Showing Dashboard Screen")
                         DashboardScreen(
                             firstName = firstName,
+                            userToken = userToken,
                             onSettingsClick = {
                                 Log.d("MainActivity", "Settings button clicked")
                                 showSettings = true
@@ -108,7 +117,7 @@ class MainActivity : FragmentActivity() {
     }
 }
 
-@Composable
+@Composable1
 fun AuthScreen(
     auth: FirebaseAuth,
     biometricAuth: BiometricAuth,
@@ -149,13 +158,13 @@ fun AuthScreen(
     }
 }
 
-@Composable
+@Composable1
 fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSuccess: (String) -> Unit) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
     val enableBiometric = remember { mutableStateOf(false) }
-
+    val context = LocalContext.current
     Column ( modifier = Modifier
         .fillMaxSize()
         .padding(16.dp),
@@ -211,6 +220,9 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
                             val firebaseUser = auth.currentUser
                             if (firebaseUser != null) {
                                 biometricEnabledMap[firebaseUser.uid] = enableBiometric.value
+                                // Persist the biometric flag for later biometric logins
+                                val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                prefs.edit().putBoolean("LAST_USER_BIOMETRIC", enableBiometric.value).apply()
                                 onRegistrationSuccess(firebaseUser.uid)
                             }
                         } else {
@@ -235,7 +247,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
     }
 }
 
-@Composable
+@Composable1
 fun LoginScreen(
     auth: FirebaseAuth,
     biometricAuth: BiometricAuth,
@@ -247,7 +259,7 @@ fun LoginScreen(
     val message = remember { mutableStateOf("") }
     val firstName = remember { mutableStateOf<String?>(null) }
     val errorEmptyFieldsText = stringResource(R.string.error_empty_fields)
-
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -262,7 +274,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = email.value,
             onValueChange = { email.value = it },
-            label = {Text(stringResource(R.string.email))},
+            label = { Text(stringResource(R.string.email)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -272,7 +284,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = {Text(stringResource(R.string.password))},
+            label = { Text(stringResource(R.string.password)) },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -295,14 +307,19 @@ fun LoginScreen(
                             val firebaseUser = auth.currentUser
                             if (firebaseUser != null) {
                                 Log.d("LoginScreen", "Login successful, fetching user data for ${firebaseUser.uid}")
+                                // Save the last user UID and first name for biometric login.
+                                val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                prefs.edit().putString("LAST_USER_UID", firebaseUser.uid)
+                                    .putString("LAST_USER_FIRSTNAME", firstName.value).apply()
                                 if (biometricEnabledMap[firebaseUser.uid] == true) {
                                     biometricAuth.authenticate()
-                                }
-                                fetchUserData(firebaseUser.uid) { user ->
-                                    Log.d("LoginScreen", "User data fetched: ${user?.firstName}")
-                                    firstName.value = user?.firstName
-                                    Log.d("LoginScreen", "First name set to: ${firstName.value}")
-                                    onLoginSuccess(firebaseUser.uid, user?.firstName)
+                                } else {
+                                    fetchUserData(firebaseUser.uid) { user ->
+                                        Log.d("LoginScreen", "User data fetched: ${user?.firstName}")
+                                        firstName.value = user?.firstName
+                                        Log.d("LoginScreen", "First name set to: ${firstName.value}")
+                                        onLoginSuccess(firebaseUser.uid, user?.firstName)
+                                    }
                                 }
                             }
                         } else {
@@ -318,7 +335,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                biometricAuth.authenticateBiometric()
+                biometricAuth.authenticate()
             },
             modifier = Modifier.fillMaxWidth(0.6f)
         ) {

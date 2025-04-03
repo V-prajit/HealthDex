@@ -1,3 +1,4 @@
+// Routing.kt
 package com.example
 
 import com.example.dao.User
@@ -54,6 +55,25 @@ fun Application.configureRouting() {
                 }
             }
         }
+        
+        // NEW: Notes endpoints to manage notes through the backend
+        route("/notes") {
+            // GET /notes?userId=<firebaseUid> - fetch notes for a specific user or all notes if no userId provided
+            get {
+                val userId = call.request.queryParameters["userId"]
+                val notes = if (userId != null) {
+                    NotesDAO.getNotesForUser(userId)
+                } else {
+                    NotesDAO.getAllNotes()
+                }
+                call.respond(HttpStatusCode.OK, notes)
+            }
+            // POST /notes - add a new note
+            post {
+                val note = call.receive<NoteDTO>()
+                val addedNote = NotesDAO.addNote(note)
+                call.respond(HttpStatusCode.Created, addedNote)
+            }
+        }
     }
 }
-

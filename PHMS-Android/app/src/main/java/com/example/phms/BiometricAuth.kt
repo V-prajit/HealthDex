@@ -1,18 +1,19 @@
 package com.example.phms
 
 import android.content.Context
-import android.os.CancellationSignal
 import android.widget.Toast
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricManager
 import com.google.firebase.auth.FirebaseAuth
 import java.util.concurrent.Executor
 import androidx.core.content.ContextCompat
+import androidx.core.os.CancellationSignal
 
 class BiometricAuth(private val context: Context, private val authCallback: (Boolean, String?) -> Unit) {
     private val authentication = FirebaseAuth.getInstance() //gets the current user logged into firebase
     private var cancellationSignal: CancellationSignal? = null //lets user cancel bio authentication
     private val executor: Executor = ContextCompat.getMainExecutor(context)
+
     private fun getCancellationSignal(): CancellationSignal {
         cancellationSignal = CancellationSignal()
         cancellationSignal!!.setOnCancelListener {
@@ -22,6 +23,7 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
         }
         return cancellationSignal!!
     }
+
     fun authenticate() {
         val bioManager = BiometricManager.from(context)
         when (bioManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
@@ -45,10 +47,13 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
             }
         }
     }
+
     private fun showBiometricPrompt() {
         val executor = ContextCompat.getMainExecutor(context)
+        // Casting the context to a FragmentActivity (this is required by BiometricPrompt).
         val activity = (context as? androidx.fragment.app.FragmentActivity) ?: return
         val biometricPrompt = BiometricPrompt(activity, executor, biometricCallback)
+        // dialog will appear to the user.
         val promptInformation = BiometricPrompt.PromptInfo.Builder()
             .setTitle(context.getString(R.string.biometric_login))
             .setSubtitle(context.getString(R.string.biometric_subtitle))
@@ -60,16 +65,21 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
     private val biometricCallback = object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
             super.onAuthenticationSucceeded(result)
-            // Retrieve the currently logged-in Firebase user.
-            val user = FirebaseAuth.getInstance().currentUser
-            if (user != null) {
-                Toast.makeText(context, context.getString(R.string.biometric_success), Toast.LENGTH_SHORT).show()
-                Toast.makeText(context, context.getString(R.string.welcome_user, user.email), Toast.LENGTH_SHORT).show()
-                //Send the username from biometric auth as well
-                fetchUserData(user.uid){ userData ->
-                    authCallback(true, userData?.firstName)
+            // Retrieve the last login UID (with bio login enabled) from SharedPreferences,
+            // or use the current Firebase user UID if not found.
+            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val lastUserUid = prefs.getString("LAST_USER_UID", null) ?: FirebaseAuth.getInstance().currentUser?.uid
+            if (lastUserUid != null) {
+                fetchUserData(lastUserUid) { userData ->
+                    if (userData != null) {
+                        Toast.makeText(context, context.getString(R.string.biometric_success), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.welcome_user, userData.firstName), Toast.LENGTH_SHORT).show()
+                        authCallback(true, userData.firstName)
+                    } else {
+                        Toast.makeText(context, context.getString(R.string.user_not_found), Toast.LENGTH_SHORT).show()
+                        authCallback(false, null)
+                    }
                 }
-                //if user found
             } else {
                 Toast.makeText(context, context.getString(R.string.user_not_found), Toast.LENGTH_SHORT).show()
                 authCallback(false, null)
@@ -90,27 +100,6 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
             super.onAuthenticationError(errorCode, errString)
             Toast.makeText(context, context.getString(R.string.auth_error, errString), Toast.LENGTH_SHORT).show()
             authCallback(false, null)
-        }
-    }
-
-    fun authenticateBiometric() {
-        val bioManager = BiometricManager.from(context)
-        when (bioManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
-            BiometricManager.BIOMETRIC_SUCCESS -> {
-                showBiometricPrompt()
-            }
-            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                Toast.makeText(context, context.getString(R.string.no_biometrics_enrolled), Toast.LENGTH_SHORT).show()
-            }
-            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
-                Toast.makeText(context, context.getString(R.string.device_no_biometrics), Toast.LENGTH_SHORT).show()
-            }
-            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-                Toast.makeText(context, context.getString(R.string.biometric_unavailable), Toast.LENGTH_SHORT).show()
-            }
-            BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
-                Toast.makeText(context, context.getString(R.string.biometric_update_required), Toast.LENGTH_SHORT).show()
-            }
         }
     }
 }
