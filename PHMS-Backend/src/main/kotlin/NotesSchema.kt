@@ -25,7 +25,7 @@ data class NoteDTO(
 // for interacting with the notes table
 object NotesDAO {
     fun getNotesForUser(userId: String): List<NoteDTO> = transaction {
-        Notes.select { Notes.userId eq userId }.map {
+        Notes.selectAll().where { Notes.userId eq userId }.map {
             NoteDTO(
                 id = it[Notes.id],
                 userId = it[Notes.userId],
