@@ -19,7 +19,7 @@ object NotesRepository {
 
     fun getNotes(context: Context): MutableList<String> {
         val prefs: SharedPreferences =
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val notesJson = prefs.getString(NOTES_KEY, null)
         return if (notesJson != null) {
             val type = object : TypeToken<MutableList<String>>() {}.type
@@ -31,7 +31,7 @@ object NotesRepository {
 
     fun saveNotes(context: Context, notes: List<String>) {
         val prefs: SharedPreferences =
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val editor = prefs.edit()
         val notesJson = Gson().toJson(notes)
         editor.putString(NOTES_KEY, notesJson)
@@ -55,7 +55,7 @@ interface NotesApi {
 }
 
 object NotesRepositoryBackend {
-    private const val BASE_URL = "https://10.0.2.2:8085/"
+    private const val BASE_URL = "http://10.0.2.2:8085"
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
@@ -67,6 +67,7 @@ object NotesRepositoryBackend {
             val notesDTO = notesApi.getNotes(userId)
             notesDTO.map { "${it.title}\n${it.body}" }
         } catch (e: Exception) {
+            //println("Error fetching notes: ${e.message}")
             emptyList()
         }
     }

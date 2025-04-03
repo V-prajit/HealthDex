@@ -10,6 +10,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) -> Unit ) {
@@ -22,6 +24,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
 
     val user = FirebaseAuth.getInstance().currentUser
     val userEmail = user?.email ?: ""
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -89,7 +92,9 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
 
         Button(
             onClick = {
-                sendUserDataToBackend(userToken, userEmail, firstName.value, lastName.value, age.value, height.value, weight.value) {
+                val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                val biometricEnabled = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
+                sendUserDataToBackend(userToken, userEmail, firstName.value, lastName.value, age.value, height.value, weight.value,biometricEnabled) {
                     message.value = it
 
                     if (userToken != null){

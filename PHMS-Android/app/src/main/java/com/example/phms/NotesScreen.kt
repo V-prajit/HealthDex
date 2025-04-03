@@ -33,13 +33,16 @@ fun NotesFullApp(
     val context = LocalContext.current
     var notes by remember { mutableStateOf(listOf<String>()) }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(userToken) {
+
+    // Load notes only once when the composable is first composed.
+    LaunchedEffect(Unit) {
         notes = if (!userToken.isNullOrEmpty()) {
             NotesRepositoryBackend.getNotes(userToken)
         } else {
             NotesRepository.getNotes(context)
         }
     }
+
     var currentScreen by remember { mutableStateOf("list") }
     var selectedNoteIndex by remember { mutableStateOf<Int?>(null) }
     var noteContent by remember { mutableStateOf("") }
@@ -64,10 +67,16 @@ fun NotesFullApp(
                     val mutableNotes = notes.toMutableList()
                     mutableNotes.removeAt(index)
                     notes = mutableNotes
-                    if (userToken.isNullOrEmpty()) {
+                    if (!userToken.isNullOrEmpty()) {
+                        // Save to backend
+                        scope.launch {
+                            //NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                            notes = NotesRepositoryBackend.getNotes(userToken) // Refresh
+                        }
+                    } else {
                         NotesRepository.saveNotes(context, notes)
                     }
-                    // deletes note, removes it from the list and saves the updated list
+
                 },
                 onSettingsClick = onSettingsClick
             )
@@ -88,6 +97,8 @@ fun NotesFullApp(
                     scope.launch {
                         if (!userToken.isNullOrEmpty()) {
                             NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                            // Reload notes from backend after saving
+                            notes = NotesRepositoryBackend.getNotes(userToken)
                         } else {
                             NotesRepository.saveNotes(context, notes)
                         }
@@ -102,6 +113,8 @@ fun NotesFullApp(
                     scope.launch {
                         if (!userToken.isNullOrEmpty()) {
                             NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                            // Reload notes from backend after saving
+                            notes = NotesRepositoryBackend.getNotes(userToken)
                         } else {
                             NotesRepository.saveNotes(context, notes)
                         }
