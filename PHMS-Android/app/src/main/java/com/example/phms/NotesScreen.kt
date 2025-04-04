@@ -132,7 +132,6 @@ fun NotesFullApp(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesListScreen(
@@ -143,13 +142,13 @@ fun NotesListScreen(
     onSettingsClick: () -> Unit
 ) {
     var isListLayout by remember { mutableStateOf(true) }
-    // New state to toggle sort by tag (extracted as the third line of the note)
-    var sortByTags by remember { mutableStateOf(false) }
-    // Compute the displayed notes based on sort mode.
-    val displayedNotes = if (sortByTags) {
-        notes.sortedBy { it.split("\n").getOrElse(2) { "" } }
-    } else {
+    // toggle sort by tag
+    var selectedSortTag by remember { mutableStateOf("All") }
+    // display notes based on selected tag
+    val displayedNotes = if (selectedSortTag == "All") {
         notes
+    } else {
+        notes.filter { it.split("\n").getOrElse(2) { "" } == selectedSortTag }
     }
     Scaffold(
         topBar = {
@@ -164,140 +163,165 @@ fun NotesListScreen(
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
-                    // Toggle between list and grid view (reverted to old switch option)
+                    // Toggle between list and grid view
                     TextButton(onClick = { isListLayout = !isListLayout }) {
                         Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            // New floating button for toggling sort by tag option.
-            FloatingActionButton(onClick = { sortByTags = !sortByTags }) {
-                Icon(Icons.Default.MoreHoriz, contentDescription = "Sort by Tag")
-            }
         }
     ) { padding ->
-        val modifier = Modifier
+        Column(modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
-            .padding(16.dp)
-
-        if (isListLayout) {
-            LazyColumn(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(padding)) {
+            // sub panel for filtering by tag using a dropdown.
+            val tagOptions = listOf("All", "diet", "medication", "health", "misc")
+            var expandedSortMenu by remember { mutableStateOf(false) }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                itemsIndexed(displayedNotes) { index, note ->
-                    val noteName = note.split("\n").firstOrNull() ?: ""
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNoteClick(index, note) }
-                    ) {
-                        Row(
+                Text(text = "Filter by Tag: $selectedSortTag", style = MaterialTheme.typography.bodyMedium)
+                IconButton(onClick = { expandedSortMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Select tag")
+                }
+                DropdownMenu(
+                    expanded = expandedSortMenu,
+                    onDismissRequest = { expandedSortMenu = false }
+                ) {
+                    tagOptions.forEach { tag ->
+                        DropdownMenuItem(
+                            text = { Text(tag) },
+                            onClick = {
+                                selectedSortTag = tag
+                                expandedSortMenu = false
+                            }
+                        )
+                    }
+                }
+            }
+            val modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+            if (isListLayout) {
+                LazyColumn(
+                    modifier = modifier,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(displayedNotes) { index, note ->
+                        val noteName = note.split("\n").firstOrNull() ?: ""
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .clickable { onNoteClick(index, note) }
                         ) {
-                            Text(
-                                //displays the title of the note
-                                text = noteName,
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f)
-                            )
-                            var expanded by remember { mutableStateOf(false) }
-                            IconButton(onClick = { expanded = true }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = null)
-                            }
-                            //dropdown menu. rename/delete for now. todo- add more options
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.rename)) },
-                                    onClick = {
-                                        onNoteClick(index, note)
-                                        expanded = false
-                                    }
+                                Text(
+                                    //displays the title of the note
+                                    text = noteName,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f)
                                 )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.delete)) },
-                                    onClick = {
-                                        // Delete using the original list index
-                                        onNoteDelete(notes.indexOf(note))
-                                        expanded = false
-                                    }
-                                )
+                                var expanded by remember { mutableStateOf(false) }
+                                IconButton(onClick = { expanded = true }) {
+                                    Icon(Icons.Default.MoreVert, contentDescription = null)
+                                }
+                                //dropdown menu. rename/delete for now. todo- add more options
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.rename)) },
+                                        onClick = {
+                                            onNoteClick(index, note)
+                                            expanded = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.delete)) },
+                                        onClick = {
+                                            // Delete using the original list index
+                                            onNoteDelete(notes.indexOf(note))
+                                            expanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
-        } else {
-            // Display notes in a grid layout.
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                itemsIndexed(displayedNotes) { index, note ->
-                    val parts = note.split("\n", limit = 3)
-                    val noteTitle = parts.getOrElse(0) { "" }
-                    val noteSummary = parts.getOrElse(1) { "" }
-                    // Split the note into two lines: title and summary
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clickable { onNoteClick(index, note) }
-                    ) {
-                        Box(
+            } else {
+                // Display notes in a grid layout.
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = modifier,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(displayedNotes) { index, note ->
+                        val parts = note.split("\n", limit = 3)
+                        val noteTitle = parts.getOrElse(0) { "" }
+                        val noteSummary = parts.getOrElse(1) { "" }
+                        // Split the note into two lines: title and summary
+                        Card(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(8.dp)
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clickable { onNoteClick(index, note) }
                         ) {
-                            Column {
-                                Text(text = noteTitle, style = MaterialTheme.typography.titleMedium)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .size(50.dp)
-                                        .background(Color.LightGray),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(text = noteSummary, style = MaterialTheme.typography.bodySmall)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp)
+                            ) {
+                                Column {
+                                    Text(text = noteTitle, style = MaterialTheme.typography.titleMedium)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .size(50.dp)
+                                            .background(Color.LightGray),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(text = noteSummary, style = MaterialTheme.typography.bodySmall)
+                                    }
                                 }
-                            }
-                            var expanded by remember { mutableStateOf(false) }
-                            IconButton(
-                                onClick = { expanded = true },
-                                modifier = Modifier.align(Alignment.TopEnd)
-                            ) {
-                                Icon(Icons.Default.MoreVert, contentDescription = null)
-                            }
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.rename)) },
-                                    onClick = {
-                                        onNoteClick(index, note)
-                                        expanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.delete)) },
-                                    onClick = {
-                                        // Delete using the original list index
-                                        onNoteDelete(notes.indexOf(note))
-                                        expanded = false
-                                    }
-                                )
+                                var expanded by remember { mutableStateOf(false) }
+                                IconButton(
+                                    onClick = { expanded = true },
+                                    modifier = Modifier.align(Alignment.TopEnd)
+                                ) {
+                                    Icon(Icons.Default.MoreVert, contentDescription = null)
+                                }
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.rename)) },
+                                        onClick = {
+                                            onNoteClick(index, note)
+                                            expanded = false
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.delete)) },
+                                        onClick = {
+                                            // Delete using the original list index
+                                            onNoteDelete(notes.indexOf(note))
+                                            expanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -320,7 +344,7 @@ fun NotesEditScreen(
 ) {
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
-    // New state for the tag field.
+    //  for the tag field.
     var fileTag by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     val duplicateNoteMessage = stringResource(R.string.duplicate_note_title)
@@ -382,19 +406,37 @@ fun NotesEditScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            // New tag field inserted below the file name.
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = fileTag,
-                onValueChange = {
-                    fileTag = it
-                    errorMessage = ""
-                    onContentChange("$fileName\n$fileBody\n$fileTag")
-                },
-                label = { Text("Tag") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            // tag field inserted below the file name.
+            val tagOptions = listOf("diet", "medication", "health", "misc")
+            var expandedTagMenu by remember { mutableStateOf(false) }
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expandedTagMenu = true }
+            ) {
+                OutlinedTextField(
+                    value = fileTag,
+                    onValueChange = { },
+                    label = { Text("Tag") },
+                    singleLine = true,
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                DropdownMenu(
+                    expanded = expandedTagMenu,
+                    onDismissRequest = { expandedTagMenu = false }
+                ) {
+                    tagOptions.forEach { tag ->
+                        DropdownMenuItem(
+                            text = { Text(tag) },
+                            onClick = {
+                                fileTag = tag
+                                onContentChange("$fileName\n$fileBody\n$fileTag")
+                                expandedTagMenu = false
+                            }
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = fileBody,
