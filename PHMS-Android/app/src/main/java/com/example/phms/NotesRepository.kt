@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 object NotesRepository {
     private const val PREFS_NAME = "notes_prefs"
     private const val NOTES_KEY = "notes_key"
+    private const val NOTES_TAGS_KEY = "notes_tags_key"
 
     fun getNotes(context: Context): MutableList<String> {
         val prefs: SharedPreferences =
@@ -37,13 +38,36 @@ object NotesRepository {
         editor.putString(NOTES_KEY, notesJson)
         editor.apply()
     }
+
+    // New methods for tags
+    fun getNotesTags(context: Context): Map<Int, List<String>> {
+        val prefs: SharedPreferences =
+            context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val tagsJson = prefs.getString(NOTES_TAGS_KEY, null)
+        return if (tagsJson != null) {
+            val type = object : TypeToken<Map<Int, List<String>>>() {}.type
+            Gson().fromJson(tagsJson, type)
+        } else {
+            mapOf()
+        }
+    }
+
+    fun saveNotesTags(context: Context, tags: Map<Int, List<String>>) {
+        val prefs: SharedPreferences =
+            context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        val tagsJson = Gson().toJson(tags)
+        editor.putString(NOTES_TAGS_KEY, tagsJson)
+        editor.apply()
+    }
 }
 
 data class NoteDTO(
     val id: Int? = null,
     val userId: String,
     val title: String,
-    val body: String
+    val body: String,
+    val tags: List<String> = emptyList()
 )
 
 interface NotesApi {
@@ -72,12 +96,25 @@ object NotesRepositoryBackend {
         }
     }
 
-    suspend fun saveNote(userId: String, note: String) = withContext(Dispatchers.IO) {
+    suspend fun getNotesWithTags(userId: String): Pair<List<String>, Map<Int, List<String>>> = withContext(Dispatchers.IO) {
+        try {
+            val notesDTO = notesApi.getNotes(userId)
+            val notes = notesDTO.map { "${it.title}\n${it.body}" }
+            val tags = notesDTO.mapIndexed { index, noteDTO ->
+                index to noteDTO.tags
+            }.toMap()
+            Pair(notes, tags)
+        } catch (e: Exception) {
+            Pair(emptyList(), emptyMap())
+        }
+    }
+
+    suspend fun saveNote(userId: String, note: String, tags: List<String> = emptyList()) = withContext(Dispatchers.IO) {
         try {
             val parts = note.split("\n", limit = 2)
             val title = parts.getOrElse(0) { "" }
             val body = parts.getOrElse(1) { "" }
-            val noteDTO = NoteDTO(userId = userId, title = title, body = body)
+            val noteDTO = NoteDTO(userId = userId, title = title, body = body, tags = tags)
             notesApi.addNote(noteDTO)
         } catch (e: Exception) {
         }
