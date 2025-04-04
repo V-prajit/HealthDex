@@ -11,7 +11,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 data class ExposedUser(
     val firstName: String,
     val lastName: String,
-    val age: Int?)
+    val age: Int?,
+    val biometricEnabled: Boolean = false
+    )
 
 class UserService(database: Database) {
     object Users : Table() {
@@ -19,7 +21,7 @@ class UserService(database: Database) {
         val firstName = varchar("first_name", 100)
         val lastName = varchar("last_name", 100)
         val age = integer("age").nullable()
-
+        val biometricEnabled = bool("biometric_enabled").default(false)
         override val primaryKey = PrimaryKey(id)
     }
 
@@ -34,6 +36,7 @@ class UserService(database: Database) {
             it[firstName] = user.firstName
             it[lastName] = user.lastName
             it[age] = user.age
+            it[biometricEnabled] = user.biometricEnabled
         }[Users.id]
     }
 
@@ -41,7 +44,7 @@ class UserService(database: Database) {
         return dbQuery {
             Users.selectAll()
                 .where { Users.id eq id }
-                .map { ExposedUser(it[Users.firstName], it[Users.lastName], it[Users.age]) }
+                .map { ExposedUser(it[Users.firstName], it[Users.lastName], it[Users.age],it[Users.biometricEnabled]) }
                 .singleOrNull()
         }
     }
@@ -52,6 +55,7 @@ class UserService(database: Database) {
                 it[firstName] = user.firstName
                 it[lastName] = user.lastName
                 it[age] = user.age
+                it[biometricEnabled] = user.biometricEnabled
             }
         }
     }

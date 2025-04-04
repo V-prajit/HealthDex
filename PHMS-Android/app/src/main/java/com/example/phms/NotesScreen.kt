@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,15 +23,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @Composable
-fun NotesFullApp(onSettingsClick: () -> Unit = {}) {
+fun NotesFullApp(
+    userToken: String? = null,
+    onSettingsClick: () -> Unit = {}
+) {
     val context = LocalContext.current
     var notes by remember { mutableStateOf(listOf<String>()) }
+    val scope = rememberCoroutineScope()
+
+    // Load notes only once when the composable is first composed.
     LaunchedEffect(Unit) {
-        notes = NotesRepository.getNotes(context)
+        notes = if (!userToken.isNullOrEmpty()) {
+            NotesRepositoryBackend.getNotes(userToken)
+        } else {
+            NotesRepository.getNotes(context)
+        }
     }
-    // decides what screen to display
+
     var currentScreen by remember { mutableStateOf("list") }
     var selectedNoteIndex by remember { mutableStateOf<Int?>(null) }
     var noteContent by remember { mutableStateOf("") }
@@ -55,8 +67,16 @@ fun NotesFullApp(onSettingsClick: () -> Unit = {}) {
                     val mutableNotes = notes.toMutableList()
                     mutableNotes.removeAt(index)
                     notes = mutableNotes
-                    NotesRepository.saveNotes(context, notes)
-                    // deletes note, removes it from the list and saves the updated list
+                    if (!userToken.isNullOrEmpty()) {
+                        // Save to backend
+                        scope.launch {
+                            //NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                            notes = NotesRepositoryBackend.getNotes(userToken) // Refresh
+                        }
+                    } else {
+                        NotesRepository.saveNotes(context, notes)
+                    }
+
                 },
                 onSettingsClick = onSettingsClick
             )
@@ -74,14 +94,32 @@ fun NotesFullApp(onSettingsClick: () -> Unit = {}) {
                     } else {
                         notes = notes + updatedContent
                     }
-                    NotesRepository.saveNotes(context, notes)
-                    currentScreen = "list"
+                    scope.launch {
+                        if (!userToken.isNullOrEmpty()) {
+                            NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                            // Reload notes from backend after saving
+                            notes = NotesRepositoryBackend.getNotes(userToken)
+                        } else {
+                            NotesRepository.saveNotes(context, notes)
+                        }
+                        currentScreen = "list"
+                    }
                 },
                 onSaveAs = { updatedContent ->
                     // save as creates a new note and updates repository
-                    notes = notes + updatedContent
-                    NotesRepository.saveNotes(context, notes)
-                    currentScreen = "list"
+                    val mutableNotes = notes.toMutableList()
+                    mutableNotes.add(updatedContent)
+                    notes = mutableNotes
+                    scope.launch {
+                        if (!userToken.isNullOrEmpty()) {
+                            NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                            // Reload notes from backend after saving
+                            notes = NotesRepositoryBackend.getNotes(userToken)
+                        } else {
+                            NotesRepository.saveNotes(context, notes)
+                        }
+                        currentScreen = "list"
+                    }
                 },
                 onCancel = {
                     // Just go back to the list screen if you change your mind.
@@ -102,7 +140,7 @@ fun NotesListScreen(
     onNoteClick: (Int, String) -> Unit,
     onNewNoteClick: () -> Unit,
     onNoteDelete: (Int) -> Unit,
-    onSettingsClick: () -> Unit  // new parameter added
+    onSettingsClick: () -> Unit
 ) {
     var isListLayout by remember { mutableStateOf(true) }
     Scaffold(
@@ -111,22 +149,20 @@ fun NotesListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.notes), style = MaterialTheme.typography.headlineLarge) },
                 actions = {
+                    // Added note option added up top
+                    IconButton(onClick = onNewNoteClick) {
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
+                    }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
-                    // Toggle between list and grid view
+                    // Toggle between list and grid view (reverted to old switch option)
                     TextButton(onClick = { isListLayout = !isListLayout }) {
                         Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
                     }
                 }
             )
         },
-        floatingActionButton = {
-            //a floating button to create a nw note
-            FloatingActionButton(onClick = onNewNoteClick) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
-            }
-        }
     ) { padding ->
         val modifier = Modifier
             .fillMaxSize()
@@ -339,7 +375,7 @@ fun NotesEditScreen(
                     .fillMaxWidth()
                     .height(200.dp)
             )
-            // new row for media insertion options
+            // new row for media insertion options - only image option kept
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -349,12 +385,6 @@ fun NotesEditScreen(
                     imagePickerLauncher.launch("image/*")
                 }) {
                     Text(stringResource(R.string.insert_image))
-                }
-                Button(onClick = {
-                    // Launch system picker to select a video
-                    videoPickerLauncher.launch("video/*")
-                }) {
-                    Text(stringResource(R.string.insert_video))
                 }
             }
             if (errorMessage.isNotEmpty()) {
