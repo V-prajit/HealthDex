@@ -4,8 +4,8 @@ import android.util.Log
 import com.google.gson.Gson
 import okhttp3.ResponseBody
 import retrofit2.Call
-
 import com.google.gson.annotations.SerializedName
+import com.example.phms.AuthRequest
 
 data class UserDTO(
     @SerializedName("firebaseUid") val firebaseUid: String,
@@ -15,6 +15,7 @@ data class UserDTO(
     @SerializedName("age") val age: Int?,
     @SerializedName("height") val height: Double?,
     @SerializedName("weight") val weight: Double?
+    ,@SerializedName("biometricEnabled") val biometricEnabled: Boolean = false
 )
 
 
@@ -41,7 +42,7 @@ fun sendAuthTokenToBackend(token: String?) {
     })
 }
 
-fun sendUserDataToBackend(firebaseUid: String?, email: String, firstName: String, lastName:String, age: String, height: String, weight: String, callback: (String) -> Unit) {
+fun sendUserDataToBackend(firebaseUid: String?, email: String, firstName: String, lastName:String, age: String, height: String, weight: String,biometricEnabled: Boolean, callback: (String) -> Unit) {
     if (firebaseUid == null) {
         callback("Empty token")
         return
@@ -54,7 +55,8 @@ fun sendUserDataToBackend(firebaseUid: String?, email: String, firstName: String
         email = email,
         age = age.toIntOrNull(),
         height = height.toDoubleOrNull(),
-        weight = weight.toDoubleOrNull()
+        weight = weight.toDoubleOrNull(),
+        biometricEnabled = biometricEnabled
     )
 
     RetrofitClient.apiService.sendUserData(request).enqueue(object : retrofit2.Callback<ResponseBody> {

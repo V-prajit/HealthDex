@@ -18,7 +18,8 @@ data class UserDataRequest(
     val email: String,
     val age: Int?,
     val height: Double?,
-    val weight: Double?
+    val weight: Double?,
+    val biometricEnabled: Boolean
 )
 
 interface ApiService {

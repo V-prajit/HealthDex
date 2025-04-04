@@ -12,3 +12,4 @@ PHMS-Backend/data.db
 /Supporting/venv
 /PHMS-Backend/bin
 /.vscode
+/PHMS-Android/app/.idea

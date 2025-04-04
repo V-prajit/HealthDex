@@ -17,6 +17,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import android.app.Activity
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +32,10 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
     }
 
     val scope = rememberCoroutineScope()
+    val prefs = context.getSharedPreferences("user_prefs",  Context.MODE_PRIVATE)
+    var biometricEnabled by remember {
+        mutableStateOf(prefs.getBoolean("LAST_USER_BIOMETRIC", false))
+    }
 
     Scaffold(
         topBar = {
@@ -54,6 +60,20 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
             )
 
             Divider()
+            ListItem(
+                headlineContent = { Text("Enable Biometric Login") },
+                supportingContent = { Text(if (biometricEnabled) "Enabled" else "Disabled") },
+                trailingContent = {
+                    Switch(
+                        checked = biometricEnabled,
+                        onCheckedChange = { checked ->
+                            biometricEnabled = checked
+                            // Updates shared preferences so that user can use bio auth for future login.
+                            prefs.edit().putBoolean("LAST_USER_BIOMETRIC", checked).apply()
+                        }
+                    )
+                }
+            )
 
             ListItem(
                 headlineContent = { Text(stringResource(R.string.logout)) },

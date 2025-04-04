@@ -13,7 +13,8 @@ data class User(
     val email: String,
     val age: Int?,
     val height: Double?,
-    val weight: Double?
+    val weight: Double?,
+    val biometricEnabled: Boolean
 )
 
 object UserDAO {
@@ -28,6 +29,7 @@ object UserDAO {
                     it[age] = user.age
                     it[height] = user.height
                     it[weight] = user.weight
+                    it[biometricEnabled] = user.biometricEnabled
                 }
             }
             println("Successfully added user: ${user.firstName} ${user.lastName}")
@@ -49,7 +51,8 @@ object UserDAO {
                         it[Users.email],
                         it[Users.age],
                         it[Users.height],
-                        it[Users.weight]
+                        it[Users.weight],
+                        it[Users.biometricEnabled]
                     )
                 }.singleOrNull()
         }
