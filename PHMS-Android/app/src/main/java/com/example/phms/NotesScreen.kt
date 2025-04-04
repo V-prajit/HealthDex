@@ -143,6 +143,14 @@ fun NotesListScreen(
     onSettingsClick: () -> Unit
 ) {
     var isListLayout by remember { mutableStateOf(true) }
+    // New state to toggle sort by tag (extracted as the third line of the note)
+    var sortByTags by remember { mutableStateOf(false) }
+    // Compute the displayed notes based on sort mode.
+    val displayedNotes = if (sortByTags) {
+        notes.sortedBy { it.split("\n").getOrElse(2) { "" } }
+    } else {
+        notes
+    }
     Scaffold(
         topBar = {
             // upper bar that to display the title and action icons.
@@ -163,6 +171,12 @@ fun NotesListScreen(
                 }
             )
         },
+        floatingActionButton = {
+            // New floating button for toggling sort by tag option.
+            FloatingActionButton(onClick = { sortByTags = !sortByTags }) {
+                Icon(Icons.Default.MoreHoriz, contentDescription = "Sort by Tag")
+            }
+        }
     ) { padding ->
         val modifier = Modifier
             .fillMaxSize()
@@ -174,7 +188,7 @@ fun NotesListScreen(
                 modifier = modifier,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                itemsIndexed(notes) { index, note ->
+                itemsIndexed(displayedNotes) { index, note ->
                     val noteName = note.split("\n").firstOrNull() ?: ""
                     Card(
                         modifier = Modifier
@@ -212,7 +226,8 @@ fun NotesListScreen(
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.delete)) },
                                     onClick = {
-                                        onNoteDelete(index)
+                                        // Delete using the original list index
+                                        onNoteDelete(notes.indexOf(note))
                                         expanded = false
                                     }
                                 )
@@ -229,8 +244,8 @@ fun NotesListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                itemsIndexed(notes) { index, note ->
-                    val parts = note.split("\n", limit = 2)
+                itemsIndexed(displayedNotes) { index, note ->
+                    val parts = note.split("\n", limit = 3)
                     val noteTitle = parts.getOrElse(0) { "" }
                     val noteSummary = parts.getOrElse(1) { "" }
                     // Split the note into two lines: title and summary
@@ -278,7 +293,8 @@ fun NotesListScreen(
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.delete)) },
                                     onClick = {
-                                        onNoteDelete(index)
+                                        // Delete using the original list index
+                                        onNoteDelete(notes.indexOf(note))
                                         expanded = false
                                     }
                                 )
@@ -304,6 +320,8 @@ fun NotesEditScreen(
 ) {
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
+    // New state for the tag field.
+    var fileTag by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     val duplicateNoteMessage = stringResource(R.string.duplicate_note_title)
 
@@ -313,25 +331,26 @@ fun NotesEditScreen(
     ) { uri ->
         if (uri != null) {
             fileBody += "\n[Image: $uri]"
-            onContentChange("$fileName\n$fileBody")
+            onContentChange("$fileName\n$fileBody\n$fileTag")
         }
     }
 
-    // system picker for video
+    // system picker for video-removed feature.if ever need functionality just use this functio
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             // video placeholder
             fileBody += "\n[Video: $uri]"
-            onContentChange("$fileName\n$fileBody")
+            onContentChange("$fileName\n$fileBody\n$fileTag")
         }
     }
 
     LaunchedEffect(noteContent) {
-        val lines = noteContent.split("\n", limit = 2)
+        val lines = noteContent.split("\n", limit = 3)
         fileName = lines.getOrElse(0) { "" }
         fileBody = lines.getOrElse(1) { "" }
+        fileTag = lines.getOrElse(2) { "" }
     }
     Scaffold(
         //top bar with back arrow
@@ -357,9 +376,22 @@ fun NotesEditScreen(
                 onValueChange = {
                     fileName = it
                     errorMessage = ""
-                    onContentChange("$fileName\n$fileBody")
+                    onContentChange("$fileName\n$fileBody\n$fileTag")
                 },
                 label = { Text(stringResource(R.string.file_name)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            // New tag field inserted below the file name.
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = fileTag,
+                onValueChange = {
+                    fileTag = it
+                    errorMessage = ""
+                    onContentChange("$fileName\n$fileBody\n$fileTag")
+                },
+                label = { Text("Tag") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -368,7 +400,7 @@ fun NotesEditScreen(
                 value = fileBody,
                 onValueChange = {
                     fileBody = it
-                    onContentChange("$fileName\n$fileBody")
+                    onContentChange("$fileName\n$fileBody\n$fileTag")
                 },
                 label = { Text(stringResource(R.string.file_content)) },
                 modifier = Modifier
@@ -398,7 +430,7 @@ fun NotesEditScreen(
                     if (fileName in existingNoteNames && fileName != originalFileName) {
                         errorMessage = duplicateNoteMessage
                     } else {
-                        onSave("$fileName\n$fileBody")
+                        onSave("$fileName\n$fileBody\n$fileTag")
                     }
                 }) {
                     Text(stringResource(R.string.save))
@@ -408,7 +440,7 @@ fun NotesEditScreen(
                     if (fileName in existingNoteNames && fileName != originalFileName) {
                         errorMessage = duplicateNoteMessage
                     } else {
-                        onSaveAs("$fileName\n$fileBody")
+                        onSaveAs("$fileName\n$fileBody\n$fileTag")
                     }
                 }) {
                     Text(stringResource(R.string.save_as))
