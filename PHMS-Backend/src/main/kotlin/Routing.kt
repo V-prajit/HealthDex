@@ -72,6 +72,30 @@ fun Application.configureRouting() {
                 val addedNote = NotesDAO.addNote(note)
                 call.respond(HttpStatusCode.Created, addedNote)
             }
+            put {
+            val note = call.receive<NoteDTO>()
+            val updated = NotesDAO.updateNoteById(note)
+            if (updated) {
+                call.respond(HttpStatusCode.OK, note)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Note not found or missing ID")
+            }
+}
+
+delete("{id}") {
+    val id = call.parameters["id"]?.toIntOrNull()
+    if (id == null) {
+        call.respond(HttpStatusCode.BadRequest, "Missing or invalid note ID")
+        return@delete
+    }
+    val deleted = NotesDAO.deleteNoteById(id)
+    if (deleted) {
+        call.respond(HttpStatusCode.OK, "Note deleted")
+    } else {
+        call.respond(HttpStatusCode.NotFound, "Note not found")
+    }
+}
+
         }
         route("/theme") {
             // Update user's dark mode setting.
