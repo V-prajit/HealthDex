@@ -1,3 +1,16 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
+// Get the API key from local.properties with a default value if not found
+val openaiApiKey = localProperties.getProperty("openai.api.key", "")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -26,7 +39,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
+            buildConfigField("String", "OPENAI_API_KEY", "\"${openaiApiKey}\"")        }
+        debug {
+            buildConfigField("String", "OPENAI_API_KEY", "\"${openaiApiKey}\"")        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -37,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -73,4 +89,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("com.google.android.material:material:1.12.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    implementation("org.json:json:20230227")
 }

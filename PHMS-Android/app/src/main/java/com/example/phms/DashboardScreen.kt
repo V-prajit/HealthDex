@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Note
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -33,6 +35,12 @@ fun DashboardScreen(
                     onClick = { selectedTab = "notes" },
                     icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
                     label = { Text("Notes") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == "chat",
+                    onClick = { selectedTab = "chat" },
+                    icon = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
+                    label = { Text(stringResource(R.string.chat)) }
                 )
             }
         }
@@ -60,9 +68,20 @@ fun DashboardScreen(
                     }
                 )
             }
+
+            "chat" -> {
+                Log.d("DashboardScreen", "Showing ChatScreen")
+                ChatScreen(
+                    onBackClick = {
+                        Log.d("DashboardScreen", "Chat back clicked")
+                        selectedTab = "home"
+                    }
+                )
+            }
         }
     }
 }
+
 @Composable
 fun NotesScreen(userToken: String? = null, modifier: Modifier = Modifier, onSettingsClick: () -> Unit = {}) {
     NotesFullApp(userToken = userToken, onSettingsClick = onSettingsClick)

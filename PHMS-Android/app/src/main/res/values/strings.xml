@@ -73,6 +73,15 @@
     <string name="logout">Logout</string>
     <string name="sign_out_description">Sign out of your account</string>
 
+    <!-- Chat screen -->
+    <string name="health_chat">Health Chat</string>
+    <string name="send_message">Send message</string>
+    <string name="type_health_question">Type your health question...</string>
+    <string name="chat_welcome_title">Welcome to Health Chat</string>
+    <string name="chat_welcome_message">Ask me any health-related questions, and I\'ll provide helpful information. Remember, I\'m not a substitute for professional medical advice.</string>
+    <string name="chat">Chat</string>
+
+
     <!-- Dashboard -->
     <string name="home">Home</string>
 </resources>
