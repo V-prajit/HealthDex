@@ -1,3 +1,4 @@
+// SettingScreen.kt
 package com.example.phms
 
 import androidx.compose.foundation.clickable
@@ -20,7 +21,6 @@ import android.app.Activity
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
@@ -35,6 +35,10 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
     val prefs = context.getSharedPreferences("user_prefs",  Context.MODE_PRIVATE)
     var biometricEnabled by remember {
         mutableStateOf(prefs.getBoolean("LAST_USER_BIOMETRIC", false))
+    }
+    // Dark mode preference aded
+    var darkModeEnabled by remember {
+        mutableStateOf(prefs.getBoolean("DARK_MODE", false))
     }
 
     Scaffold(
@@ -70,11 +74,30 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                             biometricEnabled = checked
                             // Updates shared preferences so that user can use bio auth for future login.
                             prefs.edit().putBoolean("LAST_USER_BIOMETRIC", checked).apply()
+                            (context as? Activity)?.recreate()
                         }
                     )
                 }
             )
 
+            Divider()
+            // this is a dark mode toggle setting.
+            ListItem(
+                headlineContent = { Text("Enable Dark Mode") },
+                supportingContent = { Text(if (darkModeEnabled) "Enabled" else "Disabled") },
+                trailingContent = {
+                    Switch(
+                        checked = darkModeEnabled,
+                        onCheckedChange = { checked ->
+                            darkModeEnabled = checked
+                            prefs.edit().putBoolean("DARK_MODE", checked).apply()
+                            (context as? Activity)?.recreate()
+                        }
+                    )
+                }
+            )
+
+            Divider()
             ListItem(
                 headlineContent = { Text(stringResource(R.string.logout)) },
                 supportingContent = { Text(stringResource(R.string.sign_out_description)) },

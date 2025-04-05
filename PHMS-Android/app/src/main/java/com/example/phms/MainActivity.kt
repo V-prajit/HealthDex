@@ -41,7 +41,10 @@ class MainActivity : FragmentActivity() {
         )
 
         setContent {
-            PHMSTheme  {
+            val context = LocalContext.current
+            val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
+            var darkModeEnabled by remember { mutableStateOf(prefs.getBoolean("DARK_MODE", false)) }
+            PHMSTheme (darkTheme = darkModeEnabled) {
                 var isLoggedIn by remember { mutableStateOf(false) }
                 var userToken by remember { mutableStateOf<String?>(null) }
                 var firstName by remember { mutableStateOf<String?>(null) }
@@ -124,39 +127,45 @@ fun AuthScreen(
     onLoginSuccess: (String, String?) -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    var isRegistering by remember { mutableStateOf(true) }
-    var userToken by remember { mutableStateOf<String?>(null) }
-    var showUserDetailsScreen by remember { mutableStateOf(false) }
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ){
+        var isRegistering by remember { mutableStateOf(true) }
+        var userToken by remember { mutableStateOf<String?>(null) }
+        var showUserDetailsScreen by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            IconButton(onClick = onSettingsClick) {
-                Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
-            }
-        }
-        when {
-            showUserDetailsScreen -> {
-                UserDetailsScreen(userToken) { token, firstName ->
-                    onLoginSuccess(token, firstName)
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = onSettingsClick) {
+                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                 }
             }
-            isRegistering -> {
-                RegisterScreen(auth, onSwitch = { isRegistering = false }) { token ->
-                    userToken = token
-                    showUserDetailsScreen = true
+            when {
+                showUserDetailsScreen -> {
+                    UserDetailsScreen(userToken) { token, firstName ->
+                        onLoginSuccess(token, firstName)
+                    }
                 }
-            }
-            else -> {
-                LoginScreen(auth, biometricAuth, onSwitch = { isRegistering = true }, onLoginSuccess)
+                isRegistering -> {
+                    RegisterScreen(auth, onSwitch = { isRegistering = false }) { token ->
+                        userToken = token
+                        showUserDetailsScreen = true
+                    }
+                }
+                else -> {
+                    LoginScreen(auth, biometricAuth, onSwitch = { isRegistering = true }, onLoginSuccess)
+                }
             }
         }
     }
-}
+    }
+
 
 @Composable1
 fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSuccess: (String) -> Unit) {
