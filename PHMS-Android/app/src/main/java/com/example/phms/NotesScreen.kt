@@ -34,7 +34,7 @@ fun NotesFullApp(
     var notes by remember { mutableStateOf(listOf<String>()) }
     val scope = rememberCoroutineScope()
 
-    // Load notes only once when the composable is first composed.
+    // loads notes only once composable composed
     LaunchedEffect(Unit) {
         notes = if (!userToken.isNullOrEmpty()) {
             NotesRepositoryBackend.getNotes(userToken)
@@ -55,7 +55,7 @@ fun NotesFullApp(
                     selectedNoteIndex = index
                     noteContent = note
                     currentScreen = "edit"
-                    // When a note is clicked, its index is saved and it moves on to edit
+                    // notes index is saved and it moves to edit screedn
                 },
                 onNewNoteClick = {
                     selectedNoteIndex = null
@@ -64,19 +64,19 @@ fun NotesFullApp(
                     //for new note, sice it doesnt already have an index, idx is null
                 },
                 onNoteDelete = { index ->
-                    val mutableNotes = notes.toMutableList()
-                    mutableNotes.removeAt(index)
-                    notes = mutableNotes
                     if (!userToken.isNullOrEmpty()) {
-                        // Save to backend
                         scope.launch {
-                            //NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                            val noteId = notes[index].split("\n").firstOrNull()
+                                ?.split("|")?.getOrNull(0)?.toIntOrNull() ?: (index + 1)
+                            NotesRepositoryBackend.deleteNote(noteId)
                             notes = NotesRepositoryBackend.getNotes(userToken) // Refresh
                         }
                     } else {
+                        val mutableNotes = notes.toMutableList()
+                        mutableNotes.removeAt(index)
+                        notes = mutableNotes
                         NotesRepository.saveNotes(context, notes)
                     }
-
                 },
                 onSettingsClick = onSettingsClick
             )
@@ -91,15 +91,17 @@ fun NotesFullApp(
                         val mutableNotes = notes.toMutableList()
                         mutableNotes[selectedNoteIndex!!] = updatedContent
                         notes = mutableNotes
-                    } else {
+                    }
+                    else {
                         notes = notes + updatedContent
                     }
                     scope.launch {
                         if (!userToken.isNullOrEmpty()) {
                             NotesRepositoryBackend.saveNote(userToken, updatedContent)
-                            // Reload notes from backend after saving
+                            // reloads notes from backend after saving
                             notes = NotesRepositoryBackend.getNotes(userToken)
-                        } else {
+                        }
+                        else {
                             NotesRepository.saveNotes(context, notes)
                         }
                         currentScreen = "list"
@@ -115,23 +117,25 @@ fun NotesFullApp(
                             NotesRepositoryBackend.saveNote(userToken, updatedContent)
                             // Reload notes from backend after saving
                             notes = NotesRepositoryBackend.getNotes(userToken)
-                        } else {
+                        }
+                        else {
                             NotesRepository.saveNotes(context, notes)
                         }
                         currentScreen = "list"
                     }
                 },
                 onCancel = {
-                    // Just go back to the list screen if you change your mind.
+                    // goes back to the list screen
                     currentScreen = "list"
                 },
-                // Pass original file name and list of existing note names for duplicate check.
+                // passed original file name and list of existing note names for duplicate check.
                 originalFileName = noteContent.split("\n").firstOrNull()?.trim() ?: "",
                 existingNoteNames = notes.map { it.split("\n").firstOrNull()?.trim() ?: "" }
             )
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesListScreen(
@@ -152,18 +156,17 @@ fun NotesListScreen(
     }
     Scaffold(
         topBar = {
-            // upper bar that to display the title and action icons.
+            // upper bar that shows/ displays the title and action icons.
             TopAppBar(
                 title = { Text(stringResource(R.string.notes), style = MaterialTheme.typography.headlineLarge) },
                 actions = {
-                    // Added note option added up top
                     IconButton(onClick = onNewNoteClick) {
                         Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
                     }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
-                    // Toggle between list and grid view
+                    // to toggle between list and grid view
                     TextButton(onClick = { isListLayout = !isListLayout }) {
                         Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
                     }
@@ -212,7 +215,9 @@ fun NotesListScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
-                        val noteName = note.split("\n").firstOrNull() ?: ""
+                        val noteName = note.split("\n").firstOrNull()?.let { line ->
+                            if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
+                        } ?: ""
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -234,8 +239,8 @@ fun NotesListScreen(
                                 IconButton(onClick = { expanded = true }) {
                                     Icon(Icons.Default.MoreVert, contentDescription = null)
                                 }
-                                //dropdown menu. rename/delete for now. todo- add more options
                                 DropdownMenu(
+                                    //dropdown menu- reame, delete options for now. todo- add more options
                                     expanded = expanded,
                                     onDismissRequest = { expanded = false }
                                 ) {
@@ -249,8 +254,7 @@ fun NotesListScreen(
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.delete)) },
                                         onClick = {
-                                            // Delete using the original list index
-                                            onNoteDelete(notes.indexOf(note))
+                                            onNoteDelete(index)
                                             expanded = false
                                         }
                                     )
@@ -269,9 +273,11 @@ fun NotesListScreen(
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
                         val parts = note.split("\n", limit = 3)
-                        val noteTitle = parts.getOrElse(0) { "" }
+                        val noteTitle = parts.getOrElse(0) { "" }.let { line ->
+                            if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
+                        }
                         val noteSummary = parts.getOrElse(1) { "" }
-                        // Split the note into two lines: title and summary
+                        // to split the note into two lines: title and summary
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -316,8 +322,7 @@ fun NotesListScreen(
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.delete)) },
                                         onClick = {
-                                            // Delete using the original list index
-                                            onNoteDelete(notes.indexOf(note))
+                                            onNoteDelete(index)
                                             expanded = false
                                         }
                                     )
@@ -344,12 +349,10 @@ fun NotesEditScreen(
 ) {
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
-    //  for the tag field.
     var fileTag by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     val duplicateNoteMessage = stringResource(R.string.duplicate_note_title)
-
-    // system picker to insert an image
+    //for adding images
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -358,26 +361,22 @@ fun NotesEditScreen(
             onContentChange("$fileName\n$fileBody\n$fileTag")
         }
     }
-
-    // system picker for video-removed feature.if ever need functionality just use this functio
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
-            // video placeholder
             fileBody += "\n[Video: $uri]"
             onContentChange("$fileName\n$fileBody\n$fileTag")
         }
     }
-
     LaunchedEffect(noteContent) {
         val lines = noteContent.split("\n", limit = 3)
-        fileName = lines.getOrElse(0) { "" }
+        val firstLine = lines.getOrElse(0) { "" }
+        fileName = if (firstLine.contains("|")) firstLine.split("|").getOrElse(1) { line -> line }.toString() else firstLine
         fileBody = lines.getOrElse(1) { "" }
         fileTag = lines.getOrElse(2) { "" }
     }
     Scaffold(
-        //top bar with back arrow
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.edit_note), style = MaterialTheme.typography.headlineLarge) },
@@ -406,12 +405,12 @@ fun NotesEditScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            // tag field inserted below the file name.
             val tagOptions = listOf("diet", "medication", "health", "misc")
             var expandedTagMenu by remember { mutableStateOf(false) }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expandedTagMenu = true }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expandedTagMenu = true }
             ) {
                 OutlinedTextField(
                     value = fileTag,
@@ -426,6 +425,7 @@ fun NotesEditScreen(
                     onDismissRequest = { expandedTagMenu = false }
                 ) {
                     tagOptions.forEach { tag ->
+                        // Updated for new Compose:
                         DropdownMenuItem(
                             text = { Text(tag) },
                             onClick = {
@@ -449,13 +449,11 @@ fun NotesEditScreen(
                     .fillMaxWidth()
                     .height(200.dp)
             )
-            // new row for media insertion options - only image option kept
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(onClick = {
-                    // Launch system picker to select an image
                     imagePickerLauncher.launch("image/*")
                 }) {
                     Text(stringResource(R.string.insert_image))
@@ -466,7 +464,6 @@ fun NotesEditScreen(
                 Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
             }
             Spacer(modifier = Modifier.height(16.dp))
-            // save or save as options
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(onClick = {
                     if (fileName in existingNoteNames && fileName != originalFileName) {
@@ -478,7 +475,6 @@ fun NotesEditScreen(
                     Text(stringResource(R.string.save))
                 }
                 Button(onClick = {
-                    // Save As always creates a new note
                     if (fileName in existingNoteNames && fileName != originalFileName) {
                         errorMessage = duplicateNoteMessage
                     } else {

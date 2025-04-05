@@ -12,6 +12,8 @@ import retrofit2.http.Body
 import retrofit2.http.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import retrofit2.http.Path
+import retrofit2.http.DELETE
 
 object NotesRepository {
     private const val PREFS_NAME = "notes_prefs"
@@ -52,6 +54,9 @@ interface NotesApi {
 
     @POST("notes")
     suspend fun addNote(@Body note: NoteDTO): NoteDTO
+
+    @DELETE("notes/{id}")
+    suspend fun deleteNote(@Path("id") id: Int): retrofit2.Response<Unit>
 }
 
 object NotesRepositoryBackend {
@@ -65,7 +70,7 @@ object NotesRepositoryBackend {
     suspend fun getNotes(userId: String): List<String> = withContext(Dispatchers.IO) {
         try {
             val notesDTO = notesApi.getNotes(userId)
-            notesDTO.map { "${it.title}\n${it.body}" }
+            notesDTO.map { "${it.id}|${it.title}\n${it.body}" }
         } catch (e: Exception) {
             //println("Error fetching notes: ${e.message}")
             emptyList()
@@ -80,6 +85,15 @@ object NotesRepositoryBackend {
             val noteDTO = NoteDTO(userId = userId, title = title, body = body)
             notesApi.addNote(noteDTO)
         } catch (e: Exception) {
+        }
+    }
+
+    suspend fun deleteNote(id: Int): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val response = notesApi.deleteNote(id)
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
         }
     }
 }
