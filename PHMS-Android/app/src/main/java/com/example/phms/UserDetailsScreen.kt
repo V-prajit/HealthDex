@@ -21,10 +21,30 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
     val height = remember { mutableStateOf("") }
     val weight = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
+    val biometricEnabled = remember { mutableStateOf(false) }
 
     val user = FirebaseAuth.getInstance().currentUser
     val userEmail = user?.email ?: ""
     val context = LocalContext.current
+
+    //loads the existing biometric settings
+    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+    // loads existing user data
+    LaunchedEffect(userToken) {
+        if (userToken != null) {
+            fetchUserData(userToken) { userData ->
+                if (userData != null) {
+                    firstName.value = userData.firstName
+                    lastName.value = userData.lastName
+                    age.value = userData.age?.toString() ?: ""
+                    height.value = userData.height?.toString() ?: ""
+                    weight.value = userData.weight?.toString() ?: ""
+                    biometricEnabled.value = userData.biometricEnabled
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -90,11 +110,40 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        //biometric option
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Enable Biometric Login", modifier = Modifier.weight(1f))
+            Switch(
+                checked = biometricEnabled.value,
+                onCheckedChange = { biometricEnabled.value = it }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = {
-                val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                val biometricEnabled = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
-                sendUserDataToBackend(userToken, userEmail, firstName.value, lastName.value, age.value, height.value, weight.value,biometricEnabled) {
+                // if enabled biometrics, updates the last user with biometrics
+                if (biometricEnabled.value) {
+                    prefs.edit()
+                        .putString("LAST_USER_UID", userToken)
+                        .putBoolean("LAST_USER_BIOMETRIC", true)
+                        .apply()
+                }
+
+                sendUserDataToBackend(
+                    userToken,
+                    userEmail,
+                    firstName.value,
+                    lastName.value,
+                    age.value,
+                    height.value,
+                    weight.value,
+                    biometricEnabled.value
+                ) {
                     message.value = it
 
                     if (userToken != null){

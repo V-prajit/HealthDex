@@ -481,16 +481,21 @@ fun NotesEditScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(onClick = {
                     val noteToSave = if (originalId != null) "$originalId|$fileName\n$fileBody\n$fileTag" else "$fileName\n$fileBody\n$fileTag"
-                    if (fileName in existingNoteNames && fileName != originalFileName) {
+                    if (fileName.isNotBlank() && existingNoteNames.filter { it != originalFileName }.any { it.equals(fileName, ignoreCase = true) }) {
                         showDuplicateDialog = true
-                    } else {
+                    }
+                    else {
                         onSave(noteToSave)
                     }
                 }) {
                     Text(stringResource(R.string.save))
                 }
                 Button(onClick = {
-                    onSaveAs("$fileName\n$fileBody\n$fileTag")
+                    if (fileName.isNotBlank() && existingNoteNames.filter { it != originalFileName }.any { it.equals(fileName, ignoreCase = true) }) {
+                        showDuplicateDialog = true
+                    } else {
+                        onSaveAs("$fileName\n$fileBody\n$fileTag")
+                    }
                 }) {
                     Text(stringResource(R.string.save_as))
                 }
@@ -499,8 +504,8 @@ fun NotesEditScreen(
         if (showDuplicateDialog) {
             AlertDialog(
                 onDismissRequest = { showDuplicateDialog = false },
-                title = { Text("Note already exists") },
-                text = { Text("Replace note or rename it?") },
+                title = { Text(duplicateNoteMessage) },
+                text = { Text("Rename or Replace?") },
                 confirmButton = {
                     Button(onClick = { onSave(if (originalId != null) "$originalId|$fileName\n$fileBody\n$fileTag" else "$fileName\n$fileBody\n$fileTag"); showDuplicateDialog = false }) {
                         Text("Replace")
