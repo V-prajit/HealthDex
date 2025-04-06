@@ -67,7 +67,7 @@ fun NotesFullApp(
                     if (!userToken.isNullOrEmpty()) {
                         scope.launch {
                             val noteId = notes[index].split("\n").firstOrNull()
-                                ?.split("|")?.getOrNull(0)?.toIntOrNull() ?: (index + 1)
+                                ?.split("|")?.getOrElse(0) { "" }?.toIntOrNull() ?: (index + 1)
                             NotesRepositoryBackend.deleteNote(noteId)
                             notes = NotesRepositoryBackend.getNotes(userToken) // Refresh
                         }
@@ -93,7 +93,15 @@ fun NotesFullApp(
                         notes = mutableNotes
                     }
                     else {
-                        notes = notes + updatedContent
+                        val title = updatedContent.split("\n").firstOrNull()?.trim() ?: ""
+                        val indexToUpdate = notes.indexOfFirst { it.split("\n").firstOrNull()?.trim() == title }
+                        if (indexToUpdate != -1) {
+                            val mutableNotes = notes.toMutableList()
+                            mutableNotes[indexToUpdate] = updatedContent
+                            notes = mutableNotes
+                        } else {
+                            notes = notes + updatedContent
+                        }
                     }
                     scope.launch {
                         if (!userToken.isNullOrEmpty()) {
@@ -352,13 +360,14 @@ fun NotesEditScreen(
     var fileTag by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     val duplicateNoteMessage = stringResource(R.string.duplicate_note_title)
-    //for adding images
+    var showDuplicateDialog by remember { mutableStateOf(false) }
+    var originalId by remember { mutableStateOf<Int?>(null) }
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             fileBody += "\n[Image: $uri]"
-            onContentChange("$fileName\n$fileBody\n$fileTag")
+            onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
         }
     }
     val videoPickerLauncher = rememberLauncherForActivityResult(
@@ -366,13 +375,19 @@ fun NotesEditScreen(
     ) { uri ->
         if (uri != null) {
             fileBody += "\n[Video: $uri]"
-            onContentChange("$fileName\n$fileBody\n$fileTag")
+            onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
         }
     }
     LaunchedEffect(noteContent) {
         val lines = noteContent.split("\n", limit = 3)
         val firstLine = lines.getOrElse(0) { "" }
-        fileName = if (firstLine.contains("|")) firstLine.split("|").getOrElse(1) { line -> line }.toString() else firstLine
+        if (firstLine.contains("|")) {
+            val parts = firstLine.split("|")
+            originalId = parts[0].toIntOrNull()
+            fileName = parts.getOrElse(1) { "" }
+        } else {
+            fileName = firstLine
+        }
         fileBody = lines.getOrElse(1) { "" }
         fileTag = lines.getOrElse(2) { "" }
     }
@@ -399,7 +414,7 @@ fun NotesEditScreen(
                 onValueChange = {
                     fileName = it
                     errorMessage = ""
-                    onContentChange("$fileName\n$fileBody\n$fileTag")
+                    onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
                 },
                 label = { Text(stringResource(R.string.file_name)) },
                 singleLine = true,
@@ -425,12 +440,11 @@ fun NotesEditScreen(
                     onDismissRequest = { expandedTagMenu = false }
                 ) {
                     tagOptions.forEach { tag ->
-                        // Updated for new Compose:
                         DropdownMenuItem(
                             text = { Text(tag) },
                             onClick = {
                                 fileTag = tag
-                                onContentChange("$fileName\n$fileBody\n$fileTag")
+                                onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
                                 expandedTagMenu = false
                             }
                         )
@@ -442,7 +456,7 @@ fun NotesEditScreen(
                 value = fileBody,
                 onValueChange = {
                     fileBody = it
-                    onContentChange("$fileName\n$fileBody\n$fileTag")
+                    onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
                 },
                 label = { Text(stringResource(R.string.file_content)) },
                 modifier = Modifier
@@ -466,24 +480,38 @@ fun NotesEditScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(onClick = {
+                    val noteToSave = if (originalId != null) "$originalId|$fileName\n$fileBody\n$fileTag" else "$fileName\n$fileBody\n$fileTag"
                     if (fileName in existingNoteNames && fileName != originalFileName) {
-                        errorMessage = duplicateNoteMessage
+                        showDuplicateDialog = true
                     } else {
-                        onSave("$fileName\n$fileBody\n$fileTag")
+                        onSave(noteToSave)
                     }
                 }) {
                     Text(stringResource(R.string.save))
                 }
                 Button(onClick = {
-                    if (fileName in existingNoteNames && fileName != originalFileName) {
-                        errorMessage = duplicateNoteMessage
-                    } else {
-                        onSaveAs("$fileName\n$fileBody\n$fileTag")
-                    }
+                    onSaveAs("$fileName\n$fileBody\n$fileTag")
                 }) {
                     Text(stringResource(R.string.save_as))
                 }
             }
+        }
+        if (showDuplicateDialog) {
+            AlertDialog(
+                onDismissRequest = { showDuplicateDialog = false },
+                title = { Text("Note already exists") },
+                text = { Text("Replace note or rename it?") },
+                confirmButton = {
+                    Button(onClick = { onSave(if (originalId != null) "$originalId|$fileName\n$fileBody\n$fileTag" else "$fileName\n$fileBody\n$fileTag"); showDuplicateDialog = false }) {
+                        Text("Replace")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDuplicateDialog = false }) {
+                        Text("Rename")
+                    }
+                }
+            )
         }
     }
 }
