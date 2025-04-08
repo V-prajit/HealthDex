@@ -59,5 +59,19 @@
     <string name="auth_error">प्रमाणीकरण त्रुटि: %1$s</string>
     <string name="logout">लॉग इन</string>
     <string name="sign_out_description">अपने खाते से साइन आउट करें</string>
+    <string name="health_chat">स्वास्थ्य चैट</string>
+    <string name="send_message">संदेश भेजें</string>
+    <string name="type_health_question">अपने स्वास्थ्य प्रश्न टाइप करें ...</string>
+    <string name="chat_welcome_title">स्वास्थ्य चैट में आपका स्वागत है</string>
+    <string name="chat_welcome_message">मुझे किसी भी स्वास्थ्य से संबंधित प्रश्न पूछो और मैं सहायक जानकारी प्रदान करूँगा। याद रखें, मैं पेशेवर चिकित्सा सलाह के लिए विकल्प नहीं हूँ।.</string>
+    <string name="chat">चैट</string>
+    <string name="required_field">इस क्षेत्र की आवश्यकता है</string>
+    <string name="must_be_number">होना चाहिए</string>
+    <string name="fill_all_fields">कृपया सभी आवश्यक फ़ील्ड को सही ढंग से भरें</string>
+    <string name="first_name_required">पहला नाम आवश्यक है</string>
+    <string name="last_name_required">अंतिम नाम की आवश्यकता है</string>
+    <string name="age_required">आयु की आवश्यकता है</string>
+    <string name="height_required">ऊंचाई की आवश्यकता है</string>
+    <string name="weight_required">वजन की आवश्यकता है</string>
     <string name="home">घर</string>
 </resources>

@@ -59,5 +59,19 @@
     <string name="auth_error">Erreur d\'authentification : %1$s</string>
     <string name="logout">Déconnexion</string>
     <string name="sign_out_description">Déconnexion de votre compte</string>
+    <string name="health_chat">Discussion sur la santé</string>
+    <string name="send_message">Envoyer un message</string>
+    <string name="type_health_question">Saisissez votre question de santé...</string>
+    <string name="chat_welcome_title">Bienvenue à Health Chat</string>
+    <string name="chat_welcome_message">Posez-moi toute question relative à la santé, et je vous donnerai des renseignements utiles. Souvenez-vous, Je ne remplace pas les conseils médicaux professionnels.</string>
+    <string name="chat">Chat</string>
+    <string name="required_field">Ce champ est requis</string>
+    <string name="must_be_number">Doit être un numéro</string>
+    <string name="fill_all_fields">Veuillez remplir correctement tous les champs requis</string>
+    <string name="first_name_required">Prénom requis</string>
+    <string name="last_name_required">Nom de famille requis</string>
+    <string name="age_required">Âge requis</string>
+    <string name="height_required">Hauteur requise</string>
+    <string name="weight_required">Poids nécessaire</string>
     <string name="home">Sommaire</string>
 </resources>

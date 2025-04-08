@@ -81,6 +81,14 @@
     <string name="chat_welcome_message">Ask me any health-related questions, and I\'ll provide helpful information. Remember, I\'m not a substitute for professional medical advice.</string>
     <string name="chat">Chat</string>
 
+    <string name="required_field">This field is required</string>
+    <string name="must_be_number">Must be a number</string>
+    <string name="fill_all_fields">Please fill in all required fields correctly</string>
+    <string name="first_name_required">First name is required</string>
+    <string name="last_name_required">Last name is required</string>
+    <string name="age_required">Age is required</string>
+    <string name="height_required">Height is required</string>
+    <string name="weight_required">Weight is required</string>
 
     <!-- Dashboard -->
     <string name="home">Home</string>
