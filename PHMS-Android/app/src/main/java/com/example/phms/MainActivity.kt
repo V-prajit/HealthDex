@@ -245,6 +245,8 @@ class MainActivity : FragmentActivity() {
             val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
             val darkModeEnabled = prefs.getBoolean("DARK_MODE", false)
 
+            recreate()
+
             PHMSTheme(darkTheme = darkModeEnabled) {
                 var isLoggedIn by remember { mutableStateOf(false) }
                 var userToken by remember { mutableStateOf<String?>(null) }
