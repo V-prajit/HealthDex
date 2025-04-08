@@ -59,5 +59,19 @@
     <string name="auth_error">Error de autenticación: %1$s</string>
     <string name="logout">Cerrar sesión</string>
     <string name="sign_out_description">Suscríbase a su cuenta</string>
+    <string name="health_chat">Chat de salud</string>
+    <string name="send_message">Enviar mensaje</string>
+    <string name="type_health_question">Escribe tu pregunta de salud...</string>
+    <string name="chat_welcome_title">Bienvenido a Chat de Salud</string>
+    <string name="chat_welcome_message">Hágame cualquier pregunta relacionada con la salud, y voy a proporcionar información útil. Recuerda, No soy un sustituto del consejo médico profesional.</string>
+    <string name="chat">Chat</string>
+    <string name="required_field">Este campo es necesario</string>
+    <string name="must_be_number">Debe ser un número</string>
+    <string name="fill_all_fields">Por favor, rellene todos los campos necesarios correctamente</string>
+    <string name="first_name_required">Se requiere el primer nombre</string>
+    <string name="last_name_required">Se requiere el apellido</string>
+    <string name="age_required">Se requiere edad</string>
+    <string name="height_required">Altura es necesaria</string>
+    <string name="weight_required">Peso requerido</string>
     <string name="home">Inicio</string>
 </resources>
