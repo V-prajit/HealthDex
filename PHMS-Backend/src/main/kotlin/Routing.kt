@@ -15,7 +15,7 @@ import java.rmi.server.UID
 data class AuthRequest(val token: String)
 
 @Serializable
-data class UserDTO(val firebaseUid: String, val firstName: String, val lastName: String, val email: String, val age: Int?, val height: Double?, val weight: Double?,val biometricEnabled: Boolean = false)
+data class UserDTO(val firebaseUid: String, val firstName: String, val lastName: String, val email: String, val age: Int?, val height: Double?, val weight: Double?,val biometricEnabled: Boolean )
 
 fun Application.configureRouting() {
     val userThemeMap = mutableMapOf<String, Boolean>()

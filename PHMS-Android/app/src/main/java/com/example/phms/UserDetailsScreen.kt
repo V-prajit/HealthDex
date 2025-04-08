@@ -21,20 +21,32 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
     val height = remember { mutableStateOf("") }
     val weight = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
-
+    val biometricEnabled = remember { mutableStateOf(false) }
     val user = FirebaseAuth.getInstance().currentUser
     val userEmail = user?.email ?: ""
     val context = LocalContext.current
-
+    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    LaunchedEffect(userToken) {
+        if (userToken != null) {
+            fetchUserData(userToken) { userData ->
+                if (userData != null) {
+                    firstName.value = userData.firstName
+                    lastName.value = userData.lastName
+                    age.value = userData.age?.toString() ?: ""
+                    height.value = userData.height?.toString() ?: ""
+                    weight.value = userData.weight?.toString() ?: ""
+                    biometricEnabled.value = userData.biometricEnabled
+                }
+            }
+        }
+    }
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(stringResource(R.string.user_details), style = MaterialTheme.typography.headlineLarge)
-
         Spacer(modifier = Modifier.height(16.dp))
-
         OutlinedTextField(
             value = firstName.value,
             onValueChange = { firstName.value = it },
@@ -43,9 +55,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         OutlinedTextField(
             value = lastName.value,
             onValueChange = { lastName.value = it },
@@ -54,9 +64,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         OutlinedTextField(
             value = age.value,
             onValueChange = { age.value = it },
@@ -65,9 +73,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = height.value,
             onValueChange = { height.value = it },
@@ -76,9 +82,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         OutlinedTextField(
             value = weight.value,
             onValueChange = { weight.value = it },
@@ -87,16 +91,24 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = {
-                val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                val biometricEnabled = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
-                sendUserDataToBackend(userToken, userEmail, firstName.value, lastName.value, age.value, height.value, weight.value,biometricEnabled) {
+                if (biometricEnabled.value) {
+                    prefs.edit().putString("LAST_USER_UID", userToken).putBoolean("LAST_USER_BIOMETRIC", true).apply()
+                }
+                val updatedBiometric = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
+                sendUserDataToBackend(
+                    userToken,
+                    userEmail,
+                    firstName.value,
+                    lastName.value,
+                    age.value,
+                    height.value,
+                    weight.value,
+                    updatedBiometric
+                ) {
                     message.value = it
-
                     if (userToken != null){
                         fetchUserData(userToken) { userData ->
                             onDetailsSubmitted(userToken, userData?.firstName)
@@ -108,9 +120,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
         ) {
             Text(stringResource(R.string.submit))
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         if (message.value.isNotEmpty()) {
             Text(text = message.value, color = MaterialTheme.colorScheme.primary)
         }
