@@ -7,22 +7,12 @@ import androidx.biometric.BiometricManager
 import com.google.firebase.auth.FirebaseAuth
 import java.util.concurrent.Executor
 import androidx.core.content.ContextCompat
-import androidx.core.os.CancellationSignal // <-- Using androidx.core.os.CancellationSignal
+import androidx.fragment.app.FragmentActivity
 
 class BiometricAuth(private val context: Context, private val authCallback: (Boolean, String?) -> Unit) {
     private val authentication = FirebaseAuth.getInstance() //gets the current user logged into firebase
-    private var cancellationSignal: CancellationSignal? = null //lets user cancel bio authentication
     private val executor: Executor = ContextCompat.getMainExecutor(context)
-
-    private fun getCancellationSignal(): CancellationSignal {
-        cancellationSignal = CancellationSignal()
-        cancellationSignal!!.setOnCancelListener {
-            Toast.makeText(context, context.getString(R.string.biometric_cancelled), Toast.LENGTH_SHORT).show()
-            // it displays the message- for a short duation of time (about 2 secs is the default) if the user presses cancel
-            //basically function runs if cancellationsignal is not null(ie user pressed cancel)
-        }
-        return cancellationSignal!!
-    }
+    private val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
     fun authenticate() {
         val bioManager = BiometricManager.from(context)
@@ -51,7 +41,7 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
     private fun showBiometricPrompt() {
         val executor = ContextCompat.getMainExecutor(context)
         // Casting the context to a FragmentActivity (this is required by BiometricPrompt).
-        val activity = (context as? androidx.fragment.app.FragmentActivity) ?: return
+        val activity = (context as? FragmentActivity) ?: return
         val biometricPrompt = BiometricPrompt(activity, executor, biometricCallback)
         // dialog will appear to the user.
         val promptInformation = BiometricPrompt.PromptInfo.Builder()
@@ -59,31 +49,77 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
             .setSubtitle(context.getString(R.string.biometric_subtitle))
             .setNegativeButtonText(context.getString(R.string.cancel))
             .build()
-        // Minimal change: Use the simpler authenticate() call without passing a CancellationSignal.
+
         biometricPrompt.authenticate(promptInformation)
     }
 
     private val biometricCallback = object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
             super.onAuthenticationSucceeded(result)
-            // Retrieve the last login UID (with bio login enabled) from SharedPreferences or use the current Firebase user UID.
-            val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            val lastUserUid = prefs.getString("LAST_USER_UID", null) ?: FirebaseAuth.getInstance().currentUser?.uid
+            // Retrieve the last login UID (with bio login enabled) from SharedPreferences
+            val lastUserUid = prefs.getString("LAST_USER_UID", null)
+
             if (lastUserUid != null) {
+                // Check if this user has biometric auth enabled
                 fetchUserData(lastUserUid) { userData ->
-                    // Check if the fetched user record has biometricEnabled true
                     if (userData != null && userData.biometricEnabled) {
+                        // Store that this was the last user with biometric enabled
+                        prefs.edit()
+                            .putString("LAST_USER_UID", lastUserUid)
+                            .putBoolean("LAST_USER_BIOMETRIC", true)
+                            .apply()
+
                         Toast.makeText(context, context.getString(R.string.biometric_success), Toast.LENGTH_SHORT).show()
-                        Toast.makeText(context, context.getString(R.string.welcome_user, userData.firstName), Toast.LENGTH_SHORT).show()
-                        authCallback(true, userData.firstName)
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.welcome_user, userData.firstName ?: authentication.currentUser?.displayName ?: ""),
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        // Return success with the user's first name
+                        authCallback(true, userData.firstName ?: authentication.currentUser?.displayName ?: "")
                     } else {
-                        Toast.makeText(context, "Biometric login not enabled for this user", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Biometric login not enabled for this user",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         authCallback(false, null)
                     }
                 }
             } else {
-                Toast.makeText(context, context.getString(R.string.user_not_found), Toast.LENGTH_SHORT).show()
-                authCallback(false, null)
+                // Current user (if any) as fallback
+                val currentUid = authentication.currentUser?.uid
+                if (currentUid != null) {
+                    fetchUserData(currentUid) { userData ->
+                        if (userData != null && userData.biometricEnabled) {
+                            // Store current user as the last biometric user
+                            prefs.edit()
+                                .putString("LAST_USER_UID", currentUid)
+                                .putBoolean("LAST_USER_BIOMETRIC", true)
+                                .apply()
+
+                            Toast.makeText(context, context.getString(R.string.biometric_success), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.welcome_user, userData.firstName ?: authentication.currentUser?.displayName ?: ""),
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            authCallback(true, userData.firstName ?: authentication.currentUser?.displayName ?: "")
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Biometric login not enabled for this user",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            authCallback(false, null)
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, context.getString(R.string.user_not_found), Toast.LENGTH_SHORT).show()
+                    authCallback(false, null)
+                }
             }
         }
         /**
@@ -99,6 +135,7 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
 
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
+            if (errorCode == BiometricPrompt.ERROR_CANCELED || errorCode == BiometricPrompt.ERROR_USER_CANCELED)return
             Toast.makeText(context, context.getString(R.string.auth_error, errString), Toast.LENGTH_SHORT).show()
             authCallback(false, null)
         }
