@@ -21,7 +21,7 @@ class UserService(database: Database) {
         val firstName = varchar("first_name", 100)
         val lastName = varchar("last_name", 100)
         val age = integer("age").nullable()
-        val biometricEnabled = bool("biometric_enabled").default(false)
+        val biometricEnabled = bool("biometric_enabled")
         override val primaryKey = PrimaryKey(id)
     }
 

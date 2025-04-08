@@ -72,12 +72,12 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
                         Toast.makeText(context, context.getString(R.string.biometric_success), Toast.LENGTH_SHORT).show()
                         Toast.makeText(
                             context,
-                            context.getString(R.string.welcome_user, userData.firstName),
+                            context.getString(R.string.welcome_user, userData.firstName ?: authentication.currentUser?.displayName ?: ""),
                             Toast.LENGTH_SHORT
                         ).show()
 
                         // Return success with the user's first name
-                        authCallback(true, userData.firstName)
+                        authCallback(true, userData.firstName ?: authentication.currentUser?.displayName ?: "")
                     } else {
                         Toast.makeText(
                             context,
@@ -102,11 +102,11 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
                             Toast.makeText(context, context.getString(R.string.biometric_success), Toast.LENGTH_SHORT).show()
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.welcome_user, userData.firstName),
+                                context.getString(R.string.welcome_user, userData.firstName ?: authentication.currentUser?.displayName ?: ""),
                                 Toast.LENGTH_SHORT
                             ).show()
 
-                            authCallback(true, userData.firstName)
+                            authCallback(true, userData.firstName ?: authentication.currentUser?.displayName ?: "")
                         } else {
                             Toast.makeText(
                                 context,
@@ -122,7 +122,6 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
                 }
             }
         }
-
         /**
          * Called when a biometric is valid but not recognized or if the user fails to authenticate
          * with the biometric sensor (e.g., an incorrect fingerprint, partial face match, etc.).
@@ -136,9 +135,7 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
 
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
-            if (errorCode == BiometricPrompt.ERROR_CANCELED || errorCode == BiometricPrompt.ERROR_USER_CANCELED) {
-                return
-            }
+            if (errorCode == BiometricPrompt.ERROR_CANCELED || errorCode == BiometricPrompt.ERROR_USER_CANCELED)return
             Toast.makeText(context, context.getString(R.string.auth_error, errString), Toast.LENGTH_SHORT).show()
             authCallback(false, null)
         }
