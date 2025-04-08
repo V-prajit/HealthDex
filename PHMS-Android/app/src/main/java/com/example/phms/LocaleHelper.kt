@@ -31,6 +31,26 @@ object LocaleHelper {
         AppCompatDelegate.setApplicationLocales(localeList)
     }
 
+    fun applyLanguageWithoutRecreation(context: Context, languageCode: String) {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+
+        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+
+        val localeList = LocaleListCompat.create(locale)
+        AppCompatDelegate.setApplicationLocales(localeList)
+
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("selected_language", languageCode).apply()
+
+        if (context is MainActivity) {
+            context.forceLocaleRecomposition(languageCode)
+        }
+    }
+
     fun getCurrentLanguageCode(context: Context): String {
         val currentLocales = AppCompatDelegate.getApplicationLocales()
         return if (currentLocales.isEmpty) {

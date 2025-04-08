@@ -1,4 +1,3 @@
-// SettingScreen.kt
 package com.example.phms
 
 import androidx.compose.foundation.clickable
@@ -36,7 +35,7 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
     var biometricEnabled by remember {
         mutableStateOf(prefs.getBoolean("LAST_USER_BIOMETRIC", false))
     }
-    // Dark mode preference aded
+    // Dark mode preference added
     var darkModeEnabled by remember {
         mutableStateOf(prefs.getBoolean("DARK_MODE", false))
     }
@@ -74,7 +73,6 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                             biometricEnabled = checked
                             // Updates shared preferences so that user can use bio auth for future login.
                             prefs.edit().putBoolean("LAST_USER_BIOMETRIC", checked).apply()
-                            (context as? Activity)?.recreate()
                         }
                     )
                 }
@@ -91,7 +89,9 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                         onCheckedChange = { checked ->
                             darkModeEnabled = checked
                             prefs.edit().putBoolean("DARK_MODE", checked).apply()
-                            (context as? Activity)?.recreate()
+
+                            // Instead of recreating the activity, just update the theme
+                            (context as? MainActivity)?.updateTheme(checked)
                         }
                     )
                 }
@@ -121,11 +121,9 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        scope.launch {
-                                            LocaleHelper.applyLanguage(context, language.code)
-                                            (context as? Activity)?.recreate()
-                                            showLanguageDialog = false
-                                        }
+                                        // No need for coroutine scope here - direct function call
+                                        LocaleHelper.applyLanguageWithoutRecreation(context, language.code)
+                                        showLanguageDialog = false
                                     }
                                     .padding(vertical = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
