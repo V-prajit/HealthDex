@@ -14,3 +14,4 @@ PHMS-Backend/data.db
 /.vscode
 /PHMS-Android/app/.idea
 PHMS-Android/.env
+/PHMS-Backend/local.properties
