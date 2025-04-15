@@ -42,7 +42,7 @@ object UserDAO {
 
     fun getUserByFirebaseUid(firebaseUid: String): User? {
         return transaction {
-            Users.selectAll().where { Users.firebaseUid eq firebaseUid }
+            Users.select { Users.firebaseUid eq firebaseUid }
                 .map {
                     User(
                         it[Users.firebaseUid],
@@ -56,5 +56,18 @@ object UserDAO {
                     )
                 }.singleOrNull()
         }
+    }
+
+    fun setFcmToken(uid: String, token: String) = transaction {
+        Users.update({ Users.firebaseUid eq uid }) {
+            it[fcmToken] = token
+        }
+    }
+    fun getFcmToken(uid: String): String? = transaction {
+        Users
+            .slice(Users.fcmToken)
+            .select { Users.firebaseUid eq uid }
+            .singleOrNull()
+            ?.get(Users.fcmToken)
     }
 }

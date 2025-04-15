@@ -22,12 +22,23 @@ import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.platform.LocalContext
 import android.content.Context.MODE_PRIVATE
+import androidx.lifecycle.lifecycleScope
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable as Composable1
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
 class MainActivity : FragmentActivity() {
     private lateinit var auth: FirebaseAuth
+
+    private fun sendFcmToken(uid: String) {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            lifecycleScope.launch {
+                VitalRepository.sendFcmToken(uid, token)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +81,7 @@ class MainActivity : FragmentActivity() {
                     val currentUser = auth.currentUser
                     if (currentUser != null) {
                         userToken = currentUser.uid
+                        sendFcmToken(currentUser.uid)
                         fetchUserData(currentUser.uid) { userData ->
                             firstName = userData?.firstName
                             isLoggedIn = true
@@ -86,26 +98,19 @@ class MainActivity : FragmentActivity() {
                                     userToken = savedUid
                                     firstName = userData.firstName
                                     isLoggedIn = true
+                                    sendFcmToken(savedUid)
                                 }
                             }
                         }
                     }
                 }
 
-                Log.d(
-                    "MainActivity",
-                    "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings"
-                )
+                Log.d("MainActivity", "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings")
                 when {
                     showSettings -> {
-                        Log.d("MainActivity", "Showing Settings Screen")
                         SettingScreen(
-                            onBackClick = {
-                                Log.d("MainActivity", "Settings Back clicked")
-                                showSettings = false
-                            },
+                            onBackClick = { showSettings = false },
                             onLogout = {
-                                Log.d("MainActivity", "Logout clicked")
                                 auth.signOut()
                                 isLoggedIn = false
                                 userToken = null
@@ -114,21 +119,14 @@ class MainActivity : FragmentActivity() {
                             }
                         )
                     }
-
                     isLoggedIn -> {
-                        Log.d("MainActivity", "Showing Dashboard Screen")
                         DashboardScreen(
                             firstName = firstName,
                             userToken = userToken,
-                            onSettingsClick = {
-                                Log.d("MainActivity", "Settings button clicked")
-                                showSettings = true
-                            }
+                            onSettingsClick = { showSettings = true }
                         )
                     }
-
                     else -> {
-                        Log.d("MainActivity", "Showing Auth Screen")
                         AuthScreen(
                             auth = auth,
                             biometricAuth = biometricAuth,
@@ -136,6 +134,7 @@ class MainActivity : FragmentActivity() {
                                 isLoggedIn = true
                                 userToken = token
                                 firstName = name
+                                sendFcmToken(token)              /* NEW */
                             },
                             onSettingsClick = { showSettings = true }
                         )

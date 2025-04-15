@@ -3,14 +3,20 @@ package com.example
 import com.example.models.Users
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import com.example.models.VitalSigns
+import com.example.models.Alerts
 
 object DatabaseFactory {
     fun init(){
        Database.connect("jdbc:sqlite:./data.db", driver = "org.sqlite.JDBC")
 
         transaction {
-            SchemaUtils.create(Users)
-            SchemaUtils.create(Notes)
+            SchemaUtils.create(
+                Users,
+                Notes,
+                VitalSigns,
+                Alerts
+            )
         }
     }
 }

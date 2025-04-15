@@ -9,6 +9,9 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import java.io.FileInputStream
+import com.example.dao.AlertDAO
+import com.example.dao.VitalSignDAO
+import com.example.service.MonitoringService
 
 fun main() {
     embeddedServer(Netty, port = 8085, host = "0.0.0.0") {
@@ -17,14 +20,14 @@ fun main() {
 }
 
 fun Application.module() {
-    install(ContentNegotiation){
-        json()
-    }
+    install(ContentNegotiation) { json() }
 
     initFirebase()
     DatabaseFactory.init()
     configureSerialization()
     configureRouting()
+
+    MonitoringService(VitalSignDAO(), AlertDAO()).start(this)
 }
 
 fun initFirebase() {

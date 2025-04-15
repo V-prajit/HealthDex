@@ -3,51 +3,69 @@ package com.example
 
 import com.example.dao.User
 import com.example.dao.UserDAO
+import com.example.dao.VitalSignDAO
+import com.example.models.VitalSignDTO
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import java.rmi.server.UID
 
 @Serializable
 data class AuthRequest(val token: String)
 
 @Serializable
-data class UserDTO(val firebaseUid: String, val firstName: String, val lastName: String, val email: String, val age: Int?, val height: Double?, val weight: Double?,val biometricEnabled: Boolean )
+data class UserDTO(
+    val firebaseUid: String,
+    val firstName: String,
+    val lastName: String,
+    val email: String,
+    val age: Int?,
+    val height: Double?,
+    val weight: Double?,
+    val biometricEnabled: Boolean
+)
 
 fun Application.configureRouting() {
     val userThemeMap = mutableMapOf<String, Boolean>()
+    val vitalDao = VitalSignDAO()
+
     routing {
-        post("/auth"){
+        post("/auth") {
             val request = call.receive<AuthRequest>()
             val firebaseUser = verifyFirebaseToken(request.token)
-
-            if (firebaseUser != null){
+            if (firebaseUser != null) {
                 call.respond(HttpStatusCode.OK, "User authenticated: ${firebaseUser.uid}")
             } else {
                 call.respond(HttpStatusCode.Unauthorized, "Invalid token")
             }
         }
 
-        get("/") {
-            call.respondText("Welcome to PHMS Backend")
-        }
+        get("/") { call.respondText("Welcome to PHMS Backend") }
+        get("/test") { call.respondText("Test API is working!") }
 
-        get("/test") {
-            call.respondText("Test API is working!")
-        }
-
-        route("/users"){
-            post("/register"){
+        route("/users") {
+            post("/register") {
                 val user = call.receive<UserDTO>()
-                UserDAO.addUser(User( user.firebaseUid, user.firstName, user.lastName, user.email, user.age, user.height, user.weight,user.biometricEnabled ))
+                UserDAO.addUser(
+                    User(
+                        user.firebaseUid,
+                        user.firstName,
+                        user.lastName,
+                        user.email,
+                        user.age,
+                        user.height,
+                        user.weight,
+                        user.biometricEnabled
+                    )
+                )
                 call.respond(HttpStatusCode.Created, "User added successfully")
             }
 
-            get("/{firebaseUid}"){
-                val firebaseUid = call.parameters["firebaseUid"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing Firebase UID")
+            get("/{firebaseUid}") {
+                val firebaseUid = call.parameters["firebaseUid"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing Firebase UID")
                 val user = UserDAO.getUserByFirebaseUid(firebaseUid)
                 if (user != null) {
                     call.respond(HttpStatusCode.OK, user)
@@ -56,7 +74,28 @@ fun Application.configureRouting() {
                 }
             }
         }
-        
+
+        route("/users/{uid}") {
+            post("/vitals") {
+                val uid = call.parameters["uid"]!!
+                val dto = call.receive<VitalSignDTO>()
+                vitalDao.add(dto.copy(firebaseUid = uid))
+                call.respond(HttpStatusCode.Created)
+            }
+            get("/vitals") {
+                val uid = call.parameters["uid"]!!
+                call.respond(HttpStatusCode.OK, vitalDao.byUser(uid))
+            }
+            post("/token") {
+                val uid = call.parameters["uid"]!!
+                val token =
+                    call.receive<Map<String, String>>()["token"]
+                        ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing token")
+                UserDAO.setFcmToken(uid, token)
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
         route("/notes") {
             get {
                 val userId = call.request.queryParameters["userId"]
@@ -73,30 +112,26 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.Created, addedNote)
             }
             put {
-            val note = call.receive<NoteDTO>()
-            val updated = NotesDAO.updateNoteById(note)
-            if (updated) {
-                call.respond(HttpStatusCode.OK, note)
-            } else {
-                call.respond(HttpStatusCode.NotFound, "Note not found or missing ID")
+                val note = call.receive<NoteDTO>()
+                val updated = NotesDAO.updateNoteById(note)
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, note)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Note not found or missing ID")
+                }
             }
-}
-
-delete("{id}") {
-    val id = call.parameters["id"]?.toIntOrNull()
-    if (id == null) {
-        call.respond(HttpStatusCode.BadRequest, "Missing or invalid note ID")
-        return@delete
-    }
-    val deleted = NotesDAO.deleteNoteById(id)
-    if (deleted) {
-        call.respond(HttpStatusCode.OK, "Note deleted")
-    } else {
-        call.respond(HttpStatusCode.NotFound, "Note not found")
-    }
-}
-
+            delete("{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing or invalid note ID")
+                val deleted = NotesDAO.deleteNoteById(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Note deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Note not found")
+                }
+            }
         }
+
         route("/theme") {
             // Update user's dark mode setting.
             post {

@@ -5,6 +5,15 @@ plugins {
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
+kotlin {
+    compilerOptions {
+        allWarningsAsErrors.set(false)
+        freeCompilerArgs.set(
+            freeCompilerArgs.get().filterNot { it == "-Werror" }
+        )
+    }
+}
+
 group = "com.example"
 version = "0.0.1"
 
@@ -23,8 +32,8 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.jdbc)
+    implementation("org.jetbrains.exposed:exposed-core:0.45.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.45.0")
     implementation(libs.h2)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
@@ -33,4 +42,5 @@ dependencies {
     testImplementation(libs.kotlin.test.junit)
     implementation("com.google.firebase:firebase-admin:9.2.0")
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 }
