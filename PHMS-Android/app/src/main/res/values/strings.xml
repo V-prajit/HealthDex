@@ -109,6 +109,8 @@
     <string name="heart_rate">Heart Rate</string>
     <string name="no_most_recent">No recent entries for this type.</string>
     <string name="select_type">Select type</string>
+    <string name="other">Other</string>
+    <string name="specify_type">Specify Vital Type</string>
 
     <!-- Dashboard -->
     <string name="home">Home</string>
