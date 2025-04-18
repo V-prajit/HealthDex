@@ -1,4 +1,5 @@
 package com.example.phms
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -28,7 +29,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun NotesFullApp(
     userToken: String? = null,
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    newNoteRequested: Boolean = false
 ) {
     val context = LocalContext.current
     var notes by remember { mutableStateOf(listOf<String>()) }
@@ -43,7 +45,9 @@ fun NotesFullApp(
         }
     }
 
-    var currentScreen by remember { mutableStateOf("list") }
+    var currentScreen by remember {
+        mutableStateOf(if (newNoteRequested) "edit" else "list")
+    }
     var selectedNoteIndex by remember { mutableStateOf<Int?>(null) }
     var noteContent by remember { mutableStateOf("") }
 
@@ -272,7 +276,6 @@ fun NotesListScreen(
                     }
                 }
             } else {
-                // Display notes in a grid layout.
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = modifier,
@@ -285,7 +288,6 @@ fun NotesListScreen(
                             if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
                         }
                         val noteSummary = parts.getOrElse(1) { "" }
-                        // to split the note into two lines: title and summary
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
