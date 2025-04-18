@@ -40,7 +40,7 @@ class BiometricAuth(private val context: Context, private val authCallback: (Boo
 
     private fun showBiometricPrompt() {
         val executor = ContextCompat.getMainExecutor(context)
-        // Casting the context to a FragmentActivity (this is required by BiometricPrompt).
+        // casting the context to a FragmentActivity
         val activity = (context as? FragmentActivity) ?: return
         val biometricPrompt = BiometricPrompt(activity, executor, biometricCallback)
         // dialog will appear to the user.

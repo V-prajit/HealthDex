@@ -22,19 +22,27 @@ fun DashboardScreen(
     onSettingsClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf("home") }
+    // New flag: when true, NotesScreen will open in “edit” (new note) mode
+    var newNoteRequested by remember { mutableStateOf(false) }
+
     Scaffold(
         bottomBar = {
             NavigationBar {
-                //items on navigation bar: home & notes for now. todo add more features later(health,etc)
                 NavigationBarItem(
                     selected = selectedTab == "home",
-                    onClick = { selectedTab = "home" },
+                    onClick = {
+                        selectedTab = "home"
+                    },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "notes",
-                    onClick = { selectedTab = "notes" },
+                    onClick = {
+                        selectedTab = "notes"
+                        // tapping the Notes tab itself should NOT auto‑open editor
+                        newNoteRequested = false
+                    },
                     icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
                     label = { Text("Notes") }
                 )
@@ -61,6 +69,14 @@ fun DashboardScreen(
                     onSettingsClick = {
                         Log.d("DashboardScreen", "HomeScreen settings clicked")
                         onSettingsClick()
+                    },
+                    // when Add Note is tapped on Home, go to Notes *and* open editor
+                    onNavigateToNotes = {
+                        selectedTab = "notes"
+                        newNoteRequested = true
+                    },
+                    onNavigateToChat = {
+                        selectedTab = "chat"
                     }
                 )
             }
@@ -73,7 +89,8 @@ fun DashboardScreen(
                     onSettingsClick = {
                         Log.d("DashboardScreen", "NotesScreen settings clicked")
                         onSettingsClick()
-                    }
+                    },
+                    newNoteRequested = newNoteRequested
                 )
             }
 
@@ -95,6 +112,15 @@ fun DashboardScreen(
 }
 
 @Composable
-fun NotesScreen(userToken: String? = null, modifier: Modifier = Modifier, onSettingsClick: () -> Unit = {}) {
-    NotesFullApp(userToken = userToken, onSettingsClick = onSettingsClick)
+fun NotesScreen(
+    userToken: String? = null,
+    modifier: Modifier = Modifier,
+    onSettingsClick: () -> Unit = {},
+    newNoteRequested: Boolean = false
+) {
+    NotesFullApp(
+        userToken = userToken,
+        onSettingsClick = onSettingsClick,
+        newNoteRequested = newNoteRequested
+    )
 }
