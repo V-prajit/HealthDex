@@ -4,10 +4,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.POST
-import retrofit2.http.Path
-import retrofit2.http.GET
+import retrofit2.http.*
 
 data class AuthRequest(val token: String)
 
@@ -31,6 +28,24 @@ interface ApiService {
 
     @GET("/users/{firebaseUid}")
     fun getUser(@Path("firebaseUid") firebaseUid: String): Call<UserDTO>
+
+    @GET("/vitals")
+    fun getVitals(@Query("userId") userId: String): Call<List<VitalSign>>
+
+    @GET("/vitals/latest")
+    fun getLatestVital(
+    @Query("userId") userId: String,
+    @Query("type")   type: String
+    ): Call<VitalSign>
+
+    @POST("/vitals")
+    fun addVital(@Body vital: VitalSign): Call<VitalSign>
+
+    @PUT("/vitals")
+    fun updateVital(@Body vital: VitalSign): Call<ResponseBody>
+
+    @DELETE("/vitals/{id}")
+    fun deleteVital(@Path("id") id: Int): Call<ResponseBody>
 }
 
 
