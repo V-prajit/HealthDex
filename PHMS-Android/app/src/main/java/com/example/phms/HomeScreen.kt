@@ -31,10 +31,10 @@ fun HomeScreen(firstName: String?, onSettingsClick: () -> Unit) {
     } + (firstName?.let { ", $it" } ?: "")
 
     val imageUrl = when (hour) {
-        in 6..11 -> "https://images.unsplash.com/photo-1601758064139-68b7beef7af0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+        in 6..11 -> "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
         in 12..16 -> "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-        in 17..19 -> "https://images.unsplash.com/photo-1501973801540-537f08ccae7d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-        else -> "https://images.unsplash.com/photo-1508264165352-258db2ebd59b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+        in 17..19 -> "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+        else -> "https://images.unsplash.com/photo-1507400492013-162706c8c05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     }
 
     Column(
