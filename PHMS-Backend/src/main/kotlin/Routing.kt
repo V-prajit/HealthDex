@@ -3,6 +3,8 @@ package com.example
 
 import com.example.dao.User
 import com.example.dao.UserDAO
+import com.example.VitalsDAO
+import com.example.VitalDTO
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -15,16 +17,26 @@ import java.rmi.server.UID
 data class AuthRequest(val token: String)
 
 @Serializable
-data class UserDTO(val firebaseUid: String, val firstName: String, val lastName: String, val email: String, val age: Int?, val height: Double?, val weight: Double?,val biometricEnabled: Boolean )
+data class UserDTO(
+    val firebaseUid: String,
+    val firstName: String,
+    val lastName: String,
+    val email: String,
+    val age: Int?,
+    val height: Double?,
+    val weight: Double?,
+    val biometricEnabled: Boolean
+)
 
 fun Application.configureRouting() {
     val userThemeMap = mutableMapOf<String, Boolean>()
+
     routing {
-        post("/auth"){
+        post("/auth") {
             val request = call.receive<AuthRequest>()
             val firebaseUser = verifyFirebaseToken(request.token)
 
-            if (firebaseUser != null){
+            if (firebaseUser != null) {
                 call.respond(HttpStatusCode.OK, "User authenticated: ${firebaseUser.uid}")
             } else {
                 call.respond(HttpStatusCode.Unauthorized, "Invalid token")
@@ -39,15 +51,27 @@ fun Application.configureRouting() {
             call.respondText("Test API is working!")
         }
 
-        route("/users"){
-            post("/register"){
+        route("/users") {
+            post("/register") {
                 val user = call.receive<UserDTO>()
-                UserDAO.addUser(User( user.firebaseUid, user.firstName, user.lastName, user.email, user.age, user.height, user.weight,user.biometricEnabled ))
+                UserDAO.addUser(
+                    User(
+                        user.firebaseUid,
+                        user.firstName,
+                        user.lastName,
+                        user.email,
+                        user.age,
+                        user.height,
+                        user.weight,
+                        user.biometricEnabled
+                    )
+                )
                 call.respond(HttpStatusCode.Created, "User added successfully")
             }
 
-            get("/{firebaseUid}"){
-                val firebaseUid = call.parameters["firebaseUid"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing Firebase UID")
+            get("/{firebaseUid}") {
+                val firebaseUid = call.parameters["firebaseUid"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing Firebase UID")
                 val user = UserDAO.getUserByFirebaseUid(firebaseUid)
                 if (user != null) {
                     call.respond(HttpStatusCode.OK, user)
@@ -56,7 +80,7 @@ fun Application.configureRouting() {
                 }
             }
         }
-        
+
         route("/notes") {
             get {
                 val userId = call.request.queryParameters["userId"]
@@ -67,38 +91,79 @@ fun Application.configureRouting() {
                 }
                 call.respond(HttpStatusCode.OK, notes)
             }
+
             post {
                 val note = call.receive<NoteDTO>()
                 val addedNote = NotesDAO.addNote(note)
                 call.respond(HttpStatusCode.Created, addedNote)
             }
+
             put {
-            val note = call.receive<NoteDTO>()
-            val updated = NotesDAO.updateNoteById(note)
-            if (updated) {
-                call.respond(HttpStatusCode.OK, note)
-            } else {
-                call.respond(HttpStatusCode.NotFound, "Note not found or missing ID")
+                val note = call.receive<NoteDTO>()
+                val updated = NotesDAO.updateNoteById(note)
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, note)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Note not found or missing ID")
+                }
             }
-}
 
-delete("{id}") {
-    val id = call.parameters["id"]?.toIntOrNull()
-    if (id == null) {
-        call.respond(HttpStatusCode.BadRequest, "Missing or invalid note ID")
-        return@delete
-    }
-    val deleted = NotesDAO.deleteNoteById(id)
-    if (deleted) {
-        call.respond(HttpStatusCode.OK, "Note deleted")
-    } else {
-        call.respond(HttpStatusCode.NotFound, "Note not found")
-    }
-}
-
+            delete("{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                if (id == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Missing or invalid note ID")
+                    return@delete
+                }
+                val deleted = NotesDAO.deleteNoteById(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Note deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Note not found")
+                }
+            }
         }
+
+        route("/vitals") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+                call.respond(HttpStatusCode.OK, VitalsDAO.getAllByUser(userId))
+            }
+
+            get("/latest") {
+                val userId = call.request.queryParameters["userId"]
+                val type = call.request.queryParameters["type"]
+                if (userId == null || type == null)
+                    return@get call.respond(HttpStatusCode.BadRequest, "Missing userId or type")
+                VitalsDAO.getLatest(userId, type)
+                    ?.let { call.respond(HttpStatusCode.OK, it) }
+                    ?: call.respond(HttpStatusCode.NotFound, "No record found")
+            }
+
+            post {
+                val vital = call.receive<VitalDTO>()
+                call.respond(HttpStatusCode.Created, VitalsDAO.add(vital))
+            }
+
+            put {
+                val vital = call.receive<VitalDTO>()
+                if (VitalsDAO.update(vital))
+                    call.respond(HttpStatusCode.OK, vital)
+                else
+                    call.respond(HttpStatusCode.NotFound, "Vital not found or missing id")
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid id")
+                if (VitalsDAO.delete(id))
+                    call.respond(HttpStatusCode.OK, "Deleted")
+                else
+                    call.respond(HttpStatusCode.NotFound, "Vital not found")
+            }
+        }
+
         route("/theme") {
-            // Update user's dark mode setting.
             post {
                 val payload = call.receive<Map<String, Any>>()
                 val firebaseUid = payload["firebaseUid"] as? String
@@ -110,6 +175,7 @@ delete("{id}") {
                     call.respond(HttpStatusCode.OK, mapOf("darkMode" to darkMode))
                 }
             }
+
             get("{firebaseUid}") {
                 val firebaseUid = call.parameters["firebaseUid"]
                 if (firebaseUid == null) {
