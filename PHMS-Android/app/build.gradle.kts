@@ -91,4 +91,5 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("org.json:json:20230227")
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }
