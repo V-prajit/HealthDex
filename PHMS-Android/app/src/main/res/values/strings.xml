@@ -90,6 +90,17 @@
     <string name="height_required">Height is required</string>
     <string name="weight_required">Weight is required</string>
 
+    <!-- Vitals screen -->
+    <string name="edit_vital">Edit Vital</string>
+    <string name="add_vital">Add Vital</string>
+    <string name="type_label">Type</string>
+    <string name="value_label">Value</string>
+    <string name="unit_label">Unit</string>
+    <string name="timestamp_label">Timestamp</string>
+    <string name="vital_input_error">Enter type, numeric value &amp; unit.</string>
+    <string name="no_entries_yet">No entries yet. Tap + to add.</string>
+    <string name="vitals">Vitals</string>
+
     <!-- Dashboard -->
     <string name="home">Home</string>
 </resources>

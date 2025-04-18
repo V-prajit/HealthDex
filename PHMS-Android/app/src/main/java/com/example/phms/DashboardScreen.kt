@@ -7,11 +7,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Note
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.phms.VitalSignsScreen
 
 @Composable
 fun DashboardScreen(
@@ -41,6 +43,12 @@ fun DashboardScreen(
                     onClick = { selectedTab = "chat" },
                     icon = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
                     label = { Text(stringResource(R.string.chat)) }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == "vitals",
+                    onClick  = { selectedTab = "vitals" },
+                    icon     = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
+                    label    = { Text("Vitals") }
                 )
             }
         }
@@ -78,6 +86,10 @@ fun DashboardScreen(
                     }
                 )
             }
+            "vitals" -> VitalSignsScreen(
+                userId      = userToken,
+                onBackClick = { selectedTab = "home" }
+            )
         }
     }
 }
