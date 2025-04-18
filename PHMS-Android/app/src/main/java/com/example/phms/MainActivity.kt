@@ -33,6 +33,9 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
 
+        // +assistant: always clear any previous session so user must log in each launch
+        auth.signOut()
+
         // Keep track of first launch separately from settings changes
         val appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         if (!appPrefs.contains("has_launched_before")) {
@@ -60,6 +63,8 @@ class MainActivity : FragmentActivity() {
 
                 val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
                     if (success) {
+                        // +assistant: restore userToken for biometric login so Notes use correct userId
+                        userToken = prefs.getString("LAST_USER_UID", null)
                         isLoggedIn = true
                         firstName = name
                     }
@@ -73,21 +78,6 @@ class MainActivity : FragmentActivity() {
                         fetchUserData(currentUser.uid) { userData ->
                             firstName = userData?.firstName
                             isLoggedIn = true
-                        }
-                    } else {
-                        // Check if there's a saved biometric user
-                        val savedUid = prefs.getString("LAST_USER_UID", null)
-                        val biometricEnabled = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
-
-                        if (biometricEnabled && savedUid != null) {
-                            // Attempt to restore user from saved data
-                            fetchUserData(savedUid) { userData ->
-                                if (userData != null && userData.biometricEnabled) {
-                                    userToken = savedUid
-                                    firstName = userData.firstName
-                                    isLoggedIn = true
-                                }
-                            }
                         }
                     }
                 }
@@ -165,6 +155,8 @@ class MainActivity : FragmentActivity() {
 
                 val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
                     if (success) {
+                        // +assistant: restore userToken for biometric login so Notes use correct userId
+                        userToken = prefs.getString("LAST_USER_UID", null)
                         isLoggedIn = true
                         firstName = name
                     }
@@ -255,6 +247,8 @@ class MainActivity : FragmentActivity() {
 
                 val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
                     if (success) {
+                        // +assistant: restore userToken for biometric login so Notes use correct userId
+                        userToken = prefs.getString("LAST_USER_UID", null)
                         isLoggedIn = true
                         firstName = name
                     }
@@ -328,6 +322,7 @@ class MainActivity : FragmentActivity() {
         }
     }
 }
+
 @Composable1
 fun AuthScreen(
     auth: FirebaseAuth,
@@ -435,10 +430,13 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
                         if (task.isSuccessful) {
                             val firebaseUser = auth.currentUser
                             if (firebaseUser != null) {
-                                biometricEnabledMap[firebaseUser.uid] = enableBiometric.value
-                                // Persist the biometric flag for later biometric logins
+                                // +assistant: persist both the biometric flag AND the new user's UID
                                 val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
-                                prefs.edit().putBoolean("LAST_USER_BIOMETRIC", enableBiometric.value).apply()
+                                prefs.edit()
+                                    .putBoolean("LAST_USER_BIOMETRIC", enableBiometric.value)
+                                    .putString("LAST_USER_UID", firebaseUser.uid)
+                                    .apply()
+
                                 onRegistrationSuccess(firebaseUser.uid)
                             }
                         } else {
@@ -462,6 +460,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
         }
     }
 }
+
 
 @Composable1
 fun LoginScreen(
