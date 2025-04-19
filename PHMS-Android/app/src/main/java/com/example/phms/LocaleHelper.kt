@@ -9,13 +9,26 @@ import java.util.Locale
 import android.content.res.Resources
 import android.util.Log
 import java.lang.reflect.Field
+import android.view.View
 
 object LocaleHelper {
     val supportedLanguages = listOf(
         SupportedLanguage("en", "English"),
         SupportedLanguage("es", "Español"),
         SupportedLanguage("fr", "Français"),
-        SupportedLanguage("hi", "हिन्दी")
+        SupportedLanguage("hi", "हिन्दी"),
+        SupportedLanguage("ar", "العربية"), // Arabic
+        SupportedLanguage("bn", "বাংলা"), // Bengali
+        SupportedLanguage("zh", "中文"), // Chinese (Simplified)
+        SupportedLanguage("de", "Deutsch"), // German
+        SupportedLanguage("id", "Bahasa Indonesia"), // Indonesian
+        SupportedLanguage("it", "Italiano"), // Italian
+        SupportedLanguage("ja", "日本語"), // Japanese
+        SupportedLanguage("ko", "한국어"), // Korean
+        SupportedLanguage("pt", "Português"), // Portuguese
+        SupportedLanguage("ru", "Русский"), // Russian
+        SupportedLanguage("sw", "Kiswahili"), // Swahili
+        SupportedLanguage("ur", "اردو") // Urdu
     )
 
     fun applyLanguage(context: Context, languageCode: String) {

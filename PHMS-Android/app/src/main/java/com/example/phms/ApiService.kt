@@ -46,6 +46,39 @@ interface ApiService {
 
     @DELETE("/vitals/{id}")
     fun deleteVital(@Path("id") id: Int): Call<ResponseBody>
+
+    @GET("/doctors")
+    fun getDoctors(@Query("userId") userId: String): Call<List<Doctor>>
+
+    @GET("/doctors/{id}")
+    fun getDoctor(@Path("id") id: Int): Call<Doctor>
+
+    @POST("/doctors")
+    fun addDoctor(@Body doctor: Doctor): Call<Doctor>
+
+    @PUT("/doctors")
+    fun updateDoctor(@Body doctor: Doctor): Call<Doctor>
+
+    @DELETE("/doctors/{id}")
+    fun deleteDoctor(@Path("id") id: Int): Call<ResponseBody>
+
+    @GET("/appointments")
+    fun getAppointments(@Query("userId") userId: String): Call<List<Appointment>>
+
+    @GET("/appointments/upcoming")
+    fun getUpcomingAppointments(@Query("userId") userId: String): Call<List<Appointment>>
+
+    @GET("/appointments/{id}")
+    fun getAppointment(@Path("id") id: Int): Call<Appointment>
+
+    @POST("/appointments")
+    fun addAppointment(@Body appointment: Appointment): Call<Appointment>
+
+    @PUT("/appointments")
+    fun updateAppointment(@Body appointment: Appointment): Call<Appointment>
+
+    @DELETE("/appointments/{id}")
+    fun deleteAppointment(@Path("id") id: Int): Call<ResponseBody>
 }
 
 
