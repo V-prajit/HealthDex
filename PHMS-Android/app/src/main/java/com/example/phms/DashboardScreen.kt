@@ -75,9 +75,10 @@ fun DashboardScreen(
                         selectedTab = "notes"
                         newNoteRequested = true
                     },
-                    onNavigateToChat = {
-                        selectedTab = "chat"
+                    onNavigateToVitals = {
+                        selectedTab = "vitals"
                     }
+
                 )
             }
 
