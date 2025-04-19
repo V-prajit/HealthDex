@@ -3,6 +3,7 @@ package com.example.phms
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,9 +37,10 @@ fun HomeScreen(
     firstName: String?,
     onSettingsClick: () -> Unit,
     onNavigateToVitals: () -> Unit,
-    onNavigateToNotes: () -> Unit
+    onNavigateToNotes: () -> Unit,
+    onNavigateToSearch: () -> Unit  // +assistant: added callback for search navigation
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    // Removed unused searchQuery state
 
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greetingText = when (hour) {
@@ -77,20 +79,32 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+        // — Search bar (clickable overlay to capture taps) —
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null)
-            },
-            placeholder = {
-                Text(stringResource(R.string.search))
-            },
-            singleLine = true
-        )
+                .height(56.dp)
+        ) {
+            OutlinedTextField(
+                value = "",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxSize(),              // +assistant: fill parent Box
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null)
+                },
+                placeholder = {
+                    Text(stringResource(R.string.search))
+                },
+                singleLine = true
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()         // +assistant: overlay catches taps
+                    .clickable { onNavigateToSearch() }  // +assistant: navigate on tap
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
     var query by remember { mutableStateOf("") }
     var recentSearches by remember { mutableStateOf(listOf("sleep", "bp", "morning meds")) }
+    var selectedCategory by remember { mutableStateOf("All") }  // +assistant: added for category filtering
 
     Scaffold(
         topBar = {
@@ -50,14 +51,43 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
+            // +assistant: Add "Search results" section that shows when query is not empty
+            if (query.isNotEmpty()) {
+                Text("Search results for \"$query\"", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // This is a placeholder for search results
+                // In a real implementation, you would fetch and display actual results here
+                if (selectedCategory == "All" || selectedCategory == "Notes") {
+                    Text(
+                        text = "No results found in Notes",
+                        modifier = Modifier.padding(8.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                if (selectedCategory == "All" || selectedCategory == "Vital") {
+                    Text(
+                        text = "No results found in Vitals",
+                        modifier = Modifier.padding(8.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Recent", style = MaterialTheme.typography.titleMedium)
-                IconButton(onClick = { /* todo: refresh recentSearches */ }) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                IconButton(onClick = {
+                    // +assistant: implemented clear recent searches
+                    recentSearches = emptyList()
+                }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Clear Recent")
                 }
             }
 
@@ -70,7 +100,13 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .clickable { query = item },
+                            .clickable {
+                                query = item
+                                // +assistant: when clicking a recent search, add it to recents if not already there
+                                if (!recentSearches.contains(item)) {
+                                    recentSearches = listOf(item) + recentSearches
+                                }
+                            },
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -82,6 +118,21 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
             Text("Search by category", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
+            // +assistant: Added "All" category chip
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AssistChip(
+                    onClick = { selectedCategory = "All" },
+                    label = { Text("All") },
+                    modifier = Modifier,
+                    enabled = selectedCategory != "All"
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -91,14 +142,16 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     AssistChip(
-                        onClick = { /* todo: filter to Notes */ },
+                        onClick = { selectedCategory = "Notes" },
                         leadingIcon = { Icon(Icons.Default.Note, contentDescription = null) },
-                        label = { Text("Notes") }
+                        label = { Text("Notes") },
+                        enabled = selectedCategory != "Notes"
                     )
                     AssistChip(
-                        onClick = { /* todo: filter to Vital */ },
+                        onClick = { selectedCategory = "Vital" },
                         leadingIcon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                        label = { Text("Vital") }
+                        label = { Text("Vital") },
+                        enabled = selectedCategory != "Vital"
                     )
                 }
                 Row(
@@ -106,14 +159,16 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     AssistChip(
-                        onClick = { /* todo: filter to Medication */ },
+                        onClick = { selectedCategory = "Medication" },
                         leadingIcon = { Icon(Icons.Default.LocalPharmacy, contentDescription = null) },
-                        label = { Text("Medication") }
+                        label = { Text("Medication") },
+                        enabled = selectedCategory != "Medication"
                     )
                     AssistChip(
-                        onClick = { /* todo: filter to Diet */ },
+                        onClick = { selectedCategory = "Diet" },
                         leadingIcon = { Icon(Icons.Default.Restaurant, contentDescription = null) },
-                        label = { Text("Diet") }
+                        label = { Text("Diet") },
+                        enabled = selectedCategory != "Diet"
                     )
                 }
             }
