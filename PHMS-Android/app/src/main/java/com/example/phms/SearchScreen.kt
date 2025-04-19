@@ -25,22 +25,26 @@ import androidx.compose.ui.unit.dp
 import com.example.phms.NotesRepository
 import com.example.phms.NotesRepositoryBackend
 import com.example.phms.VitalRepository
+import com.example.phms.Appointment
+import com.example.phms.AppointmentRepository
+import androidx.compose.material.icons.filled.EventNote
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    userToken: String?,                                      // +assistant: added userToken
+    userToken: String?,
     onClose: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val context = LocalContext.current                              // +assistant: for local notes
+    val context = LocalContext.current
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All") }
     var recentSearches by remember { mutableStateOf(listOf("sleep", "bp", "morning meds")) }
 
-    // +assistant: load all notes and vitals
     var allNotes by remember { mutableStateOf(listOf<String>()) }
     var allVitals by remember { mutableStateOf(listOf<String>()) }
+    var allAppointments by remember { mutableStateOf(listOf<Appointment>()) }
+
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(userToken) {
@@ -54,6 +58,7 @@ fun SearchScreen(
         allVitals = userToken?.let {
             VitalRepository.getVitals(it).map { v -> "${v.type}: ${v.value} ${v.unit}" }
         } ?: emptyList()
+        allAppointments = userToken?.let { AppointmentRepository.getUpcomingAppointments(it) } ?: emptyList()
     }
 
     val filteredNotes by remember(allNotes, query, selectedCategory) {
@@ -72,6 +77,14 @@ fun SearchScreen(
             }
         }
     }
+    val filteredAppointments by remember(allAppointments, query, selectedCategory) {
+        derivedStateOf {
+            allAppointments.filter { appt ->
+                (appt.doctorName?.contains(query, ignoreCase = true) ?: false) &&
+                        (selectedCategory == "All" || selectedCategory == "Appointments")
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -81,7 +94,7 @@ fun SearchScreen(
                         value = query,
                         onValueChange = { query = it },
                         leadingIcon = { Icon(Icons.Default.Search, null) },
-                        placeholder = { Text("Search notes or vitals...") },
+                        placeholder = { Text("Search notes, vitals, appointments...") }, // +assistant: updated placeholder
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -137,9 +150,29 @@ fun SearchScreen(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                if (filteredNotes.isEmpty() && filteredVitals.isEmpty()) {
+                // +assistant: display appointment results
+                if (filteredAppointments.isNotEmpty()) {
+                    Text("Appointments:", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    LazyColumn {
+                        items(filteredAppointments) { appt ->
+                            Text(
+                                text = "${appt.date} ${appt.time} with ${appt.doctorName ?: "Doctor"}",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .clickable { /* handle click */ },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                if (filteredNotes.isEmpty() && filteredVitals.isEmpty() && filteredAppointments.isEmpty()) {
                     Text(
                         text = "No results found",
                         modifier = Modifier.padding(8.dp),
@@ -190,14 +223,29 @@ private fun CategoryChips(
     selected: String,
     onSelect: (String) -> Unit
 ) {
-    val categories = listOf("All", "Notes", "Vital", "Medication", "Diet")
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        categories.forEach { cat ->
-            FilterChip(
-                selected = (selected == cat),
-                onClick = { onSelect(cat) },
-                label = { Text(cat) }
-            )
+    val categories = listOf("All", "Notes", "Vital", "Appointments", "Medication", "Diet")
+    val icons = mapOf(
+        "All" to Icons.Default.Search,
+        "Notes" to Icons.Default.Note,
+        "Vital" to Icons.Default.Favorite,
+        "Appointments" to Icons.Default.EventNote,
+        "Medication" to Icons.Default.LocalPharmacy,
+        "Diet" to Icons.Default.Restaurant
+    )
+
+    Column {
+        categories.chunked(3).forEach { rowCats ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                rowCats.forEach { cat ->
+                    FilterChip(
+                        selected = (selected == cat),
+                        onClick = { onSelect(cat) },
+                        leadingIcon = { Icon(icons[cat]!!, contentDescription = null) }, // +assistant: added icon
+                        label = { Text(cat) }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
