@@ -127,4 +127,38 @@
     <string name="error_empty_email">Please enter your email</string>
     <string name="back_to_login">Back to Login</string>
 
+    <!-- Doctor and Appointment related strings -->
+    <string name="doctors">Doctors</string>
+    <string name="appointments">Appointments</string>
+    <string name="add_doctor">Add Doctor</string>
+    <string name="edit_doctor">Edit Doctor</string>
+    <string name="doctor_name">Doctor Name</string>
+    <string name="specialization">Specialization</string>
+    <string name="phone">Phone Number</string>
+    <string name="address">Address</string>
+    <string name="no_doctors_yet">No doctors added yet</string>
+    <string name="tap_to_add_doctor">Tap + to add a doctor</string>
+    <string name="confirm_delete">Confirm Delete</string>
+    <string name="delete_doctor_confirmation">Are you sure you want to delete Dr. %1$s?</string>
+    <string name="ok">OK</string>
+
+    <string name="add_appointment">Add Appointment</string>
+    <string name="edit_appointment">Edit Appointment</string>
+    <string name="doctor">Doctor</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
+    <string name="duration_minutes">Duration (min)</string>
+    <string name="reason">Reason</string>
+    <string name="status">Status</string>
+    <string name="enable_reminders">Enable Reminders</string>
+    <string name="reminders_on">Reminders On</string>
+    <string name="reminders_off">Reminders Off</string>
+    <string name="no_appointments">No appointments scheduled</string>
+    <string name="tap_to_add_appointment">Tap + to add an appointment</string>
+    <string name="delete_appointment_confirmation">Are you sure you want to delete the appointment on %1$s at %2$s with %3$s?</string>
+    <string name="upcoming_appointments">Upcoming Appointments</string>
+    <string name="all_appointments">All Appointments</string>
+    <string name="medications">Medications</string>
+    <string name="edit">Edit</string>
+
 </resources>
