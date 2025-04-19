@@ -115,6 +115,8 @@
     <string name="select_type">Select type</string>
     <string name="other">Other</string>
     <string name="specify_type">Specify Vital Type</string>
+    <string name="select_unit">Select Unit</string>
+    <string name="specify_unit">Specify Unit</string>
 
     <!-- Dashboard -->
     <string name="home">Home</string>
