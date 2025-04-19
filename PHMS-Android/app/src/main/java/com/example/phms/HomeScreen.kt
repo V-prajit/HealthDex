@@ -32,7 +32,7 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNavigateToVitals: () -> Unit,
     onNavigateToNotes: () -> Unit,
-    onNavigateToSearch: () -> Unit  // +assistant: added callback for search navigation
+    onNavigateToSearch: () -> Unit,
     onNavigateToAppointments: () -> Unit
 ) {
     // Removed unused searchQuery state
