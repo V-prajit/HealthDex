@@ -10,10 +10,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SaveAs
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -165,6 +169,7 @@ fun NotesListScreen(
     } else {
         notes.filter { it.split("\n").getOrElse(2) { "" } == selectedSortTag }
     }
+
     Scaffold(
         topBar = {
             // upper bar that shows/ displays the title and action icons.
@@ -181,15 +186,16 @@ fun NotesListScreen(
                 }
             )
         },
+        // +new: updated floating action button with label
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton( // +new
                 onClick = onNewNoteClick,
+                icon = { Icon(Icons.Default.Add, contentDescription = null) }, // +new
+                text = { Text(stringResource(R.string.add_note)) }, // +new
                 modifier = Modifier
                     .padding(bottom = 72.dp, end = 16.dp)
                     .navigationBarsPadding()
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
-            }
+            )
         },
         floatingActionButtonPosition = FabPosition.End
     ) { padding ->
@@ -237,10 +243,15 @@ fun NotesListScreen(
                         val noteName = note.split("\n").firstOrNull()?.let { line ->
                             if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
                         } ?: ""
+                        val subtitle = note.split("\n").getOrNull(1) ?: "" // +new
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onNoteClick(index, note) }
+                                .clickable { onNoteClick(index, note) },
+                            shape = RoundedCornerShape(12.dp), // +new
+                            elevation = CardDefaults.cardElevation(4.dp), // +new
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant) // +new
                         ) {
                             Row(
                                 modifier = Modifier
@@ -248,12 +259,20 @@ fun NotesListScreen(
                                     .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
+                                Column(modifier = Modifier.weight(1f)) {
                                     //displays the title of the note
-                                    text = noteName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                    Text(
+                                        text = noteName,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    if (subtitle.isNotBlank()) { // +new
+                                        Text(
+                                            text = subtitle.take(60), // +new
+                                            style = MaterialTheme.typography.bodySmall, // +new
+                                            modifier = Modifier.padding(top = 4.dp) // +new
+                                        )
+                                    }
+                                }
                                 var expanded by remember { mutableStateOf(false) }
                                 IconButton(onClick = { expanded = true }) {
                                     Icon(Icons.Default.MoreVert, contentDescription = null)
@@ -299,7 +318,10 @@ fun NotesListScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)
-                                .clickable { onNoteClick(index, note) }
+                                .clickable { onNoteClick(index, note) },
+                            shape = RoundedCornerShape(10.dp), // +new
+                            elevation = CardDefaults.cardElevation(4.dp), // +new
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant) // +new
                         ) {
                             Box(
                                 modifier = Modifier
@@ -311,11 +333,10 @@ fun NotesListScreen(
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Box(
                                         modifier = Modifier
-                                            .size(50.dp)
-                                            .background(Color.LightGray),
+                                            .padding(4.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(text = noteSummary, style = MaterialTheme.typography.bodySmall)
+                                        Text(text = noteSummary.take(40), style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
                                 var expanded by remember { mutableStateOf(false) }
@@ -404,10 +425,14 @@ fun NotesEditScreen(
                     IconButton(onClick = onCancel) {
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
+                },
+                actions = {
+                    IconButton(onClick = onCancel) {
+                        Icon(Icons.Default.Close, contentDescription = "Cancel")
+                    }
                 }
             )
         }
-        // +new: bottomBar removed; buttons now inline
     ) { padding ->
         Column(
             modifier = Modifier
@@ -416,11 +441,14 @@ fun NotesEditScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Note Details", style = MaterialTheme.typography.titleMedium) // +new
+            Text("Note Details", style = MaterialTheme.typography.titleMedium)
 
+            // +new: style card with tint and shape
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(4.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), // +new
+                shape = RoundedCornerShape(12.dp), // +new
+                elevation = CardDefaults.cardElevation(6.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
                     OutlinedTextField(
@@ -486,16 +514,24 @@ fun NotesEditScreen(
                 }
             }
 
+            // +new: insert image button styled
             Button(
                 onClick = {
                     imagePickerLauncher.launch("image/*")
                 },
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 8.dp)
             ) {
+                Icon(Icons.Default.Add, contentDescription = null) // +new
+                Spacer(modifier = Modifier.width(8.dp)) // +new
                 Text(stringResource(R.string.insert_image))
             }
 
-            // +new: Save, Save As, Cancel moved here
+            // +new: divider for visual separation
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // +new: actions with icons + visual balance
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -513,6 +549,8 @@ fun NotesEditScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    Icon(Icons.Default.Save, contentDescription = null) // +new
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.save))
                 }
 
@@ -526,14 +564,9 @@ fun NotesEditScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    Icon(Icons.Default.SaveAs, contentDescription = null) // +new
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.save_as))
-                }
-
-                OutlinedButton(
-                    onClick = onCancel,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Cancel")
                 }
             }
 
