@@ -1,5 +1,6 @@
 package com.example.phms
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,17 +14,64 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocalPharmacy
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
+// +assistant: added for filter chips
+import androidx.compose.material3.FilterChip
+
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.phms.NotesRepository
+import com.example.phms.NotesRepositoryBackend
+import com.example.phms.VitalRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
+fun SearchScreen(
+    userToken: String?,                                      // +assistant: added userToken
+    onClose: () -> Unit,
+    onBackClick: () -> Unit
+) {
+    val context = LocalContext.current                              // +assistant: for local notes
     var query by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("All") }
     var recentSearches by remember { mutableStateOf(listOf("sleep", "bp", "morning meds")) }
-    var selectedCategory by remember { mutableStateOf("All") }  // +assistant: added for category filtering
+
+    // +assistant: load all notes and vitals
+    var allNotes by remember { mutableStateOf(listOf<String>()) }
+    var allVitals by remember { mutableStateOf(listOf<String>()) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(userToken) {
+        // fetch notes
+        allNotes = if (!userToken.isNullOrEmpty()) {
+            NotesRepositoryBackend.getNotes(userToken)
+        } else {
+            NotesRepository.getNotes(context)
+        }
+        // fetch vitals
+        allVitals = userToken?.let {
+            VitalRepository.getVitals(it).map { v -> "${v.type}: ${v.value} ${v.unit}" }
+        } ?: emptyList()
+    }
+
+    val filteredNotes by remember(allNotes, query, selectedCategory) {
+        derivedStateOf {
+            allNotes.filter { note ->
+                note.contains(query, ignoreCase = true) &&
+                        (selectedCategory == "All" || selectedCategory == "Notes")
+            }
+        }
+    }
+    val filteredVitals by remember(allVitals, query, selectedCategory) {
+        derivedStateOf {
+            allVitals.filter { vital ->
+                vital.contains(query, ignoreCase = true) &&
+                        (selectedCategory == "All" || selectedCategory == "Vital")
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -51,24 +99,49 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // +assistant: Add "Search results" section that shows when query is not empty
+            // search results
             if (query.isNotEmpty()) {
                 Text("Search results for \"$query\"", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // This is a placeholder for search results
-                // In a real implementation, you would fetch and display actual results here
-                if (selectedCategory == "All" || selectedCategory == "Notes") {
-                    Text(
-                        text = "No results found in Notes",
-                        modifier = Modifier.padding(8.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                if (filteredNotes.isNotEmpty()) {
+                    Text("Notes:", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    LazyColumn {
+                        items(filteredNotes) { note ->
+                            Text(
+                                text = note,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .clickable { /* handle click */ },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                if (selectedCategory == "All" || selectedCategory == "Vital") {
+                if (filteredVitals.isNotEmpty()) {
+                    Text("Vitals:", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    LazyColumn {
+                        items(filteredVitals) { vital ->
+                            Text(
+                                text = vital,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                                    .clickable { /* handle click */ },
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+
+                if (filteredNotes.isEmpty() && filteredVitals.isEmpty()) {
                     Text(
-                        text = "No results found in Vitals",
+                        text = "No results found",
                         modifier = Modifier.padding(8.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -77,22 +150,18 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // recent searches
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Recent", style = MaterialTheme.typography.titleMedium)
-                IconButton(onClick = {
-                    // +assistant: implemented clear recent searches
-                    recentSearches = emptyList()
-                }) {
+                IconButton(onClick = { recentSearches = emptyList() }) {
                     Icon(Icons.Default.Refresh, contentDescription = "Clear Recent")
                 }
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
             LazyColumn {
                 items(recentSearches) { item ->
                     Text(
@@ -100,13 +169,7 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .clickable {
-                                query = item
-                                // +assistant: when clicking a recent search, add it to recents if not already there
-                                if (!recentSearches.contains(item)) {
-                                    recentSearches = listOf(item) + recentSearches
-                                }
-                            },
+                            .clickable { query = item },
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -114,64 +177,27 @@ fun SearchScreen(onClose: () -> Unit, onBackClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // search by category
+            // categories
             Text("Search by category", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
+            CategoryChips(selectedCategory) { selectedCategory = it }
+        }
+    }
+}
 
-            // +assistant: Added "All" category chip
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                AssistChip(
-                    onClick = { selectedCategory = "All" },
-                    label = { Text("All") },
-                    modifier = Modifier,
-                    enabled = selectedCategory != "All"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AssistChip(
-                        onClick = { selectedCategory = "Notes" },
-                        leadingIcon = { Icon(Icons.Default.Note, contentDescription = null) },
-                        label = { Text("Notes") },
-                        enabled = selectedCategory != "Notes"
-                    )
-                    AssistChip(
-                        onClick = { selectedCategory = "Vital" },
-                        leadingIcon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                        label = { Text("Vital") },
-                        enabled = selectedCategory != "Vital"
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AssistChip(
-                        onClick = { selectedCategory = "Medication" },
-                        leadingIcon = { Icon(Icons.Default.LocalPharmacy, contentDescription = null) },
-                        label = { Text("Medication") },
-                        enabled = selectedCategory != "Medication"
-                    )
-                    AssistChip(
-                        onClick = { selectedCategory = "Diet" },
-                        leadingIcon = { Icon(Icons.Default.Restaurant, contentDescription = null) },
-                        label = { Text("Diet") },
-                        enabled = selectedCategory != "Diet"
-                    )
-                }
-            }
+@Composable
+private fun CategoryChips(
+    selected: String,
+    onSelect: (String) -> Unit
+) {
+    val categories = listOf("All", "Notes", "Vital", "Medication", "Diet")
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        categories.forEach { cat ->
+            FilterChip(
+                selected = (selected == cat),
+                onClick = { onSelect(cat) },
+                label = { Text(cat) }
+            )
         }
     }
 }

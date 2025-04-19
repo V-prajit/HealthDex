@@ -67,6 +67,7 @@ fun DashboardScreen(
                 Log.d("DashboardScreen", "Showing HomeScreen")
                 if (showSearchScreen) {
                     SearchScreen(
+                        userToken   = userToken,
                         onClose     = { showSearchScreen = false },
                         onBackClick = { showSearchScreen = false }
                     )
@@ -85,7 +86,7 @@ fun DashboardScreen(
                         onNavigateToVitals = {
                             selectedTab = "vitals"
                         },
-                        onNavigateToSearch = { showSearchScreen = true }  // +assistant: added search callback
+                        onNavigateToSearch = { showSearchScreen = true }
                     )
                 }
             }
@@ -112,6 +113,7 @@ fun DashboardScreen(
                     }
                 )
             }
+
             "vitals" -> VitalSignsScreen(
                 userId      = userToken,
                 onBackClick = { selectedTab = "home" }
