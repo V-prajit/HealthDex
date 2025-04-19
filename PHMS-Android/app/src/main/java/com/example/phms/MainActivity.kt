@@ -335,6 +335,7 @@ fun AuthScreen(
         color = MaterialTheme.colorScheme.background
     ){
         var isRegistering by remember { mutableStateOf(true) }
+        var showForgotPassword by remember { mutableStateOf(false) }
         var userToken by remember { mutableStateOf<String?>(null) }
         var showUserDetailsScreen by remember { mutableStateOf(false) }
 
@@ -350,6 +351,9 @@ fun AuthScreen(
                 }
             }
             when {
+                showForgotPassword -> {
+                    ForgotPasswordScreen(onBackClick = { showForgotPassword = false })
+                }
                 showUserDetailsScreen -> {
                     UserDetailsScreen(userToken) { token, firstName ->
                         onLoginSuccess(token, firstName)
@@ -362,7 +366,13 @@ fun AuthScreen(
                     }
                 }
                 else -> {
-                    LoginScreen(auth, biometricAuth, onSwitch = { isRegistering = true }, onLoginSuccess)
+                    LoginScreen(
+                        auth = auth,
+                        biometricAuth = biometricAuth,
+                        onSwitch = { isRegistering = true },
+                        onLoginSuccess = onLoginSuccess,
+                        onForgotPassword = { showForgotPassword = true}
+                    )
                 }
             }
         }
@@ -467,7 +477,8 @@ fun LoginScreen(
     auth: FirebaseAuth,
     biometricAuth: BiometricAuth,
     onSwitch: () -> Unit,
-    onLoginSuccess: (String, String?) -> Unit
+    onLoginSuccess: (String, String?) -> Unit,
+    onForgotPassword: () -> Unit
 ) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
@@ -505,6 +516,11 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+        TextButton(onClick = onForgotPassword) {
+            Text(stringResource(R.string.forgot_password))
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
         val loginFailedTemplate = stringResource(R.string.login_failed)
