@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +35,7 @@ import java.util.Calendar
 fun HomeScreen(
     firstName: String?,
     onSettingsClick: () -> Unit,
-    onNavigateToChat: () -> Unit,
+    onNavigateToVitals: () -> Unit,
     onNavigateToNotes: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -136,9 +137,9 @@ fun HomeScreen(
                 label = { Text("Add Note") }
             )
             AssistChip(
-                onClick = onNavigateToChat,
-                leadingIcon = { Icon(Icons.Default.Chat, contentDescription = null) },
-                label = { Text("Chat Bot") }
+                onClick = onNavigateToVitals,
+                leadingIcon = { Icon(Icons.Default.Favorite, contentDescription = null) },
+                label = { Text("Add Vital") }
             )
             AssistChip(
                 onClick = { /* todo: add medicine */ },

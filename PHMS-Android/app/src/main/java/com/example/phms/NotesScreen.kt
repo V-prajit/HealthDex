@@ -172,9 +172,6 @@ fun NotesListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.notes), style = MaterialTheme.typography.headlineLarge) },
                 actions = {
-                    IconButton(onClick = onNewNoteClick) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
-                    }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
@@ -184,7 +181,18 @@ fun NotesListScreen(
                     }
                 }
             )
-        }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNewNoteClick,
+                modifier = Modifier
+                    .padding(bottom = 72.dp, end = 16.dp)
+                    .navigationBarsPadding()
+            ) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End
     ) { padding ->
         Column(modifier = Modifier
             .fillMaxSize()
