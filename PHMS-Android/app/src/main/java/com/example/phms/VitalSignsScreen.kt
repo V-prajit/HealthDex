@@ -237,120 +237,192 @@ fun VitalDialog(
     onSave: (VitalSign) -> Unit,
     onCancel: () -> Unit
 ) {
-    // Formatter for timestamp
+    // timestamp formatter
     val df = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) }
 
-    // Options including “Other”
-    val bpLabel      = stringResource(R.string.blood_pressure)
-    val glucoseLabel = stringResource(R.string.glucose)
-    val cholLabel    = stringResource(R.string.cholesterol)
-    val hrLabel      = stringResource(R.string.heart_rate)
-    val otherLabel   = stringResource(R.string.other)
-    val options      = listOf(bpLabel, glucoseLabel, cholLabel, hrLabel, otherLabel)
+    // --- Strings ---
+    val saveLabel        = stringResource(R.string.save)
+    val cancelLabel      = stringResource(R.string.cancel)
+    val inputErrorTxt    = stringResource(R.string.vital_input_error)
+    val dialogTitle      = stringResource(
+        if (initial == null) R.string.add_vital else R.string.edit_vital
+    )
+    val selectTypeLabel  = stringResource(R.string.select_type)
+    val otherLabel       = stringResource(R.string.other)
+    val specifyTypeLabel = stringResource(R.string.specify_type)
+    val selectUnitLabel  = stringResource(R.string.select_unit)
+    val specifyUnitLabel = stringResource(R.string.specify_unit)
 
-    // Dialog state
-    var type         by remember { mutableStateOf(initial?.type ?: "") }
-    var typeExpanded by remember { mutableStateOf(false) }
-    var customType   by remember { mutableStateOf("") }
-    var valueText    by remember { mutableStateOf(initial?.value?.toString() ?: "") }
+    // --- Type dropdown state ---
+    val bpLabel       = stringResource(R.string.blood_pressure)
+    val glucoseLabel  = stringResource(R.string.glucose)
+    val cholLabel     = stringResource(R.string.cholesterol)
+    val hrLabel       = stringResource(R.string.heart_rate)
+    val typeOptions   = listOf(bpLabel, glucoseLabel, cholLabel, hrLabel, otherLabel)
+
+    var typeExpanded  by remember { mutableStateOf(false) }
+    var type          by remember { mutableStateOf(initial?.type ?: "") }
+    var customType    by remember { mutableStateOf(initial?.type?.takeIf { it !in typeOptions } ?: "") }
+
+    // --- Unit dropdown state ---
+    val unitMap = mapOf(
+      bpLabel      to listOf("mmHg","kPa","cmH₂O","inHg"),
+      glucoseLabel to listOf("mg/dL","mmol/L","mg%","g/L"),
+      cholLabel    to listOf("mg/dL","mmol/L","mg%","g/L"),
+      hrLabel      to listOf("bpm","bps","Hz","cpm")
+    )
+    var unitExpanded by remember { mutableStateOf(false) }
     var unit         by remember { mutableStateOf(initial?.unit ?: "") }
+    var customUnit   by remember { mutableStateOf(initial?.unit.takeIf { it !in unitMap[type].orEmpty() } ?: "") }
+
+    // --- Value field state ---
+    var valueText    by remember { mutableStateOf(initial?.value?.toString() ?: "") }
     var error        by remember { mutableStateOf("") }
 
-    // Strings
-    val saveLabel          = stringResource(R.string.save)
-    val cancelLabel        = stringResource(R.string.cancel)
-    val vitalInputErrorTxt = stringResource(R.string.vital_input_error)
-    val dialogTitle        = stringResource(if (initial == null) R.string.add_vital else R.string.edit_vital)
-    val specifyTypeLabel   = stringResource(R.string.specify_type)
-    val selectTypeLabel    = stringResource(R.string.select_type)
-
     AlertDialog(
-        onDismissRequest = onCancel,
-        title            = { Text(dialogTitle) },
-        text             = {
-            Column {
-                // Type dropdown + "Other" free-text
-                Box {
-                    OutlinedButton(
-                        onClick = { typeExpanded = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        val display = when {
-                            type.isBlank()                          -> selectTypeLabel
-                            type == otherLabel && customType.isNotBlank() -> customType
-                            else                                    -> type
-                        }
-                        Text(display)
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
-                    DropdownMenu(
-                        expanded = typeExpanded,
-                        onDismissRequest = { typeExpanded = false }
-                    ) {
-                        options.forEach { opt ->
-                            DropdownMenuItem(
-                                text = { Text(opt) },
-                                onClick = {
-                                    type = opt
-                                    typeExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                if (type == otherLabel) {
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = customType,
-                        onValueChange = { customType = it },
-                        label = { Text(specifyTypeLabel) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = valueText,
-                    onValueChange = { valueText = it },
-                    label = { Text(stringResource(R.string.value_label)) },
-                    isError = error.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = unit,
-                    onValueChange = { unit = it },
-                    label = { Text(stringResource(R.string.unit_label)) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                if (error.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(error, color = MaterialTheme.colorScheme.error)
-                }
+      onDismissRequest = onCancel,
+      title            = { Text(dialogTitle) },
+      text             = {
+        Column {
+          // — Type selector —
+          Box {
+            OutlinedButton(
+              onClick = { typeExpanded = true },
+              modifier = Modifier.fillMaxWidth()
+            ) {
+              val display = when {
+                type.isBlank()                  -> selectTypeLabel
+                type == otherLabel && customType.isNotBlank() -> customType
+                else                            -> type
+              }
+              Text(display)
+              Icon(Icons.Default.ArrowDropDown, contentDescription = null)
             }
-        },
-        confirmButton   = {
-            TextButton(onClick = {
-                val dbl = valueText.toDoubleOrNull()
-                val finalType = if (type == otherLabel) customType.trim() else type
-                if (finalType.isBlank() || dbl == null || unit.isBlank()) {
-                    error = vitalInputErrorTxt
-                } else {
-                    val now = df.format(Date())
-                    onSave(VitalSign(initial?.id, userId ?: "", finalType, dbl, unit, now))
+            DropdownMenu(
+              expanded = typeExpanded,
+              onDismissRequest = { typeExpanded = false }
+            ) {
+              typeOptions.forEach { opt ->
+                DropdownMenuItem(text = { Text(opt) }, onClick = {
+                  typeExpanded = false
+                  type = opt
+                  if (opt == otherLabel) customType = ""
+                  unit = ""         // reset unit whenever type changes
+                  customUnit = ""
+                })
+              }
+            }
+          }
+
+          if (type == otherLabel) {
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+              value = customType,
+              onValueChange = { customType = it },
+              label = { Text(specifyTypeLabel) },
+              modifier = Modifier.fillMaxWidth()
+            )
+          }
+
+          Spacer(Modifier.height(12.dp))
+
+          // — Unit selector — always shown as “dropdown” button
+          if (type.isBlank()) {
+            // nothing happens until a type is chosen
+            OutlinedButton(
+              onClick = { /* no-op */ },
+              enabled = false,
+              modifier = Modifier.fillMaxWidth()
+            ) {
+              Text(selectUnitLabel)
+              Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            }
+          }
+          else if (type != otherLabel) {
+            // built‑in type → its unit list + Other
+            Box {
+              OutlinedButton(
+                onClick = { unitExpanded = true },
+                modifier = Modifier.fillMaxWidth()
+              ) {
+                Text(if (unit.isBlank()) selectUnitLabel else unit)
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+              }
+              DropdownMenu(
+                expanded = unitExpanded,
+                onDismissRequest = { unitExpanded = false }
+              ) {
+                (unitMap[type] ?: emptyList()).plus(otherLabel).forEach { opt ->
+                  DropdownMenuItem(text = { Text(opt) }, onClick = {
+                    unitExpanded = false
+                    unit = opt
+                    if (opt == otherLabel) customUnit = ""
+                  })
                 }
-            }) {
-                Text(saveLabel)
+              }
             }
-        },
-        dismissButton   = {
-            TextButton(onClick = onCancel) {
-                Text(cancelLabel)
+            if (unit == otherLabel) {
+              Spacer(Modifier.height(8.dp))
+              OutlinedTextField(
+                value = customUnit,
+                onValueChange = { customUnit = it },
+                label = { Text(specifyUnitLabel) },
+                modifier = Modifier.fillMaxWidth()
+              )
             }
+          }
+          else {
+            // type=="Other" → free‑form unit
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+              value = customUnit,
+              onValueChange = { customUnit = it },
+              label = { Text(specifyUnitLabel) },
+              modifier = Modifier.fillMaxWidth()
+            )
+          }
+
+          Spacer(Modifier.height(12.dp))
+
+          // — Value field —
+          OutlinedTextField(
+            value = valueText,
+            onValueChange = { valueText = it },
+            label = { Text(stringResource(R.string.value_label)) },
+            isError = error.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth()
+          )
+
+          if (error.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(error, color = MaterialTheme.colorScheme.error)
+          }
         }
+      },
+      confirmButton = {
+        TextButton(onClick = {
+          // finalize
+          val finalType = if (type == otherLabel) customType.trim() else type
+          val finalUnit = when {
+            type == otherLabel            -> customUnit.trim()
+            unit == otherLabel            -> customUnit.trim()
+            else                          -> unit
+          }
+          val dbl = valueText.toDoubleOrNull()
+          if (finalType.isBlank() || dbl == null || finalUnit.isBlank()) {
+            error = inputErrorTxt
+          } else {
+            val now = df.format(Date())
+            onSave(VitalSign(initial?.id, userId ?: "", finalType, dbl, finalUnit, now))
+          }
+        }) {
+          Text(saveLabel)
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = onCancel) {
+          Text(cancelLabel)
+        }
+      }
     )
 }
