@@ -4,10 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Note
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -36,7 +33,13 @@ fun DashboardScreen(
                         selectedTab = "home"
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") }
+                    label = { Text(stringResource(R.string.home)) }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == "appointments",
+                    onClick = { selectedTab = "appointments" },
+                    icon = { Icon(Icons.Default.EventNote, contentDescription = "Appointments") },
+                    label = { Text(stringResource(R.string.appointments)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "notes",
@@ -45,7 +48,7 @@ fun DashboardScreen(
                         newNoteRequested = false
                     },
                     icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
-                    label = { Text("Notes") }
+                    label = { Text(stringResource(R.string.notes)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "chat",
@@ -57,7 +60,7 @@ fun DashboardScreen(
                     selected = selectedTab == "vitals",
                     onClick  = { selectedTab = "vitals" },
                     icon     = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
-                    label    = { Text("Vitals") }
+                    label    = { Text(stringResource(R.string.vitals)) }
                 )
             }
         }
@@ -86,7 +89,27 @@ fun DashboardScreen(
                         onNavigateToVitals = {
                             selectedTab = "vitals"
                         },
+                        onNavigateToAppointments = {
+                          selectedTab = "appointments"
+                        },
                         onNavigateToSearch = { showSearchScreen = true }
+                    )
+                }
+            }
+
+            "appointments" -> {
+                var showDoctorsScreen by remember { mutableStateOf(false) }
+
+                if (showDoctorsScreen) {
+                    DoctorsScreen(
+                        userId = userToken,
+                        onBackClick = { showDoctorsScreen = false }
+                    )
+                } else {
+                    AppointmentsScreen(
+                        userId = userToken,
+                        onBackClick = { selectedTab = "home" },
+                        onViewDoctors = { showDoctorsScreen = true }
                     )
                 }
             }

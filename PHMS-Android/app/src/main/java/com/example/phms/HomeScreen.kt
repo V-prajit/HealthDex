@@ -7,13 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.LocalPharmacy
-import androidx.compose.material.icons.filled.Note
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +33,7 @@ fun HomeScreen(
     onNavigateToVitals: () -> Unit,
     onNavigateToNotes: () -> Unit,
     onNavigateToSearch: () -> Unit  // +assistant: added callback for search navigation
+    onNavigateToAppointments: () -> Unit
 ) {
     // Removed unused searchQuery state
 
@@ -148,22 +143,35 @@ fun HomeScreen(
             AssistChip(
                 onClick = onNavigateToNotes,
                 leadingIcon = { Icon(Icons.Default.Note, contentDescription = null) },
-                label = { Text("Add Note") }
+                label = { Text(stringResource(R.string.add_note)) }
             )
             AssistChip(
                 onClick = onNavigateToVitals,
                 leadingIcon = { Icon(Icons.Default.Favorite, contentDescription = null) },
-                label = { Text("Add Vital") }
+                label = { Text(stringResource(R.string.add_vital)) }
+            )
+            AssistChip(
+                onClick = onNavigateToAppointments,
+                leadingIcon = { Icon(Icons.Default.EventNote, contentDescription = null) },
+                label = { Text(stringResource(R.string.appointments)) }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            AssistChip(
+                onClick = onNavigateToAppointments,
+                leadingIcon = { Icon(Icons.Default.MedicalServices, contentDescription = null) },
+                label = { Text(stringResource(R.string.doctors)) }
             )
             AssistChip(
                 onClick = { /* todo: add medicine */ },
                 leadingIcon = { Icon(Icons.Default.LocalPharmacy, contentDescription = null) },
-                label = { Text("Medicine") }
-            )
-            AssistChip(
-                onClick = { /* todo: show events */ },
-                leadingIcon = { Icon(Icons.Default.Event, contentDescription = null) },
-                label = { Text("Events") }
+                label = { Text(stringResource(R.string.medications)) }
             )
         }
     }

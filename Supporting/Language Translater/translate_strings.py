@@ -14,7 +14,20 @@ SUPPORTED_LANGUAGES = {
     "en": "English",
     "es": "Spanish",
     "fr": "French",
-    "hi": "Hindi"
+    "hi": "Hindi",
+    # Adding more major world languages
+    "ar": "Arabic",
+    "bn": "Bengali",
+    "zh": "Chinese",
+    "de": "German",
+    "id": "Indonesian",
+    "it": "Italian",
+    "ja": "Japanese",
+    "ko": "Korean",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "sw": "Swahili",
+    "ur": "Urdu"
 }
 
 def extract_strings(xml_file):
@@ -199,7 +212,7 @@ def main():
     parser.add_argument(
         "--languages", 
         nargs="+", 
-        default=["fr", "es", "hi"],
+        default=["fr", "es", "hi", "ar", "de", "zh", "pt", "ru"],
         help="Languages to translate to (language codes)"
     )
     

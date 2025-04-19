@@ -3,6 +3,10 @@ package com.example
 
 import com.example.dao.User
 import com.example.dao.UserDAO
+import com.example.dao.Doctor
+import com.example.dao.DoctorDAO
+import com.example.dao.Appointment
+import com.example.dao.AppointmentDAO
 import com.example.VitalsDAO
 import com.example.VitalDTO
 import io.ktor.server.routing.*
@@ -183,6 +187,112 @@ fun Application.configureRouting() {
                 } else {
                     val darkMode = userThemeMap[firebaseUid] ?: false
                     call.respond(HttpStatusCode.OK, mapOf("darkMode" to darkMode))
+                }
+            }
+        }
+
+        route("/doctors") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val doctors = DoctorDAO.getDoctorsByUserId(userId)
+                call.respond(HttpStatusCode.OK, doctors)
+            }
+
+            get("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid doctor ID")
+
+                val doctor = DoctorDAO.getDoctorById(id)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Doctor not found")
+
+                call.respond(HttpStatusCode.OK, doctor)
+            }
+
+            post {
+                val doctor = call.receive<Doctor>()
+                val addedDoctor = DoctorDAO.addDoctor(doctor)
+                call.respond(HttpStatusCode.Created, addedDoctor)
+            }
+
+            put {
+                val doctor = call.receive<Doctor>()
+                val updated = DoctorDAO.updateDoctor(doctor)
+
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, doctor)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Doctor not found or missing ID")
+                }
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid doctor ID")
+
+                val deleted = DoctorDAO.deleteDoctor(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Doctor deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Doctor not found")
+                }
+            }
+        }
+
+        route("/appointments") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val appointments = AppointmentDAO.getAppointmentsByUserId(userId)
+                call.respond(HttpStatusCode.OK, appointments)
+            }
+
+            get("/upcoming") {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val appointments = AppointmentDAO.getUpcomingAppointments(userId)
+                call.respond(HttpStatusCode.OK, appointments)
+            }
+
+            get("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid appointment ID")
+
+                val appointment = AppointmentDAO.getAppointmentById(id)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Appointment not found")
+
+                call.respond(HttpStatusCode.OK, appointment)
+            }
+
+            post {
+                val appointment = call.receive<Appointment>()
+                val addedAppointment = AppointmentDAO.addAppointment(appointment)
+                call.respond(HttpStatusCode.Created, addedAppointment)
+            }
+
+            put {
+                val appointment = call.receive<Appointment>()
+                val updated = AppointmentDAO.updateAppointment(appointment)
+
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, appointment)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Appointment not found or missing ID")
+                }
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid appointment ID")
+
+                val deleted = AppointmentDAO.deleteAppointment(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Appointment deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Appointment not found")
                 }
             }
         }
