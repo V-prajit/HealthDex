@@ -20,13 +20,15 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import androidx.compose.material.icons.filled.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppointmentsScreen(
     userId: String?,
     onBackClick: () -> Unit,
-    onViewDoctors: () -> Unit
+    onViewDoctors: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var appointments by remember { mutableStateOf<List<Appointment>>(emptyList()) }
@@ -35,6 +37,7 @@ fun AppointmentsScreen(
     var currentAppointment by remember { mutableStateOf<Appointment?>(null) }
     var confirmDeleteDialog by remember { mutableStateOf<Appointment?>(null) }
     var showAllAppointments by remember { mutableStateOf(false) }
+    val settingsLabel = stringResource(R.string.settings)
 
     // Load appointments and doctors when screen is shown
     LaunchedEffect(userId, showAllAppointments) {
@@ -62,6 +65,12 @@ fun AppointmentsScreen(
                         Icon(
                             Icons.Default.MedicalServices,
                             contentDescription = stringResource(R.string.doctors)
+                        )
+                    }
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = settingsLabel
                         )
                     }
                 }
