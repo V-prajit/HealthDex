@@ -1,13 +1,19 @@
 package com.example.phms
 
 import android.util.Log
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -18,11 +24,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import coil.compose.rememberAsyncImagePainter
+import com.example.phms.Appointment
+import com.example.phms.AppointmentRepository
+import com.example.phms.formatDate
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @Composable
@@ -31,17 +42,33 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
     onNavigateToVitals: () -> Unit,
     onNavigateToNotes: () -> Unit,
+    onNavigateToSearch: () -> Unit,
     onNavigateToAppointments: () -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
+    // for upcoming appointments
+    var upcomingAppointments by remember { mutableStateOf<List<Appointment>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        prefs.getString("LAST_USER_UID", null)?.let { uid ->
+            if (uid.isNotEmpty()) {
+                launch {
+                    upcomingAppointments = AppointmentRepository.getUpcomingAppointments(uid)
+                }
+            }
+        }
+    }
+    //greeting pane (it uses time to change message acc)
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greetingText = when (hour) {
         in 6..11  -> stringResource(R.string.good_morning)
         in 12..16 -> stringResource(R.string.good_afternoon)
         else      -> stringResource(R.string.good_evening)
     } + (firstName?.let { ", $it" } ?: "")
-
+    //greeting pane background photo- again, changes acc to the time
     val imageUrl = when (hour) {
         in 6..11  -> "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
         in 12..16 -> "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
@@ -72,20 +99,27 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+        // search bar
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null)
-            },
-            placeholder = {
-                Text(stringResource(R.string.search))
-            },
-            singleLine = true
-        )
+                .height(56.dp)
+        ) {
+            OutlinedTextField(
+                value = "",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier.fillMaxSize(),
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                placeholder = { Text(stringResource(R.string.search)) },
+                singleLine = true
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable { onNavigateToSearch() }
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -121,7 +155,7 @@ fun HomeScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        //quick action buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -159,6 +193,55 @@ fun HomeScreen(
                 leadingIcon = { Icon(Icons.Default.LocalPharmacy, contentDescription = null) },
                 label = { Text(stringResource(R.string.medications)) }
             )
+        }
+
+        // show upcoming appointment
+        if (upcomingAppointments.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.upcoming_appointments),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn {
+                items(upcomingAppointments.take(1)) { appt ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToAppointments() },
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = formatDate(appt.date),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.AccessTime, contentDescription = null)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("${appt.time} (${appt.duration} min)")
+                                Spacer(modifier = Modifier.weight(1f))
+                                Text(
+                                    text = appt.status.replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.MedicalServices, contentDescription = null)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(appt.doctorName ?: "")
+                            }
+                            appt.reason.takeIf { it.isNotBlank() }?.let {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(it, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

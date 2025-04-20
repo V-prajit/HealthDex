@@ -10,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.phms.VitalSignsScreen
+import com.example.phms.SearchScreen
 
 @Composable
 fun DashboardScreen(
@@ -20,6 +22,7 @@ fun DashboardScreen(
     var selectedTab by remember { mutableStateOf("home") }
     // New flag: when true, NotesScreen will open in "edit" (new note) mode
     var newNoteRequested by remember { mutableStateOf(false) }
+    var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
 
     Scaffold(
         bottomBar = {
@@ -42,7 +45,6 @@ fun DashboardScreen(
                     selected = selectedTab == "notes",
                     onClick = {
                         selectedTab = "notes"
-                        // tapping the Notes tab itself should NOT auto‑open editor
                         newNoteRequested = false
                     },
                     icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
@@ -66,25 +68,33 @@ fun DashboardScreen(
         when (selectedTab) {
             "home" -> {
                 Log.d("DashboardScreen", "Showing HomeScreen")
-                HomeScreen(
-                    firstName = firstName,
-                    onSettingsClick = {
-                        Log.d("DashboardScreen", "HomeScreen settings clicked")
-                        onSettingsClick()
-                    },
-                    // when Add Note is tapped on Home, go to Notes *and* open editor
-                    onNavigateToNotes = {
-                        selectedTab = "notes"
-                        newNoteRequested = true
-                    },
-                    onNavigateToVitals = {
-                        selectedTab = "vitals"
-                    },
-                    // Add navigation to appointments
-                    onNavigateToAppointments = {
-                        selectedTab = "appointments"
-                    }
-                )
+                if (showSearchScreen) {
+                    SearchScreen(
+                        userToken   = userToken,
+                        onClose     = { showSearchScreen = false },
+                        onBackClick = { showSearchScreen = false }
+                    )
+                } else {
+                    HomeScreen(
+                        firstName          = firstName,
+                        onSettingsClick    = {
+                            Log.d("DashboardScreen", "HomeScreen settings clicked")
+                            onSettingsClick()
+                        },
+                        // when Add Note is tapped on Home, go to Notes *and* open editor
+                        onNavigateToNotes  = {
+                            selectedTab = "notes"
+                            newNoteRequested = true
+                        },
+                        onNavigateToVitals = {
+                            selectedTab = "vitals"
+                        },
+                        onNavigateToAppointments = {
+                          selectedTab = "appointments"
+                        },
+                        onNavigateToSearch = { showSearchScreen = true }
+                    )
+                }
             }
 
             "appointments" -> {
@@ -107,13 +117,13 @@ fun DashboardScreen(
             "notes" -> {
                 Log.d("DashboardScreen", "Showing NotesScreen")
                 NotesScreen(
-                    userToken = userToken,
-                    modifier = Modifier.padding(innerPadding),
+                    userToken       = userToken,
+                    modifier        = Modifier.padding(innerPadding),
                     onSettingsClick = {
                         Log.d("DashboardScreen", "NotesScreen settings clicked")
                         onSettingsClick()
                     },
-                    newNoteRequested = newNoteRequested
+                    newNoteRequested= newNoteRequested
                 )
             }
 
@@ -126,6 +136,7 @@ fun DashboardScreen(
                     }
                 )
             }
+
             "vitals" -> VitalSignsScreen(
                 userId      = userToken,
                 onBackClick = { selectedTab = "home" }
@@ -142,8 +153,8 @@ fun NotesScreen(
     newNoteRequested: Boolean = false
 ) {
     NotesFullApp(
-        userToken = userToken,
-        onSettingsClick = onSettingsClick,
+        userToken        = userToken,
+        onSettingsClick  = onSettingsClick,
         newNoteRequested = newNoteRequested
     )
 }
