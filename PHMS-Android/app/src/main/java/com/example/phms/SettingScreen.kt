@@ -1,9 +1,15 @@
 package com.example.phms
 
+import android.app.Activity
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -14,24 +20,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType // Ensure this import is present
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import android.app.Activity
-import android.content.Context
-import androidx.compose.ui.platform.LocalContext
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
+fun SettingScreen(
+    onBackClick: () -> Unit,
+    onLogout: () -> Unit,
+    vitalSignsViewModel: VitalSignsViewModel = viewModel() // Inject ViewModel
+) {
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showThresholdDialog by remember { mutableStateOf(false) } // State for threshold dialog
     val currentLanguageCode = remember { LocaleHelper.getCurrentLanguageCode(context) }
     val currentLanguage = remember(currentLanguageCode) {
         LocaleHelper.supportedLanguages.find { it.code == currentLanguageCode } ?: LocaleHelper.supportedLanguages[0]
     }
 
     val scope = rememberCoroutineScope()
-    val prefs = context.getSharedPreferences("user_prefs",  Context.MODE_PRIVATE)
+    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     var biometricEnabled by remember {
         mutableStateOf(prefs.getBoolean("LAST_USER_BIOMETRIC", false))
     }
@@ -52,7 +63,7 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) { // Make column scrollable
             ListItem(
                 headlineContent = { Text(stringResource(R.string.language)) },
                 supportingContent = { Text(currentLanguage.displayName) },
@@ -71,7 +82,6 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                         checked = biometricEnabled,
                         onCheckedChange = { checked ->
                             biometricEnabled = checked
-                            // Updates shared preferences so that user can use bio auth for future login.
                             prefs.edit().putBoolean("LAST_USER_BIOMETRIC", checked).apply()
                         }
                     )
@@ -89,13 +99,22 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                         onCheckedChange = { checked ->
                             darkModeEnabled = checked
                             prefs.edit().putBoolean("DARK_MODE", checked).apply()
-
-                            // Instead of recreating the activity, just update the theme
                             (context as? MainActivity)?.updateTheme(checked)
                         }
                     )
                 }
             )
+
+             Divider() // Divider before new setting
+             ListItem(
+                 headlineContent = { Text("Vital Sign Thresholds") }, // New setting
+                 supportingContent = { Text("Set alert limits for vital signs") },
+                 trailingContent = {
+                     Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                 },
+                 modifier = Modifier.clickable { showThresholdDialog = true } // Open dialog on click
+             )
+
 
             Divider()
             ListItem(
@@ -121,7 +140,6 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        // No need for coroutine scope here - direct function call
                                         LocaleHelper.applyLanguageWithoutRecreation(context, language.code)
                                         showLanguageDialog = false
                                     }
@@ -153,5 +171,114 @@ fun SettingScreen(onBackClick: () -> Unit, onLogout: () -> Unit) {
                 }
             )
         }
+
+         // Threshold Settings Dialog
+         if (showThresholdDialog) {
+             ThresholdSettingsDialog(
+                 viewModel = vitalSignsViewModel,
+                 onDismiss = { showThresholdDialog = false }
+             )
+         }
     }
+}
+
+
+@Composable
+fun ThresholdSettingsDialog(
+    viewModel: VitalSignsViewModel,
+    onDismiss: () -> Unit
+) {
+    val currentThresholds by viewModel.thresholds.collectAsState()
+    val context = LocalContext.current
+
+    var hrHigh by remember { mutableStateOf(currentThresholds.hrHigh.toString()) }
+    var hrLow by remember { mutableStateOf(currentThresholds.hrLow.toString()) }
+    var bpSysHigh by remember { mutableStateOf(currentThresholds.bpSysHigh.toString()) }
+    var bpSysLow by remember { mutableStateOf(currentThresholds.bpSysLow.toString()) }
+    var bpDiaHigh by remember { mutableStateOf(currentThresholds.bpDiaHigh.toString()) }
+    var bpDiaLow by remember { mutableStateOf(currentThresholds.bpDiaLow.toString()) }
+    var glucoseHigh by remember { mutableStateOf(currentThresholds.glucoseHigh.toString()) }
+    var glucoseLow by remember { mutableStateOf(currentThresholds.glucoseLow.toString()) }
+    var cholesterolHigh by remember { mutableStateOf(currentThresholds.cholesterolHigh.toString()) }
+    var cholesterolLow by remember { mutableStateOf(currentThresholds.cholesterolLow.toString()) }
+
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Set Vital Sign Thresholds") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .verticalScroll(rememberScrollState()) // Make dialog content scrollable
+            ) {
+                ThresholdTextField(label = "Heart Rate High (bpm)", value = hrHigh, onValueChange = { hrHigh = it })
+                ThresholdTextField(label = "Heart Rate Low (bpm)", value = hrLow, onValueChange = { hrLow = it })
+                Spacer(Modifier.height(8.dp))
+                ThresholdTextField(label = "Systolic BP High (mmHg)", value = bpSysHigh, onValueChange = { bpSysHigh = it })
+                ThresholdTextField(label = "Systolic BP Low (mmHg)", value = bpSysLow, onValueChange = { bpSysLow = it })
+                 Spacer(Modifier.height(8.dp))
+                 ThresholdTextField(label = "Diastolic BP High (mmHg)", value = bpDiaHigh, onValueChange = { bpDiaHigh = it })
+                 ThresholdTextField(label = "Diastolic BP Low (mmHg)", value = bpDiaLow, onValueChange = { bpDiaLow = it })
+                 Spacer(Modifier.height(8.dp))
+                 ThresholdTextField(label = "Glucose High (mg/dL)", value = glucoseHigh, onValueChange = { glucoseHigh = it })
+                 ThresholdTextField(label = "Glucose Low (mg/dL)", value = glucoseLow, onValueChange = { glucoseLow = it })
+                 Spacer(Modifier.height(8.dp))
+                 ThresholdTextField(label = "Cholesterol High (mg/dL)", value = cholesterolHigh, onValueChange = { cholesterolHigh = it })
+                 ThresholdTextField(label = "Cholesterol Low (mg/dL)", value = cholesterolLow, onValueChange = { cholesterolLow = it })
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                // Validate and save
+                val newThresholds = ThresholdValues(
+                    hrHigh = hrHigh.toFloatOrNull() ?: currentThresholds.hrHigh,
+                    hrLow = hrLow.toFloatOrNull() ?: currentThresholds.hrLow,
+                    bpSysHigh = bpSysHigh.toFloatOrNull() ?: currentThresholds.bpSysHigh,
+                    bpSysLow = bpSysLow.toFloatOrNull() ?: currentThresholds.bpSysLow,
+                    bpDiaHigh = bpDiaHigh.toFloatOrNull() ?: currentThresholds.bpDiaHigh,
+                    bpDiaLow = bpDiaLow.toFloatOrNull() ?: currentThresholds.bpDiaLow,
+                    glucoseHigh = glucoseHigh.toFloatOrNull() ?: currentThresholds.glucoseHigh,
+                    glucoseLow = glucoseLow.toFloatOrNull() ?: currentThresholds.glucoseLow,
+                    cholesterolHigh = cholesterolHigh.toFloatOrNull() ?: currentThresholds.cholesterolHigh,
+                     cholesterolLow = cholesterolLow.toFloatOrNull() ?: currentThresholds.cholesterolLow
+                )
+                 // Basic validation example: ensure low < high
+                if (newThresholds.hrLow >= newThresholds.hrHigh ||
+                     newThresholds.bpSysLow >= newThresholds.bpSysHigh ||
+                     newThresholds.bpDiaLow >= newThresholds.bpDiaHigh ||
+                     newThresholds.glucoseLow >= newThresholds.glucoseHigh ||
+                     newThresholds.cholesterolLow >= newThresholds.cholesterolHigh) {
+                     Toast.makeText(context, "Low threshold cannot be higher than high threshold", Toast.LENGTH_LONG).show()
+                 } else {
+                     viewModel.saveThresholds(newThresholds)
+                     onDismiss()
+                 }
+            }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun ThresholdTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        // *** CORRECTED LINE BELOW ***
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+    )
 }
