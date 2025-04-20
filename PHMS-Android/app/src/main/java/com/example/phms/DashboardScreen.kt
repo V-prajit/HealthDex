@@ -110,7 +110,8 @@ fun DashboardScreen(
                     AppointmentsScreen(
                         userId = userToken,
                         onBackClick = { selectedTab = "home" },
-                        onViewDoctors = { showDoctorsScreen = true }
+                        onViewDoctors = { showDoctorsScreen = true },
+                        onSettingsClick = { onSettingsClick("appointments") }
                     )
                 }
             }
