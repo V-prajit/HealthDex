@@ -139,7 +139,8 @@ fun DashboardScreen(
 
             "vitals" -> VitalSignsScreen(
                 userId      = userToken,
-                onBackClick = { selectedTab = "home" }
+                onBackClick = { selectedTab = "vitals" },
+                onSettingsClick = onSettingsClick
             )
         }
     }
