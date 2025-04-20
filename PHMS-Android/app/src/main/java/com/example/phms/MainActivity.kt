@@ -65,6 +65,7 @@ class MainActivity : FragmentActivity() {
                 var userToken by remember { mutableStateOf<String?>(null) }
                 var firstName by remember { mutableStateOf<String?>(null) }
                 var showSettings by remember { mutableStateOf(false) }
+                var returnToTab by remember { mutableStateOf<String?>(null) }
 
                 val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
                     if (success) {
@@ -87,9 +88,15 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
+                LaunchedEffect(showSettings) {
+                    if (!showSettings) {
+                        returnToTab = null
+                    }
+                }
+
                 Log.d(
                     "MainActivity",
-                    "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings"
+                    "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings, returnToTab=$returnToTab"
                 )
                 when {
                     showSettings -> {
@@ -106,18 +113,22 @@ class MainActivity : FragmentActivity() {
                                 userToken = null
                                 firstName = null
                                 showSettings = false
+                                returnToTab = null
                             }
                         )
                     }
 
                     isLoggedIn -> {
                         Log.d("MainActivity", "Showing Dashboard Screen")
+                        val currentReturnToTab = returnToTab
                         DashboardScreen(
                             firstName = firstName,
                             userToken = userToken,
-                            onSettingsClick = {
-                                Log.d("MainActivity", "Settings button clicked")
+                            initialSelectedTab = currentReturnToTab ?: "home",
+                            onSettingsClick = { originTab ->
+                                Log.d("MainActivity", "Settings button clicked from: $originTab")
                                 showSettings = true
+                                returnToTab = originTab
                             }
                         )
                     }
@@ -132,7 +143,10 @@ class MainActivity : FragmentActivity() {
                                 userToken = token
                                 firstName = name
                             },
-                            onSettingsClick = { showSettings = true }
+                            onSettingsClick = {
+                                showSettings = true
+                                returnToTab = null
+                            }
                         )
                     }
                 }
