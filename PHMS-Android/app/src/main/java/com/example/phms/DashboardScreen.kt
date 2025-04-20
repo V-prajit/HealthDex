@@ -72,9 +72,20 @@ fun DashboardScreen(
                     SearchScreen(
                         userToken   = userToken,
                         onClose     = { showSearchScreen = false },
-                        onBackClick = { showSearchScreen = false }
+                        onBackClick = { showSearchScreen = false },
+                        onNavigateToNotes = {
+                            selectedTab = "notes"
+                            newNoteRequested = false
+                        },
+                        onNavigateToVitals = {
+                            selectedTab = "vitals"
+                        },
+                        onNavigateToAppointments = {
+                            selectedTab = "appointments"
+                        }
                     )
-                } else {
+                }
+                else {
                     HomeScreen(
                         firstName          = firstName,
                         onSettingsClick    = {
