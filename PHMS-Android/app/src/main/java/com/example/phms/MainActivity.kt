@@ -274,7 +274,7 @@ fun AuthScreen(
             .fillMaxSize()
             .padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = onSettingsClick) {
