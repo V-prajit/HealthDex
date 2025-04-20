@@ -125,6 +125,7 @@ fun DashboardScreen(
                         Log.d("DashboardScreen", "NotesScreen settings clicked")
                         onSettingsClick("notes")
                     },
+                    onBackClick = { selectedTab = "home" },
                     newNoteRequested= newNoteRequested
                 )
             }
@@ -154,11 +155,13 @@ fun NotesScreen(
     userToken: String? = null,
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit = {},
+    onBackClick: () -> Unit = {},
     newNoteRequested: Boolean = false
 ) {
     NotesFullApp(
         userToken        = userToken,
         onSettingsClick  = onSettingsClick,
+        onBackClick = onBackClick,
         newNoteRequested = newNoteRequested
     )
 }

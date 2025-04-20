@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 fun NotesFullApp(
     userToken: String? = null,
     onSettingsClick: () -> Unit = {},
+    onBackClick: () -> Unit = {},
     newNoteRequested: Boolean = false
 ) {
     val context = LocalContext.current
@@ -85,7 +86,8 @@ fun NotesFullApp(
                         NotesRepository.saveNotes(context, notes)
                     }
                 },
-                onSettingsClick = onSettingsClick
+                onSettingsClick = onSettingsClick,
+                onBackClick = onBackClick
             )
         }
         "edit" -> {
@@ -158,8 +160,10 @@ fun NotesListScreen(
     onNoteClick: (Int, String) -> Unit,
     onNewNoteClick: () -> Unit,
     onNoteDelete: (Int) -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onBackClick: () -> Unit
 ) {
+    val backLabel = stringResource(R.string.back)
     var isListLayout by remember { mutableStateOf(true) }
     // toggle sort by tag
     var selectedSortTag by remember { mutableStateOf("All") }
@@ -174,14 +178,19 @@ fun NotesListScreen(
         topBar = {
             // upper bar that shows/ displays the title and action icons.
             TopAppBar(
-                title = { Text(stringResource(R.string.notes), style = MaterialTheme.typography.headlineLarge) },
-                actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+                title = { Text(stringResource(R.string.notes)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = backLabel)
                     }
+                },
+                actions = {
                     // to toggle between list and grid view
                     TextButton(onClick = { isListLayout = !isListLayout }) {
                         Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
+                    }
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
                 }
             )
