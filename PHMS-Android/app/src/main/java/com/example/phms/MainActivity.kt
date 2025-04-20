@@ -23,11 +23,15 @@ import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.ui.platform.LocalContext
 import android.content.Context.MODE_PRIVATE
 import androidx.compose.runtime.Composable as Composable1
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
 class MainActivity : FragmentActivity() {
     private lateinit var auth: FirebaseAuth
+    private var localeVersion by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +56,7 @@ class MainActivity : FragmentActivity() {
         }
 
         setContent {
+            val currentLocaleVersion = localeVersion
             val context = LocalContext.current
             val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
             var darkModeEnabled by remember { mutableStateOf(prefs.getBoolean("DARK_MODE", false)) }
@@ -231,95 +236,7 @@ class MainActivity : FragmentActivity() {
     }
 
     fun forceLocaleRecomposition(languageCode: String? = null) {
-        // Force a recomposition with the new locale
-        setContent {
-            val context = LocalContext.current
-            val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
-            val darkModeEnabled = prefs.getBoolean("DARK_MODE", false)
-
-            recreate()
-
-            PHMSTheme(darkTheme = darkModeEnabled) {
-                var isLoggedIn by remember { mutableStateOf(false) }
-                var userToken by remember { mutableStateOf<String?>(null) }
-                var firstName by remember { mutableStateOf<String?>(null) }
-                var showSettings by remember { mutableStateOf(true) } // Keep settings screen open
-
-                val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
-                    if (success) {
-                        // +assistant: restore userToken for biometric login so Notes use correct userId
-                        userToken = prefs.getString("LAST_USER_UID", null)
-                        isLoggedIn = true
-                        firstName = name
-                    }
-                }
-
-                // Restore user state
-                LaunchedEffect(Unit) {
-                    val currentUser = auth.currentUser
-                    if (currentUser != null) {
-                        userToken = currentUser.uid
-                        fetchUserData(currentUser.uid) { userData ->
-                            firstName = userData?.firstName
-                            isLoggedIn = true
-                        }
-                    } else {
-                        val savedUid = prefs.getString("LAST_USER_UID", null)
-                        val biometricEnabled = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
-
-                        if (biometricEnabled && savedUid != null) {
-                            fetchUserData(savedUid) { userData ->
-                                if (userData != null && userData.biometricEnabled) {
-                                    userToken = savedUid
-                                    firstName = userData.firstName
-                                    isLoggedIn = true
-                                }
-                            }
-                        }
-                    }
-                }
-
-                when {
-                    showSettings -> {
-                        SettingScreen(
-                            onBackClick = {
-                                showSettings = false
-                            },
-                            onLogout = {
-                                auth.signOut()
-                                isLoggedIn = false
-                                userToken = null
-                                firstName = null
-                                showSettings = false
-                            }
-                        )
-                    }
-
-                    isLoggedIn -> {
-                        DashboardScreen(
-                            firstName = firstName,
-                            userToken = userToken,
-                            onSettingsClick = {
-                                showSettings = true
-                            }
-                        )
-                    }
-
-                    else -> {
-                        AuthScreen(
-                            auth = auth,
-                            biometricAuth = biometricAuth,
-                            onLoginSuccess = { token, name ->
-                                isLoggedIn = true
-                                userToken = token
-                                firstName = name
-                            },
-                            onSettingsClick = { showSettings = true }
-                        )
-                    }
-                }
-            }
-        }
+        localeVersion++
     }
 }
 
