@@ -17,12 +17,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel // Ensure this import is p
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material.icons.filled.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VitalSignsScreen(
     userId: String?,
     onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     vitalSignsViewModel: VitalSignsViewModel = viewModel() // Inject ViewModel
 ) {
     // —— Strings ——
@@ -41,6 +43,7 @@ fun VitalSignsScreen(
     val noRecentLabel   = stringResource(R.string.no_most_recent)
     val editDesc        = stringResource(R.string.edit_vital)
     val deleteDesc      = stringResource(R.string.delete)
+    val settingsLabel   = stringResource(R.string.settings)
     // --- Use new string resource for the chart header ---
     val realTimeDataLabel = stringResource(R.string.real_time_vitals_header)
     val manualEntriesLabel = "Manual Entries" // Keep or change this as needed
@@ -113,6 +116,14 @@ fun VitalSignsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = backLabel)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = settingsLabel
+                        )
                     }
                 }
             )
