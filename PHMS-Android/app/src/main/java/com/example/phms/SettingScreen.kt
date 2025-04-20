@@ -142,6 +142,7 @@ fun SettingScreen(
                                     .clickable {
                                         LocaleHelper.applyLanguageWithoutRecreation(context, language.code)
                                         showLanguageDialog = false
+                                        onBackClick()
                                     }
                                     .padding(vertical = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
