@@ -7,6 +7,7 @@ plugins {
 
 group = "com.example"
 version = "0.0.1"
+val exposedVersion = "0.41.1" 
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
@@ -33,4 +34,12 @@ dependencies {
     testImplementation(libs.kotlin.test.junit)
     implementation("com.google.firebase:firebase-admin:9.2.0")
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
+    implementation("io.ktor:ktor-server-core:2.x.x")
+    implementation("io.ktor:ktor-server-netty:2.x.x")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.x.x")
 }
