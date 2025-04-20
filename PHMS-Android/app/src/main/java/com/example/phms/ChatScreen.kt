@@ -31,11 +31,13 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material.icons.filled.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     val chatService = remember { ChatApiService() }
     var messageText by remember { mutableStateOf("") }
@@ -50,6 +52,7 @@ fun ChatScreen(
     val density = LocalDensity.current
     val bottomNavHeight = with(density) { 56.dp.toPx() }
     val bottomNavHeightDp = with(density) { bottomNavHeight.toDp() }
+    val settingsLabel = stringResource(R.string.settings)
 
     // Automatically scroll to the bottom when messages change
     LaunchedEffect(messages.size) {
@@ -70,6 +73,14 @@ fun ChatScreen(
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
                     Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                }
+            },
+            actions = {
+                IconButton(onClick = onSettingsClick) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = settingsLabel
+                    )
                 }
             }
         )
