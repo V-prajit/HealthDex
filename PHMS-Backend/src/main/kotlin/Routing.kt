@@ -1,8 +1,6 @@
 // Routing.kt
 package com.example
 
-import com.example.dao.User
-import com.example.dao.UserDAO
 import com.example.VitalsDAO
 import com.example.VitalDTO
 import io.ktor.server.routing.*
@@ -12,6 +10,15 @@ import io.ktor.server.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import java.rmi.server.UID
+import com.example.NotesDAO
+import com.example.NoteDTO
+import com.example.DietDAO
+import com.example.DietDTO
+import com.example.MedicationDAO
+import com.example.MedicationDTO
+import com.example.dao.UserDAO
+import com.example.dao.User
+
 
 @Serializable
 data class AuthRequest(val token: String)
@@ -186,5 +193,70 @@ fun Application.configureRouting() {
                 }
             }
         }
+
+                // ===== Diet Endpoints =====
+        route("/diet") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+                call.respond(HttpStatusCode.OK, DietDAO.getAllDietsByUser(userId))
+            }
+            get("/latest") {
+                val userId = call.request.queryParameters["userId"]
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+                DietDAO.getLatestDietByUser(userId)
+                ?.let { call.respond(HttpStatusCode.OK, it) }
+                ?: call.respond(HttpStatusCode.NotFound, "No diet entry found")
+            }
+            post {
+                val dto = call.receive<DietDTO>()
+                val created = DietDAO.addDiet(dto)
+                call.respond(HttpStatusCode.Created, created)
+            }
+            put {
+                val dto = call.receive<DietDTO>()
+                if (DietDAO.updateDiet(dto)) call.respond(HttpStatusCode.OK, dto)
+                else                         call.respond(HttpStatusCode.NotFound, "Diet not found or missing id")
+            }
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid id")
+                if (DietDAO.deleteDiet(id)) call.respond(HttpStatusCode.OK, "Deleted")
+                else                        call.respond(HttpStatusCode.NotFound, "Diet not found")
+            }
+        }
+
+        // ===== Medication Endpoints =====
+        route("/medications") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+                call.respond(HttpStatusCode.OK, MedicationDAO.getAllMedicationsByUser(userId))
+            }
+            get("/latest") {
+                val userId = call.request.queryParameters["userId"]
+                ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+                MedicationDAO.getLatestMedicationByUser(userId)
+                ?.let { call.respond(HttpStatusCode.OK, it) }
+                ?: call.respond(HttpStatusCode.NotFound, "No medication record found")
+            }
+            post {
+                val dto = call.receive<MedicationDTO>()
+                val created = MedicationDAO.addMedication(dto)
+                call.respond(HttpStatusCode.Created, created)
+            }
+            put {
+                val dto = call.receive<MedicationDTO>()
+                if (MedicationDAO.updateMedication(dto)) call.respond(HttpStatusCode.OK, dto)
+                else                                    call.respond(HttpStatusCode.NotFound, "Medication not found or missing id")
+            }
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid id")
+                if (MedicationDAO.deleteMedication(id)) call.respond(HttpStatusCode.OK, "Deleted")
+                else                                    call.respond(HttpStatusCode.NotFound, "Medication not found")
+            }
+        }
+
     }
 }

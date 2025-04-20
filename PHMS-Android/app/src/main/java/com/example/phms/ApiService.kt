@@ -46,6 +46,36 @@ interface ApiService {
 
     @DELETE("/vitals/{id}")
     fun deleteVital(@Path("id") id: Int): Call<ResponseBody>
+
+    // Diet
+    @GET("diet")
+    fun getAllDiets(@Query("userId") userId: String): Call<List<DietDTO>>
+
+    @GET("diet/latest")
+    fun getLatestDiet(@Query("userId") userId: String): Call<DietDTO>
+
+    @POST("diet")
+    fun addDiet(@Body dto: DietDTO): Call<DietDTO>
+
+    @PUT("diet")
+    fun updateDiet(@Body dto: DietDTO): Call<DietDTO>
+
+    @DELETE("diet/{id}")
+    fun deleteDiet(@Path("id") id: Int): Call<Void>
+
+    // Medication
+    @GET("medications")
+    fun getMedications(@Query("userId") userId: String): Call<List<Medication>>
+
+    @POST("medications")
+    fun addMedication(@Body med: Medication): Call<Medication>
+
+    @PUT("medications")
+    fun updateMedication(@Body med: Medication): Call<Void>
+
+    @DELETE("medications/{id}")
+    fun deleteMedication(@Path("id") id: Int): Call<Void>
+
 }
 
 
