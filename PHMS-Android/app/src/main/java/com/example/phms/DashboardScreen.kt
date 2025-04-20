@@ -17,9 +17,10 @@ import com.example.phms.SearchScreen
 fun DashboardScreen(
     firstName: String? = null,
     userToken: String? = null,
-    onSettingsClick: () -> Unit = {}
+    initialSelectedTab: String = "home",
+    onSettingsClick: (originTab: String?) -> Unit = {}
 ) {
-    var selectedTab by remember { mutableStateOf("home") }
+    var selectedTab by remember { mutableStateOf(initialSelectedTab) }
     // New flag: when true, NotesScreen will open in "edit" (new note) mode
     var newNoteRequested by remember { mutableStateOf(false) }
     var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
@@ -79,7 +80,7 @@ fun DashboardScreen(
                         firstName          = firstName,
                         onSettingsClick    = {
                             Log.d("DashboardScreen", "HomeScreen settings clicked")
-                            onSettingsClick()
+                            onSettingsClick("home")
                         },
                         // when Add Note is tapped on Home, go to Notes *and* open editor
                         onNavigateToNotes  = {
@@ -121,7 +122,7 @@ fun DashboardScreen(
                     modifier        = Modifier.padding(innerPadding),
                     onSettingsClick = {
                         Log.d("DashboardScreen", "NotesScreen settings clicked")
-                        onSettingsClick()
+                        onSettingsClick("notes")
                     },
                     newNoteRequested= newNoteRequested
                 )
@@ -140,7 +141,7 @@ fun DashboardScreen(
             "vitals" -> VitalSignsScreen(
                 userId      = userToken,
                 onBackClick = { selectedTab = "home" },
-                onSettingsClick = onSettingsClick
+                onSettingsClick = { onSettingsClick("vitals") }
             )
         }
     }
