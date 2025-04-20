@@ -92,4 +92,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
     implementation("org.json:json:20230227")
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0") // Use the latest stable version
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0") // Often needed with ViewModel/Flow
 }
