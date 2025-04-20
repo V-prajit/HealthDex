@@ -33,9 +33,14 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
 
-        // +assistant: always clear any previous session so user must log in each launch
-        auth.signOut()
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val isRecreatingForLocale = prefs.getBoolean("IS_RECREATING_FOR_LOCALE", false)
 
+        if (isRecreatingForLocale){
+            prefs.edit().putBoolean("IS_RECREATING_FOR_LOCALE", false).apply()
+        } else {
+            auth.signOut()
+        }
         // Keep track of first launch separately from settings changes
         val appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         if (!appPrefs.contains("has_launched_before")) {
@@ -231,95 +236,17 @@ class MainActivity : FragmentActivity() {
     }
 
     fun forceLocaleRecomposition(languageCode: String? = null) {
-        // Force a recomposition with the new locale
-        setContent {
-            val context = LocalContext.current
-            val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
-            val darkModeEnabled = prefs.getBoolean("DARK_MODE", false)
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        val currentUser = auth.currentUser
+        val userUid = currentUser?.uid ?: prefs.getString("LAST_USER_UID", null)
+        val darkModeEnabled = prefs.getBoolean("DARK_MODE", false)
 
-            recreate()
+        prefs.edit()
+            .putBoolean("IS_RECREATING_FOR_LOCALE", true)
+            .putString("TEMP_USER_UID", userUid)
+            .apply()
 
-            PHMSTheme(darkTheme = darkModeEnabled) {
-                var isLoggedIn by remember { mutableStateOf(false) }
-                var userToken by remember { mutableStateOf<String?>(null) }
-                var firstName by remember { mutableStateOf<String?>(null) }
-                var showSettings by remember { mutableStateOf(true) } // Keep settings screen open
-
-                val biometricAuth = BiometricAuth(this@MainActivity) { success, name ->
-                    if (success) {
-                        // +assistant: restore userToken for biometric login so Notes use correct userId
-                        userToken = prefs.getString("LAST_USER_UID", null)
-                        isLoggedIn = true
-                        firstName = name
-                    }
-                }
-
-                // Restore user state
-                LaunchedEffect(Unit) {
-                    val currentUser = auth.currentUser
-                    if (currentUser != null) {
-                        userToken = currentUser.uid
-                        fetchUserData(currentUser.uid) { userData ->
-                            firstName = userData?.firstName
-                            isLoggedIn = true
-                        }
-                    } else {
-                        val savedUid = prefs.getString("LAST_USER_UID", null)
-                        val biometricEnabled = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
-
-                        if (biometricEnabled && savedUid != null) {
-                            fetchUserData(savedUid) { userData ->
-                                if (userData != null && userData.biometricEnabled) {
-                                    userToken = savedUid
-                                    firstName = userData.firstName
-                                    isLoggedIn = true
-                                }
-                            }
-                        }
-                    }
-                }
-
-                when {
-                    showSettings -> {
-                        SettingScreen(
-                            onBackClick = {
-                                showSettings = false
-                            },
-                            onLogout = {
-                                auth.signOut()
-                                isLoggedIn = false
-                                userToken = null
-                                firstName = null
-                                showSettings = false
-                            }
-                        )
-                    }
-
-                    isLoggedIn -> {
-                        DashboardScreen(
-                            firstName = firstName,
-                            userToken = userToken,
-                            onSettingsClick = {
-                                showSettings = true
-                            }
-                        )
-                    }
-
-                    else -> {
-                        AuthScreen(
-                            auth = auth,
-                            biometricAuth = biometricAuth,
-                            onLoginSuccess = { token, name ->
-                                isLoggedIn = true
-                                userToken = token
-                                firstName = name
-                            },
-                            onSettingsClick = { showSettings = true }
-                        )
-                    }
-                }
-            }
-        }
+        recreate()
     }
 }
 
