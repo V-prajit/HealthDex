@@ -50,7 +50,7 @@ fun ChatScreen(
 
     // Get the height of the bottom navigation bar
     val density = LocalDensity.current
-    val bottomNavHeight = with(density) { 56.dp.toPx() }
+    val bottomNavHeight = with(density) { 72.dp.toPx() }
     val bottomNavHeightDp = with(density) { bottomNavHeight.toDp() }
     val settingsLabel = stringResource(R.string.settings)
 
