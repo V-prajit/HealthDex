@@ -134,7 +134,8 @@ fun DashboardScreen(
                     onBackClick = {
                         Log.d("DashboardScreen", "Chat back clicked")
                         selectedTab = "home"
-                    }
+                    },
+                    onSettingsClick = { onSettingsClick("chat") }
                 )
             }
 
