@@ -259,7 +259,35 @@ class VitalSignsViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun logAlert(vitalName: String, value: Float, threshold: Float) {
-             Log.w("VITAL_ALERT", "*** SIMULATED ALERT ***: $vitalName (${value.roundToInt()}) crossed threshold (${threshold.roundToInt()})")
+        Log.w("VITAL_ALERT", "*** SIMULATED ALERT ***: $vitalName (${value.roundToInt()}) crossed threshold (${threshold.roundToInt()})")
+
+        // Send email alerts
+        viewModelScope.launch {
+            val prefs = getApplication<Application>().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            val userId = prefs.getString("LAST_USER_UID", null)
+
+            if (userId != null) {
+                val alertRequest = VitalAlertRequest(
+                    userId = userId,
+                    vitalName = vitalName,
+                    value = value,
+                    threshold = threshold,
+                    isHigh = value > threshold
+                )
+
+                try {
+                    val response = RetrofitClient.apiService.sendVitalAlert(alertRequest).execute()
+                    if (response.isSuccessful) {
+                        val result = response.body()
+                        Log.d("VITAL_ALERT", "Email alerts sent: ${result?.get("emailsSent")} emails")
+                    } else {
+                        Log.e("VITAL_ALERT", "Failed to send email alerts: ${response.errorBody()?.string()}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("VITAL_ALERT", "Error sending email alerts: ${e.message}")
+                }
+            }
+        }
     }
 
 
