@@ -10,4 +10,5 @@ object Doctors: IntIdTable() {
     val email = varchar("email", 100)
     val address = text("address")
     val notes = text("notes").nullable()
+    val notifyOnEmergency = bool("notify_on_emergency").default(false)
 }

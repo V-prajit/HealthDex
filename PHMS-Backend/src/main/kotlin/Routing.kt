@@ -7,15 +7,14 @@ import com.example.dao.Doctor
 import com.example.dao.DoctorDAO
 import com.example.dao.Appointment
 import com.example.dao.AppointmentDAO
-import com.example.VitalsDAO
-import com.example.VitalDTO
+import com.example.dao.EmergencyContact
+import com.example.dao.EmergencyContactDAO
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import java.rmi.server.UID
 
 @Serializable
 data class AuthRequest(val token: String)
@@ -30,6 +29,15 @@ data class UserDTO(
     val height: Double?,
     val weight: Double?,
     val biometricEnabled: Boolean
+)
+
+@Serializable
+data class VitalAlertRequest(
+    val userId: String,
+    val vitalName: String,
+    val value: Float,
+    val threshold: Float,
+    val isHigh: Boolean
 )
 
 fun Application.configureRouting() {
@@ -295,6 +303,92 @@ fun Application.configureRouting() {
                     call.respond(HttpStatusCode.NotFound, "Appointment not found")
                 }
             }
+        }
+
+        route("/emergency-contacts") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val contacts = EmergencyContactDAO.getContactsByUserId(userId)
+                call.respond(HttpStatusCode.OK, contacts)
+            }
+
+            post {
+                val contact = call.receive<EmergencyContact>()
+                val addedContact = EmergencyContactDAO.addContact(contact)
+                call.respond(HttpStatusCode.Created, addedContact)
+            }
+
+            put {
+                val contact = call.receive<EmergencyContact>()
+                val updated = EmergencyContactDAO.updateContact(contact)
+
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, contact)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Contact not found or missing ID")
+                }
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid ID")
+
+                val deleted = EmergencyContactDAO.deleteContact(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Contact deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Contact not found")
+                }
+            }
+        }
+
+        post("/send-vital-alert") {
+            val alertRequest = call.receive<VitalAlertRequest>()
+
+            val contacts = EmergencyContactDAO.getContactsByUserId(alertRequest.userId)
+                .filter { it.notifyOnEmergency }
+
+            val doctors = DoctorDAO.getDoctorsByUserId(alertRequest.userId)
+                .filter { it.notifyOnEmergency }
+
+            val user = UserDAO.getUserByFirebaseUid(alertRequest.userId)
+            val patientName = "${user?.firstName} ${user?.lastName}"
+
+            var emailsSent = 0
+
+            // Send emails to emergency contacts
+            contacts.forEach { contact ->
+                if (EmailService.sendVitalAlertEmail(
+                        recipientEmail = contact.email,
+                        recipientName = contact.name,
+                        patientName = patientName,
+                        vitalName = alertRequest.vitalName,
+                        value = alertRequest.value,
+                        threshold = alertRequest.threshold,
+                        isHigh = alertRequest.isHigh
+                    )) {
+                    emailsSent++
+                }
+            }
+
+            // Send emails to doctors
+            doctors.forEach { doctor ->
+                if (EmailService.sendVitalAlertEmail(
+                        recipientEmail = doctor.email,
+                        recipientName = "Dr. ${doctor.name}",
+                        patientName = patientName,
+                        vitalName = alertRequest.vitalName,
+                        value = alertRequest.value,
+                        threshold = alertRequest.threshold,
+                        isHigh = alertRequest.isHigh
+                    )) {
+                    emailsSent++
+                }
+            }
+
+            call.respond(HttpStatusCode.OK, mapOf("emailsSent" to emailsSent))
         }
     }
 }

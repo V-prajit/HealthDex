@@ -96,6 +96,7 @@
     <string name="specify_type">指定重要类型</string>
     <string name="select_unit">选择单位</string>
     <string name="specify_unit">指定单位</string>
+    <string name="real_time_vitals_header">实时生命符号</string>
     <string name="home">页 次</string>
     <string name="forgot_password">忘记密码</string>
     <string name="forgot_password_description">输入您的电子邮件地址, 我们会发送一个链接来重置您的密码 .</string>
@@ -135,4 +136,9 @@
     <string name="all_appointments">所有任用</string>
     <string name="medications">药品</string>
     <string name="edit">编辑</string>
+    <string name="emergency_contacts">紧急联系人</string>
+    <string name="add_contact">添加联系人</string>
+    <string name="relationship">关系</string>
+    <string name="notify_on_emergency">紧急情况通知</string>
+    <string name="notify_on_vital_emergencies">关于重要标志紧急情况的通知</string>
 </resources>

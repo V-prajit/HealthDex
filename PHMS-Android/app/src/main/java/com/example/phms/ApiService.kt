@@ -79,6 +79,21 @@ interface ApiService {
 
     @DELETE("/appointments/{id}")
     fun deleteAppointment(@Path("id") id: Int): Call<ResponseBody>
+
+    @GET("/emergency-contacts")
+    fun getEmergencyContacts(@Query("userId") userId: String): Call<List<EmergencyContact>>
+
+    @POST("/emergency-contacts")
+    fun addEmergencyContact(@Body contact: EmergencyContact): Call<EmergencyContact>
+
+    @PUT("/emergency-contacts")
+    fun updateEmergencyContact(@Body contact: EmergencyContact): Call<EmergencyContact>
+
+    @DELETE("/emergency-contacts/{id}")
+    fun deleteEmergencyContact(@Path("id") id: Int): Call<ResponseBody>
+
+    @POST("/send-vital-alert")
+    suspend fun sendVitalAlert(@Body alertRequest: VitalAlertRequest): retrofit2.Response<Map<String, Int>>
 }
 
 

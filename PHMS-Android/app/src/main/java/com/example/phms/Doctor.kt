@@ -8,5 +8,6 @@ data class Doctor(
     val phone: String,
     val email: String,
     val address: String,
-    val notes: String? = null
+    val notes: String? = null,
+    val notifyOnEmergency: Boolean = false
 )

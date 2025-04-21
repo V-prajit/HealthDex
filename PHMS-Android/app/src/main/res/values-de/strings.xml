@@ -96,6 +96,7 @@
     <string name="specify_type">Geben Sie Vitaltyp an</string>
     <string name="select_unit">Wählen Sie die Einheit</string>
     <string name="specify_unit">Spezifische Einheit</string>
+    <string name="real_time_vitals_header">Vitalzeichen in Echtzeit</string>
     <string name="home">Home</string>
     <string name="forgot_password">Passwort vergessen</string>
     <string name="forgot_password_description">Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link, um Ihr Passwort zurückzusetzen.</string>
@@ -135,4 +136,9 @@
     <string name="all_appointments">Alle Termine</string>
     <string name="medications">Medikamente</string>
     <string name="edit">Bearbeiten</string>
+    <string name="emergency_contacts">Notfallkontakte</string>
+    <string name="add_contact">Kontakt aufnehmen</string>
+    <string name="relationship">Beziehung</string>
+    <string name="notify_on_emergency">Benachrichtigen Sie den Notfall</string>
+    <string name="notify_on_vital_emergencies">Benachrichtigen Sie über wichtige Zeichennotfälle</string>
 </resources>
