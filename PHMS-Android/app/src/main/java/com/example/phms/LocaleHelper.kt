@@ -51,20 +51,16 @@ object LocaleHelper {
         val config = Configuration(context.resources.configuration)
         config.setLocale(locale)
 
-        // Update the context's resources with the new configuration
         context.resources.updateConfiguration(config, context.resources.displayMetrics)
 
-        // Set the application-wide locale
         val localeList = LocaleListCompat.create(locale)
         AppCompatDelegate.setApplicationLocales(localeList)
 
-        // Save the selection in preferences
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("selected_language", languageCode).apply()
 
-        // Force UI update by triggering a recomposition
         if (context is MainActivity) {
-            context.forceLocaleRecomposition(languageCode)
+            context.forceLocaleRecomposition()
         }
     }
 
@@ -86,6 +82,7 @@ object LocaleHelper {
         }
     }
 
+    // [Rest of the LocaleHelper methods remain unchanged]
     fun checkMissingTranslations(context: Context): List<String> {
         val currentLang = getCurrentLanguageCode(context)
         if (currentLang == "en") return emptyList()
