@@ -13,10 +13,8 @@ import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocalPharmacy
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material3.*
-// +assistant: added for filter chips
-import androidx.compose.material3.FilterChip
-
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,19 +25,22 @@ import com.example.phms.NotesRepositoryBackend
 import com.example.phms.VitalRepository
 import com.example.phms.Appointment
 import com.example.phms.AppointmentRepository
-import androidx.compose.material.icons.filled.EventNote
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     userToken: String?,
     onClose: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onNavigateToNotes: () -> Unit,
+    onNavigateToVitals: () -> Unit,
+    onNavigateToAppointments: () -> Unit
 ) {
     val context = LocalContext.current
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All") }
-    var recentSearches by remember { mutableStateOf(listOf("sleep", "bp", "morning meds")) }
+
+    val recentSearchesState = remember { mutableStateListOf<String>() }
 
     var allNotes by remember { mutableStateOf(listOf<String>()) }
     var allVitals by remember { mutableStateOf(listOf<String>()) }
@@ -48,13 +49,11 @@ fun SearchScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(userToken) {
-        // fetch notes
         allNotes = if (!userToken.isNullOrEmpty()) {
             NotesRepositoryBackend.getNotes(userToken)
         } else {
             NotesRepository.getNotes(context)
         }
-        // fetch vitals
         allVitals = userToken?.let {
             VitalRepository.getVitals(it).map { v -> "${v.type}: ${v.value} ${v.unit}" }
         } ?: emptyList()
@@ -92,9 +91,11 @@ fun SearchScreen(
                 title = {
                     OutlinedTextField(
                         value = query,
-                        onValueChange = { query = it },
+                        onValueChange = {
+                            query = it
+                        },
                         leadingIcon = { Icon(Icons.Default.Search, null) },
-                        placeholder = { Text("Search notes, vitals, appointments...") }, // +assistant: updated placeholder
+                        placeholder = { Text("Search notes, vitals, appointments...") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -112,7 +113,6 @@ fun SearchScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // search results
             if (query.isNotEmpty()) {
                 Text("Search results for \"$query\"", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -127,7 +127,16 @@ fun SearchScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(8.dp)
-                                    .clickable { /* handle click */ },
+                                    .clickable {
+                                        val currentQuery = query
+                                        onNavigateToNotes()
+                                        if (currentQuery.isNotBlank()) {
+                                            recentSearchesState.remove(currentQuery)
+                                            recentSearchesState.add(0, currentQuery)
+                                            if (recentSearchesState.size > 5)
+                                                recentSearchesState.removeAt(recentSearchesState.lastIndex)
+                                        }
+                                    },
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -145,7 +154,16 @@ fun SearchScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(8.dp)
-                                    .clickable { /* handle click */ },
+                                    .clickable {
+                                        val currentQuery = query
+                                        onNavigateToVitals()
+                                        if (currentQuery.isNotBlank()) {
+                                            recentSearchesState.remove(currentQuery)
+                                            recentSearchesState.add(0, currentQuery)
+                                            if (recentSearchesState.size > 5)
+                                                recentSearchesState.removeAt(recentSearchesState.lastIndex)
+                                        }
+                                    },
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -153,18 +171,27 @@ fun SearchScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // +assistant: display appointment results
                 if (filteredAppointments.isNotEmpty()) {
                     Text("Appointments:", style = MaterialTheme.typography.titleSmall)
                     Spacer(modifier = Modifier.height(4.dp))
                     LazyColumn {
                         items(filteredAppointments) { appt ->
+                            val label = "${appt.date} ${appt.time} with ${appt.doctorName ?: "Doctor"}"
                             Text(
-                                text = "${appt.date} ${appt.time} with ${appt.doctorName ?: "Doctor"}",
+                                text = label,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(8.dp)
-                                    .clickable { /* handle click */ },
+                                    .clickable {
+                                        val currentQuery = query
+                                        onNavigateToAppointments()
+                                        if (currentQuery.isNotBlank()) {
+                                            recentSearchesState.remove(currentQuery)
+                                            recentSearchesState.add(0, currentQuery)
+                                            if (recentSearchesState.size > 5)
+                                                recentSearchesState.removeAt(recentSearchesState.lastIndex)
+                                        }
+                                    },
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -183,34 +210,39 @@ fun SearchScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // recent searches
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Recent", style = MaterialTheme.typography.titleMedium)
-                IconButton(onClick = { recentSearches = emptyList() }) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Clear Recent")
+            if (query.isBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Recent", style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = { recentSearchesState.clear() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Clear Recent")
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn {
-                items(recentSearches) { item ->
-                    Text(
-                        text = item,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                            .clickable { query = item },
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyColumn {
+                    items(recentSearchesState) { item ->
+                        Text(
+                            text = item,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .clickable {
+                                    query = item
+                                    recentSearchesState.remove(item)
+                                    recentSearchesState.add(0, item)
+                                },
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // categories
             Text("Search by category", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             CategoryChips(selectedCategory) { selectedCategory = it }
@@ -240,7 +272,7 @@ private fun CategoryChips(
                     FilterChip(
                         selected = (selected == cat),
                         onClick = { onSelect(cat) },
-                        leadingIcon = { Icon(icons[cat]!!, contentDescription = null) }, // +assistant: added icon
+                        leadingIcon = { Icon(icons[cat]!!, contentDescription = null) },
                         label = { Text(cat) }
                     )
                 }
