@@ -96,6 +96,7 @@
     <string name="specify_type">Определение жизненного типа</string>
     <string name="select_unit">Выберите единицу</string>
     <string name="specify_unit">Укажите единицу</string>
+    <string name="real_time_vitals_header">Жизненно важные признаки в реальном времени</string>
     <string name="home">Домой</string>
     <string name="forgot_password">Забыли пароль</string>
     <string name="forgot_password_description">Введите свой адрес электронной почты, и мы отправим вам ссылку для сброса пароля.</string>
@@ -135,4 +136,9 @@
     <string name="all_appointments">Все назначения</string>
     <string name="medications">Лекарства</string>
     <string name="edit">Редактировать</string>
+    <string name="emergency_contacts">Экстренные контакты</string>
+    <string name="add_contact">Добавить контакт</string>
+    <string name="relationship">Отношения</string>
+    <string name="notify_on_emergency">Уведомить о чрезвычайной ситуации</string>
+    <string name="notify_on_vital_emergencies">Уведомление о чрезвычайных ситуациях с жизненно важными знаками</string>
 </resources>

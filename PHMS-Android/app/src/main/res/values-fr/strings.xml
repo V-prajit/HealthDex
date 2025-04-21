@@ -96,6 +96,7 @@
     <string name="specify_type">Spécifier le type vital</string>
     <string name="select_unit">Sélectionner une unité</string>
     <string name="specify_unit">Spécifier l\'unité</string>
+    <string name="real_time_vitals_header">Signes vitaux en temps réel</string>
     <string name="home">Sommaire</string>
     <string name="forgot_password">Mot de passe oublié</string>
     <string name="forgot_password_description">Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</string>
@@ -135,4 +136,9 @@
     <string name="all_appointments">Toutes les nominations</string>
     <string name="medications">Médicaments</string>
     <string name="edit">Modifier</string>
+    <string name="emergency_contacts">Contacts d\'urgence</string>
+    <string name="add_contact">Ajouter un contact</string>
+    <string name="relationship">Relation</string>
+    <string name="notify_on_emergency">Avis d\'urgence</string>
+    <string name="notify_on_vital_emergencies">Avis d\'urgence en matière de signes vitaux</string>
 </resources>
