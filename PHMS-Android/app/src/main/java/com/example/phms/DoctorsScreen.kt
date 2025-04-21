@@ -302,6 +302,7 @@ fun DoctorDialog(
     var phoneError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var addressError by remember { mutableStateOf(false) }
+    var notifyOnEmergency by remember { mutableStateOf(doctor?.notifyOnEmergency ?: false) }
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -417,6 +418,20 @@ fun DoctorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = notifyOnEmergency,
+                        onCheckedChange = { notifyOnEmergency = it }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.notify_on_vital_emergencies))
+                }
             }
         },
         confirmButton = {
@@ -437,7 +452,8 @@ fun DoctorDialog(
                             phone = phone,
                             email = email,
                             address = address,
-                            notes = notes
+                            notes = notes,
+                            notifyOnEmergency = notifyOnEmergency
                         )
                         onSave(updatedDoctor)
                     }

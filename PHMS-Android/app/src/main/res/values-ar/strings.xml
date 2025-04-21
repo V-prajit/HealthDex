@@ -96,6 +96,7 @@
     <string name="specify_type">تحديد النوع المرئي</string>
     <string name="select_unit">الوحدة المختارة</string>
     <string name="specify_unit">الوحدة المحددة</string>
+    <string name="real_time_vitals_header">العلامات الحيوية في الوقت الحقيقي</string>
     <string name="home">البيت</string>
     <string name="forgot_password">نسيت كلمة السر</string>
     <string name="forgot_password_description">أدخل عنوان البريد الإلكتروني الخاص بك، وسوف نرسل لك رابط لإعادة صياغة كلمة السر الخاصة بك.</string>
@@ -135,4 +136,9 @@
     <string name="all_appointments">جميع التعيينات</string>
     <string name="medications">المؤشرات</string>
     <string name="edit">Edit</string>
+    <string name="emergency_contacts">الاتصالات في حالات الطوارئ</string>
+    <string name="add_contact">الاتصال</string>
+    <string name="relationship">العلاقة</string>
+    <string name="notify_on_emergency">الإخطار في حالات الطوارئ</string>
+    <string name="notify_on_vital_emergencies">الإخطار في حالات الطوارئ الحيوية</string>
 </resources>

@@ -17,9 +17,10 @@ import com.example.phms.SearchScreen
 fun DashboardScreen(
     firstName: String? = null,
     userToken: String? = null,
-    onSettingsClick: () -> Unit = {}
+    initialSelectedTab: String = "home",
+    onSettingsClick: (originTab: String?) -> Unit = {}
 ) {
-    var selectedTab by remember { mutableStateOf("home") }
+    var selectedTab by remember { mutableStateOf(initialSelectedTab) }
     // New flag: when true, NotesScreen will open in "edit" (new note) mode
     var newNoteRequested by remember { mutableStateOf(false) }
     var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
@@ -90,7 +91,7 @@ fun DashboardScreen(
                         firstName          = firstName,
                         onSettingsClick    = {
                             Log.d("DashboardScreen", "HomeScreen settings clicked")
-                            onSettingsClick()
+                            onSettingsClick("home")
                         },
                         // when Add Note is tapped on Home, go to Notes *and* open editor
                         onNavigateToNotes  = {
@@ -120,7 +121,8 @@ fun DashboardScreen(
                     AppointmentsScreen(
                         userId = userToken,
                         onBackClick = { selectedTab = "home" },
-                        onViewDoctors = { showDoctorsScreen = true }
+                        onViewDoctors = { showDoctorsScreen = true },
+                        onSettingsClick = { onSettingsClick("appointments") }
                     )
                 }
             }
@@ -132,8 +134,9 @@ fun DashboardScreen(
                     modifier        = Modifier.padding(innerPadding),
                     onSettingsClick = {
                         Log.d("DashboardScreen", "NotesScreen settings clicked")
-                        onSettingsClick()
+                        onSettingsClick("notes")
                     },
+                    onBackClick = { selectedTab = "home" },
                     newNoteRequested= newNoteRequested
                 )
             }
@@ -144,13 +147,15 @@ fun DashboardScreen(
                     onBackClick = {
                         Log.d("DashboardScreen", "Chat back clicked")
                         selectedTab = "home"
-                    }
+                    },
+                    onSettingsClick = { onSettingsClick("chat") }
                 )
             }
 
             "vitals" -> VitalSignsScreen(
                 userId      = userToken,
-                onBackClick = { selectedTab = "home" }
+                onBackClick = { selectedTab = "home" },
+                onSettingsClick = { onSettingsClick("vitals") }
             )
         }
     }
@@ -161,11 +166,13 @@ fun NotesScreen(
     userToken: String? = null,
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit = {},
+    onBackClick: () -> Unit = {},
     newNoteRequested: Boolean = false
 ) {
     NotesFullApp(
         userToken        = userToken,
         onSettingsClick  = onSettingsClick,
+        onBackClick = onBackClick,
         newNoteRequested = newNoteRequested
     )
 }

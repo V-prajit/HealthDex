@@ -16,7 +16,8 @@ data class Doctor(
     val phone: String,
     val email: String,
     val address: String,
-    val notes: String? = null
+    val notes: String? = null,
+    val notifyOnEmergency: Boolean = false
 )
 
 object DoctorDAO {
@@ -29,6 +30,7 @@ object DoctorDAO {
             it[email] = doctor.email
             it[address] = doctor.address
             it[notes] = doctor.notes
+            it[notifyOnEmergency] = doctor.notifyOnEmergency
         } get Doctors.id
 
         doctor.copy(id = id.value)
@@ -46,7 +48,8 @@ object DoctorDAO {
                     phone = row[Doctors.phone],
                     email = row[Doctors.email],
                     address = row[Doctors.address],
-                    notes = row[Doctors.notes]
+                    notes = row[Doctors.notes],
+                    notifyOnEmergency = row[Doctors.notifyOnEmergency]
                 )
             }.singleOrNull()
     }
@@ -63,7 +66,8 @@ object DoctorDAO {
                     phone = row[Doctors.phone],
                     email = row[Doctors.email],
                     address = row[Doctors.address],
-                    notes = row[Doctors.notes]
+                    notes = row[Doctors.notes],
+                    notifyOnEmergency = row[Doctors.notifyOnEmergency]
                 )
             }
     }
@@ -78,6 +82,7 @@ object DoctorDAO {
             it[email] = doctor.email
             it[address] = doctor.address
             it[notes] = doctor.notes
+            it[notifyOnEmergency] = doctor.notifyOnEmergency
         } > 0
     }
 

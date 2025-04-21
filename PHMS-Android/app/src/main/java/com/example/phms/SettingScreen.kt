@@ -2,6 +2,7 @@ package com.example.phms
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,13 +15,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType // Ensure this import is present
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
@@ -31,11 +36,12 @@ import kotlinx.coroutines.launch
 fun SettingScreen(
     onBackClick: () -> Unit,
     onLogout: () -> Unit,
-    vitalSignsViewModel: VitalSignsViewModel = viewModel() // Inject ViewModel
+    vitalSignsViewModel: VitalSignsViewModel = viewModel()
 ) {
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var showThresholdDialog by remember { mutableStateOf(false) } // State for threshold dialog
+    var showThresholdDialog by remember { mutableStateOf(false) }
+    var showEmergencyContacts by remember { mutableStateOf(false) }
     val currentLanguageCode = remember { LocaleHelper.getCurrentLanguageCode(context) }
     val currentLanguage = remember(currentLanguageCode) {
         LocaleHelper.supportedLanguages.find { it.code == currentLanguageCode } ?: LocaleHelper.supportedLanguages[0]
@@ -46,139 +52,195 @@ fun SettingScreen(
     var biometricEnabled by remember {
         mutableStateOf(prefs.getBoolean("LAST_USER_BIOMETRIC", false))
     }
-    // Dark mode preference added
     var darkModeEnabled by remember {
         mutableStateOf(prefs.getBoolean("DARK_MODE", false))
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+    if (showEmergencyContacts) {
+        EmergencyContactsScreen(
+            userId = prefs.getString("LAST_USER_UID", "") ?: "",
+            onBackClick = { showEmergencyContacts = false }
+        )
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.settings)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        }
                     }
-                }
-            )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) { // Make column scrollable
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.language)) },
-                supportingContent = { Text(currentLanguage.displayName) },
-                trailingContent = {
-                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
-                },
-                modifier = Modifier.clickable { showLanguageDialog = true }
-            )
+                )
+            }
+        ) { padding ->
+            Column(modifier = Modifier.padding(padding).verticalScroll(rememberScrollState())) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.language)) },
+                    supportingContent = { Text(currentLanguage.displayName) },
+                    trailingContent = {
+                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable { showLanguageDialog = true }
+                )
 
-            Divider()
-            ListItem(
-                headlineContent = { Text("Enable Biometric Login") },
-                supportingContent = { Text(if (biometricEnabled) "Enabled" else "Disabled") },
-                trailingContent = {
-                    Switch(
-                        checked = biometricEnabled,
-                        onCheckedChange = { checked ->
-                            biometricEnabled = checked
-                            prefs.edit().putBoolean("LAST_USER_BIOMETRIC", checked).apply()
-                        }
-                    )
-                }
-            )
+                Divider()
+                ListItem(
+                    headlineContent = { Text("Enable Biometric Login") },
+                    supportingContent = { Text(if (biometricEnabled) "Enabled" else "Disabled") },
+                    trailingContent = {
+                        Switch(
+                            checked = biometricEnabled,
+                            onCheckedChange = { checked ->
+                                biometricEnabled = checked
+                                prefs.edit().putBoolean("LAST_USER_BIOMETRIC", checked).apply()
+                            }
+                        )
+                    }
+                )
 
-            Divider()
-            // this is a dark mode toggle setting.
-            ListItem(
-                headlineContent = { Text("Enable Dark Mode") },
-                supportingContent = { Text(if (darkModeEnabled) "Enabled" else "Disabled") },
-                trailingContent = {
-                    Switch(
-                        checked = darkModeEnabled,
-                        onCheckedChange = { checked ->
-                            darkModeEnabled = checked
-                            prefs.edit().putBoolean("DARK_MODE", checked).apply()
-                            (context as? MainActivity)?.updateTheme(checked)
-                        }
-                    )
-                }
-            )
+                Divider()
+                ListItem(
+                    headlineContent = { Text("Enable Dark Mode") },
+                    supportingContent = { Text(if (darkModeEnabled) "Enabled" else "Disabled") },
+                    trailingContent = {
+                        Switch(
+                            checked = darkModeEnabled,
+                            onCheckedChange = { checked ->
+                                darkModeEnabled = checked
+                                prefs.edit().putBoolean("DARK_MODE", checked).apply()
+                                (context as? MainActivity)?.updateTheme(checked)
+                            }
+                        )
+                    }
+                )
 
-             Divider() // Divider before new setting
-             ListItem(
-                 headlineContent = { Text("Vital Sign Thresholds") }, // New setting
-                 supportingContent = { Text("Set alert limits for vital signs") },
-                 trailingContent = {
-                     Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
-                 },
-                 modifier = Modifier.clickable { showThresholdDialog = true } // Open dialog on click
-             )
+                Divider()
+                ListItem(
+                    headlineContent = { Text("Vital Sign Thresholds") },
+                    supportingContent = { Text("Set alert limits for vital signs") },
+                    trailingContent = {
+                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable { showThresholdDialog = true }
+                )
 
+                Divider()
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.emergency_contacts)) },
+                    supportingContent = { Text("Manage emergency contact notifications") },
+                    trailingContent = {
+                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable { showEmergencyContacts = true }
+                )
 
-            Divider()
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.logout)) },
-                supportingContent = { Text(stringResource(R.string.sign_out_description)) },
-                trailingContent = {
-                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
-                },
-                modifier = Modifier.clickable { onLogout() }
-            )
+                Divider()
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.logout)) },
+                    supportingContent = { Text(stringResource(R.string.sign_out_description)) },
+                    trailingContent = {
+                        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable { onLogout() }
+                )
 
-            Divider()
-        }
+                Divider()
 
-        if (showLanguageDialog) {
-            AlertDialog(
-                onDismissRequest = { showLanguageDialog = false },
-                title = { Text(stringResource(R.string.select_language)) },
-                text = {
-                    LazyColumn {
-                        items(LocaleHelper.supportedLanguages) { language ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        LocaleHelper.applyLanguageWithoutRecreation(context, language.code)
-                                        showLanguageDialog = false
+                // Add test alert button for development
+                ListItem(
+                    headlineContent = { Text("Test Emergency Alert") },
+                    supportingContent = { Text("Send a test alert (for development)") },
+                    trailingContent = {
+                        Icon(Icons.Default.Warning, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable {
+                        scope.launch {
+                            val userId = prefs.getString("LAST_USER_UID", null)
+                            if (userId != null) {
+                                val alertRequest = VitalAlertRequest(
+                                    userId = userId,
+                                    vitalName = "Heart Rate",
+                                    value = 150f,
+                                    threshold = 100f,
+                                    isHigh = true
+                                )
+
+                                try {
+                                    val response: retrofit2.Response<Map<String, Int>> = RetrofitClient.apiService.sendVitalAlert(alertRequest) // <-- CHANGE THIS
+
+                                    if (response.isSuccessful) {
+                                        val result = response.body()
+                                        Toast.makeText(context, "Test alert sent successfully. Emails: ${result?.get("emailsSent") ?: 0}", Toast.LENGTH_LONG).show() // <-- Adjusted Toast
+                                    } else {
+                                        val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                                        Log.e("TestAlertError", "Test alert failed: ${response.code()} - $errorBody")
+                                        Toast.makeText(context, "Test alert failed: ${response.code()}", Toast.LENGTH_SHORT).show() // <-- Adjusted Toast
                                     }
-                                    .padding(vertical = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(language.displayName)
+                                } catch (e: Exception) {
+                                    Log.e("TestAlertError", "Failed to send test alert", e)
+                                    val errorMsg = e.message ?: e.toString()
+                                    Toast.makeText(context, "Error: $errorMsg", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                Toast.makeText(context, "No user ID found", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                )
+            }
 
-                                if (language.code == currentLanguageCode) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
+            if (showLanguageDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLanguageDialog = false },
+                    title = { Text(stringResource(R.string.select_language)) },
+                    text = {
+                        LazyColumn {
+                            items(LocaleHelper.supportedLanguages) { language ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            LocaleHelper.applyLanguageWithoutRecreation(context, language.code)
+                                            showLanguageDialog = false
+                                            onBackClick()
+                                        }
+                                        .padding(vertical = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(language.displayName)
+
+                                    if (language.code == currentLanguageCode) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
+                                if (language != LocaleHelper.supportedLanguages.last()) {
+                                    Divider()
                                 }
                             }
-
-                            if (language != LocaleHelper.supportedLanguages.last()) {
-                                Divider()
-                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showLanguageDialog = false }) {
+                            Text(stringResource(R.string.cancel))
                         }
                     }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showLanguageDialog = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                }
-            )
-        }
+                )
+            }
 
-         // Threshold Settings Dialog
-         if (showThresholdDialog) {
-             ThresholdSettingsDialog(
-                 viewModel = vitalSignsViewModel,
-                 onDismiss = { showThresholdDialog = false }
-             )
-         }
+            if (showThresholdDialog) {
+                ThresholdSettingsDialog(
+                    viewModel = vitalSignsViewModel,
+                    onDismiss = { showThresholdDialog = false }
+                )
+            }
+        }
     }
 }
 
