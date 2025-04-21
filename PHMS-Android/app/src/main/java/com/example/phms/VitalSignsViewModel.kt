@@ -276,15 +276,18 @@ class VitalSignsViewModel(application: Application) : AndroidViewModel(applicati
                 )
 
                 try {
-                    val response = RetrofitClient.apiService.sendVitalAlert(alertRequest).execute()
+                    // Call the suspend function directly (NO .execute())
+                    val response: retrofit2.Response<Map<String, Int>> = RetrofitClient.apiService.sendVitalAlert(alertRequest) // <-- REMOVE .execute()
+
                     if (response.isSuccessful) {
-                        val result = response.body()
+                        val result = response.body() // Get body from Response object
                         Log.d("VITAL_ALERT", "Email alerts sent: ${result?.get("emailsSent")} emails")
                     } else {
-                        Log.e("VITAL_ALERT", "Failed to send email alerts: ${response.errorBody()?.string()}")
+                        Log.e("VITAL_ALERT", "Failed to send email alerts: ${response.code()} - ${response.errorBody()?.string()}") // Log error code and body
                     }
                 } catch (e: Exception) {
-                    Log.e("VITAL_ALERT", "Error sending email alerts: ${e.message}")
+                    // Log the full exception
+                    Log.e("VITAL_ALERT", "Error sending email alerts: ${e.message}", e)
                 }
             }
         }

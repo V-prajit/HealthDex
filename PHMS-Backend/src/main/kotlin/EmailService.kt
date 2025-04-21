@@ -16,8 +16,8 @@ object EmailService {
         put("mail.smtp.ssl.protocols", "TLSv1.2")
     }
 
-    private val username = System.getenv("GMAIL_EMAIL") ?: ""
-    private val password = System.getenv("GMAIL_APP_PASSWORD") ?: ""
+    private val username = System.getProperty("GMAIL_EMAIL", "")
+    private val password = System.getProperty("GMAIL_APP_PASSWORD", "")
 
     suspend fun sendVitalAlertEmail(
         recipientEmail: String,

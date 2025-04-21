@@ -93,7 +93,7 @@ interface ApiService {
     fun deleteEmergencyContact(@Path("id") id: Int): Call<ResponseBody>
 
     @POST("/send-vital-alert")
-    fun sendVitalAlert(@Body alertRequest: VitalAlertRequest): Call<Map<String, Int>>
+    suspend fun sendVitalAlert(@Body alertRequest: VitalAlertRequest): retrofit2.Response<Map<String, Int>>
 }
 
 

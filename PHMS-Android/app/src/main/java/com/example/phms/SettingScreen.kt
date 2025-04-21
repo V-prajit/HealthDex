@@ -2,6 +2,7 @@ package com.example.phms
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,13 +15,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType // Ensure this import is present
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
@@ -31,7 +36,7 @@ import kotlinx.coroutines.launch
 fun SettingScreen(
     onBackClick: () -> Unit,
     onLogout: () -> Unit,
-    vitalSignsViewModel: VitalSignsViewModel = viewModel() // Inject ViewModel
+    vitalSignsViewModel: VitalSignsViewModel = viewModel()
 ) {
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
@@ -162,14 +167,20 @@ fun SettingScreen(
                                 )
 
                                 try {
-                                    val response = RetrofitClient.apiService.sendVitalAlert(alertRequest).execute()
+                                    val response: retrofit2.Response<Map<String, Int>> = RetrofitClient.apiService.sendVitalAlert(alertRequest) // <-- CHANGE THIS
+
                                     if (response.isSuccessful) {
-                                        Toast.makeText(context, "Test alert sent successfully", Toast.LENGTH_SHORT).show()
+                                        val result = response.body()
+                                        Toast.makeText(context, "Test alert sent successfully. Emails: ${result?.get("emailsSent") ?: 0}", Toast.LENGTH_LONG).show() // <-- Adjusted Toast
                                     } else {
-                                        Toast.makeText(context, "Test alert failed", Toast.LENGTH_SHORT).show()
+                                        val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                                        Log.e("TestAlertError", "Test alert failed: ${response.code()} - $errorBody")
+                                        Toast.makeText(context, "Test alert failed: ${response.code()}", Toast.LENGTH_SHORT).show() // <-- Adjusted Toast
                                     }
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    Log.e("TestAlertError", "Failed to send test alert", e)
+                                    val errorMsg = e.message ?: e.toString()
+                                    Toast.makeText(context, "Error: $errorMsg", Toast.LENGTH_SHORT).show()
                                 }
                             } else {
                                 Toast.makeText(context, "No user ID found", Toast.LENGTH_SHORT).show()
