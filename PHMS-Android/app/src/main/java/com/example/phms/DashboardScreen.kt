@@ -89,7 +89,8 @@ fun DashboardScreen(
                 onNavigateToNotes = {
                     selectedTab = "notes"
                     newNoteRequested = true
-                }
+                },
+                onNavigateToMedications = { selectedTab = "medications" }
             )
 
             "notes" -> NotesScreen(
