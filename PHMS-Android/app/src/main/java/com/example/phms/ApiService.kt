@@ -5,6 +5,8 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
+import com.example.phms.DietDTO  // ✅ Use centralized DTO
+import com.example.phms.Medication  // ✅ Already defined elsewhere
 
 data class AuthRequest(val token: String)
 
@@ -29,13 +31,14 @@ interface ApiService {
     @GET("/users/{firebaseUid}")
     fun getUser(@Path("firebaseUid") firebaseUid: String): Call<UserDTO>
 
+    // Vitals
     @GET("/vitals")
     fun getVitals(@Query("userId") userId: String): Call<List<VitalSign>>
 
     @GET("/vitals/latest")
     fun getLatestVital(
-    @Query("userId") userId: String,
-    @Query("type")   type: String
+        @Query("userId") userId: String,
+        @Query("type") type: String
     ): Call<VitalSign>
 
     @POST("/vitals")
@@ -48,36 +51,34 @@ interface ApiService {
     fun deleteVital(@Path("id") id: Int): Call<ResponseBody>
 
     // Diet
-    @GET("diet")
+    @GET("/diet")
     fun getAllDiets(@Query("userId") userId: String): Call<List<DietDTO>>
 
-    @GET("diet/latest")
+    @GET("/diet/latest")
     fun getLatestDiet(@Query("userId") userId: String): Call<DietDTO>
 
-    @POST("diet")
+    @POST("/diet")
     fun addDiet(@Body dto: DietDTO): Call<DietDTO>
 
-    @PUT("diet")
+    @PUT("/diet")
     fun updateDiet(@Body dto: DietDTO): Call<DietDTO>
 
-    @DELETE("diet/{id}")
+    @DELETE("/diet/{id}")
     fun deleteDiet(@Path("id") id: Int): Call<Void>
 
-    // Medication
-    @GET("medications")
+    // Medications
+    @GET("/medications")
     fun getMedications(@Query("userId") userId: String): Call<List<Medication>>
 
-    @POST("medications")
+    @POST("/medications")
     fun addMedication(@Body med: Medication): Call<Medication>
 
-    @PUT("medications")
+    @PUT("/medications")
     fun updateMedication(@Body med: Medication): Call<Void>
 
-    @DELETE("medications/{id}")
+    @DELETE("/medications/{id}")
     fun deleteMedication(@Path("id") id: Int): Call<Void>
-
 }
-
 
 object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:8085/"
