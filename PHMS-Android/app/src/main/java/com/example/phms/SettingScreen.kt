@@ -3,7 +3,6 @@ package com.example.phms
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,8 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -29,6 +26,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import androidx.compose.material.icons.filled.Notifications
+import android.widget.Toast
+import androidx.compose.material.icons.filled.Alarm
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -185,6 +186,61 @@ fun SettingScreen(
                             } else {
                                 Toast.makeText(context, "No user ID found", Toast.LENGTH_SHORT).show()
                             }
+                        }
+                    }
+                )
+
+                Divider()
+                ListItem(
+                    headlineContent = { Text("Test Appointment Reminder") },
+                    supportingContent = { Text("Send a test notification immediately") },
+                    trailingContent = {
+                        Icon(Icons.Default.Notifications, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable {
+                        // Create a test appointment for today
+                        val testAppointment = Appointment(
+                            id = 999,
+                            userId = prefs.getString("LAST_USER_UID", "") ?: "",
+                            doctorId = 1,
+                            doctorName = "Dr. Test Doctor",
+                            date = LocalDate.now().toString(),
+                            time = "12:00",
+                            duration = 30,
+                            reason = "Test Appointment",
+                            notes = "This is a test notification",
+                            status = "scheduled",
+                            reminders = true
+                        )
+
+                        // Create and show notification directly
+                        val notificationManager = AppointmentNotificationManager(context)
+                        notificationManager.showAppointmentReminder(testAppointment)
+
+                        Toast.makeText(context, "Test notification sent", Toast.LENGTH_SHORT).show()
+                    }
+                )
+
+                Divider()
+                ListItem(
+                    headlineContent = { Text("Schedule Appointment Reminders") },
+                    supportingContent = { Text("Set up timed notifications for upcoming appointments") },
+                    trailingContent = {
+                        Icon(
+                            imageVector = Icons.Default.Alarm,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        val userId = prefs.getString("LAST_USER_UID", null)
+                        if (userId != null) {
+                            scope.launch {
+                                val alarmManager = AppointmentAlarmManager(context)
+                                alarmManager.scheduleAllAppointmentReminders(userId)
+                                Toast.makeText(context, "Appointment reminders scheduled", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(context, "User ID not found", Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
