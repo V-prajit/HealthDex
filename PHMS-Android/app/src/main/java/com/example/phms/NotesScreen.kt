@@ -27,6 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 
 @Composable
@@ -152,7 +156,6 @@ fun NotesFullApp(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesListScreen(
@@ -195,12 +198,12 @@ fun NotesListScreen(
                 }
             )
         },
-        // +new: updated floating action button with label
+        //floating action button with label
         floatingActionButton = {
-            ExtendedFloatingActionButton( // +new
+            ExtendedFloatingActionButton(
                 onClick = onNewNoteClick,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) }, // +new
-                text = { Text(stringResource(R.string.add_note)) }, // +new
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.add_note)) },
                 modifier = Modifier
                     .padding(bottom = 72.dp, end = 16.dp)
                     .navigationBarsPadding()
@@ -231,7 +234,26 @@ fun NotesListScreen(
                 ) {
                     tagOptions.forEach { tag ->
                         DropdownMenuItem(
-                            text = { Text(tag) },
+                            // dropdown tag cateogory with corresponding colors
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val tagColor = when (tag.lowercase()) {
+                                        "diet" -> Color(0xFFEF5350)
+                                        "medication" -> Color(0xFF42A5F5)
+                                        "health" -> Color(0xFF66BB6A)
+                                        "misc" -> Color(0xFFFFCA28)
+                                        else -> MaterialTheme.colorScheme.outline
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = tagColor,
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .padding(end = 8.dp)
+                                    ) {}
+                                    Text(tag)
+                                }
+                            },
                             onClick = {
                                 selectedSortTag = tag
                                 expandedSortMenu = false
@@ -252,15 +274,23 @@ fun NotesListScreen(
                         val noteName = note.split("\n").firstOrNull()?.let { line ->
                             if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
                         } ?: ""
-                        val subtitle = note.split("\n").getOrNull(1) ?: "" // +new
+                        val subtitle = note.split("\n").getOrNull(1) ?: ""
+                        val tag = note.split("\n").getOrElse(2) { "" }
+                        val tagColor = when (tag.lowercase()) {
+                            "diet" -> Color(0xFFEF5350)
+                            "medication" -> Color(0xFF42A5F5)
+                            "health" -> Color(0xFF66BB6A)
+                            "misc" -> Color(0xFFFFCA28)
+                            else -> MaterialTheme.colorScheme.outline
+                        }
 
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onNoteClick(index, note) },
-                            shape = RoundedCornerShape(12.dp), // +new
-                            elevation = CardDefaults.cardElevation(4.dp), // +new
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant) // +new
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -274,11 +304,26 @@ fun NotesListScreen(
                                         text = noteName,
                                         style = MaterialTheme.typography.titleMedium
                                     )
-                                    if (subtitle.isNotBlank()) { // +new
+                                    if (subtitle.isNotBlank()) {
                                         Text(
-                                            text = subtitle.take(60), // +new
-                                            style = MaterialTheme.typography.bodySmall, // +new
-                                            modifier = Modifier.padding(top = 4.dp) // +new
+                                            text = subtitle.take(60),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                    Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = tagColor,
+                                            tonalElevation = 1.dp,
+                                            modifier = Modifier
+                                                .height(16.dp)
+                                                .width(40.dp)
+                                        ) {}
+                                        Text(
+                                            text = tag.lowercase(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(top = 2.dp, end = 2.dp)
                                         )
                                     }
                                 }
@@ -323,14 +368,23 @@ fun NotesListScreen(
                             if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
                         }
                         val noteSummary = parts.getOrElse(1) { "" }
+                        val tag = parts.getOrElse(2) { "" }
+                        val tagColor = when (tag.lowercase()) {
+                            "diet" -> Color(0xFFEF5350)
+                            "medication" -> Color(0xFF42A5F5)
+                            "health" -> Color(0xFF66BB6A)
+                            "misc" -> Color(0xFFFFCA28)
+                            else -> MaterialTheme.colorScheme.outline
+                        }
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)
                                 .clickable { onNoteClick(index, note) },
-                            shape = RoundedCornerShape(10.dp), // +new
-                            elevation = CardDefaults.cardElevation(4.dp), // +new
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant) // +new
+                            shape = RoundedCornerShape(10.dp),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -346,6 +400,21 @@ fun NotesListScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(text = noteSummary.take(40), style = MaterialTheme.typography.bodySmall)
+                                    }
+                                    Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxWidth()) {
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = tagColor,
+                                            tonalElevation = 1.dp,
+                                            modifier = Modifier
+                                                .height(16.dp)
+                                                .width(40.dp)
+                                        ) {}
+                                        Text(
+                                            text = tag.lowercase(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(top = 2.dp, end = 2.dp)
+                                        )
                                     }
                                 }
                                 var expanded by remember { mutableStateOf(false) }
@@ -452,11 +521,10 @@ fun NotesEditScreen(
         ) {
             Text("Note Details", style = MaterialTheme.typography.titleMedium)
 
-            // +new: style card with tint and shape
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant), // +new
-                shape = RoundedCornerShape(12.dp), // +new
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(6.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
@@ -523,7 +591,6 @@ fun NotesEditScreen(
                 }
             }
 
-            // +new: insert image button styled
             Button(
                 onClick = {
                     imagePickerLauncher.launch("image/*")
@@ -532,15 +599,13 @@ fun NotesEditScreen(
                     .align(Alignment.End)
                     .padding(top = 8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null) // +new
-                Spacer(modifier = Modifier.width(8.dp)) // +new
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.insert_image))
             }
 
-            // +new: divider for visual separation
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // +new: actions with icons + visual balance
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -558,7 +623,7 @@ fun NotesEditScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.Save, contentDescription = null) // +new
+                    Icon(Icons.Default.Save, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.save))
                 }
@@ -573,7 +638,7 @@ fun NotesEditScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.SaveAs, contentDescription = null) // +new
+                    Icon(Icons.Default.SaveAs, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.save_as))
                 }
