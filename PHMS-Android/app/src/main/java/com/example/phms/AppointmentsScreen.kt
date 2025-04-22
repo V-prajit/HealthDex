@@ -31,6 +31,7 @@ fun AppointmentsScreen(
     onSettingsClick: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var appointments by remember { mutableStateOf<List<Appointment>>(emptyList()) }
     var doctors by remember { mutableStateOf<List<Doctor>>(emptyList()) }
     var showAppointmentDialog by remember { mutableStateOf(false) }
@@ -202,22 +203,19 @@ fun AppointmentsScreen(
             onSave = { appointment ->
                 scope.launch {
                     if (appointment.id == null) {
-                        // Add new appointment
-                        val savedAppointment = AppointmentRepository.addAppointment(appointment)
+                        val saved = AppointmentRepository.addAppointment(appointment)
 
-                        // Schedule reminders if needed
-                        if (savedAppointment != null && savedAppointment.reminders) {
-                            val context = LocalContext.current
-                            // Schedule the reminders here - we'll implement this later
+                        if (saved != null && saved.reminders) {
+                            AppointmentAlarmManager(context).scheduleAppointmentReminders(saved)
                         }
                     } else {
-                        // Update existing appointment
                         AppointmentRepository.updateAppointment(appointment)
+                        val mgr = AppointmentAlarmManager(context)
 
-                        // Update reminders if needed
                         if (appointment.reminders) {
-                            val context = LocalContext.current
-                            // Update the reminders here - we'll implement this later
+                            mgr.scheduleAppointmentReminders(appointment)
+                        } else {
+                            mgr.cancelAppointmentReminders(appointment)
                         }
                     }
 

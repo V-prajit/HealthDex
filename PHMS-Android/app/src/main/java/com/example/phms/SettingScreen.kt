@@ -3,7 +3,6 @@ package com.example.phms
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,6 +29,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.compose.material.icons.filled.Notifications
 import android.widget.Toast
+import androidx.compose.material.icons.filled.Alarm
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -226,7 +226,10 @@ fun SettingScreen(
                     headlineContent = { Text("Schedule Appointment Reminders") },
                     supportingContent = { Text("Set up timed notifications for upcoming appointments") },
                     trailingContent = {
-                        Icon(Icons.Default.Alarm, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.Alarm,
+                            contentDescription = null
+                        )
                     },
                     modifier = Modifier.clickable {
                         val userId = prefs.getString("LAST_USER_UID", null)

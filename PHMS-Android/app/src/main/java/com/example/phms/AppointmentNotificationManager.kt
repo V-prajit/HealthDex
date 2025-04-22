@@ -86,4 +86,49 @@ class AppointmentNotificationManager(private val context: Context) {
             Log.e("NotificationManager", "Permission denied for notification", e)
         }
     }
+
+    fun showAppointmentReminderWithMessage(
+        appointment: Appointment,
+        message: String,
+        notificationId: Int = NOTIFICATION_ID_PREFIX + (appointment.id ?: 0)
+    ) {
+        // Check notification permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                return
+            }
+        }
+
+        // Create an intent to open the app
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("OPEN_APPOINTMENTS", true)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build notification
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(message)
+            .setContentText("Appointment with ${appointment.doctorName} at ${appointment.time}")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("$message\nReason: ${appointment.reason}"))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        // Show notification
+        try {
+            with(NotificationManagerCompat.from(context)) {
+                notify(notificationId, builder.build())
+            }
+        } catch (e: SecurityException) {
+            Log.e("NotificationManager", "Permission denied for notification", e)
+        }
+    }
 }
