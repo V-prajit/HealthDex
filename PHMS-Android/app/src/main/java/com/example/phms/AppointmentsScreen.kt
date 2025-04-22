@@ -525,17 +525,52 @@ fun AppointmentDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Time and duration
+                var showTimePicker by remember { mutableStateOf(false) }
+                var selectedHour by remember { mutableStateOf(time.split(":").getOrNull(0)?.toIntOrNull() ?: 9) }
+                var selectedMinute by remember { mutableStateOf(time.split(":").getOrNull(1)?.toIntOrNull() ?: 0) }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedTextField(
-                        value = time,
-                        onValueChange = { time = it },
+                        value = String.format("%02d:%02d", selectedHour, selectedMinute),
+                        onValueChange = { /* Read only, managed by picker */ },
                         label = { Text(stringResource(R.string.time)) },
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = { showTimePicker = true }) {
+                                Icon(Icons.Default.AccessTime, contentDescription = "Select time")
+                            }
+                        },
                         modifier = Modifier.weight(1f)
                     )
+                    if (showTimePicker) {
+                        TimePickerDialog(
+                            onDismissRequest = { showTimePicker = false },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    time = String.format("%02d:%02d", selectedHour, selectedMinute)
+                                    showTimePicker = false
+                                }) {
+                                    Text(stringResource(R.string.ok))
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showTimePicker = false }) {
+                                    Text(stringResource(R.string.cancel))
+                                }
+                            }
+                        ) {
+                            TimePicker(
+                                initialHour = selectedHour,
+                                initialMinute = selectedMinute,
+                                onTimeChange = { hour, minute ->
+                                    selectedHour = hour
+                                    selectedMinute = minute
+                                }
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.width(8.dp))
 
@@ -715,4 +750,93 @@ fun formatDate(dateString: String): String {
     } catch (e: Exception) {
         dateString
     }
+}
+
+@Composable
+fun TimePicker(
+    initialHour: Int = 9,
+    initialMinute: Int = 0,
+    onTimeChange: (Int, Int) -> Unit
+) {
+    var hour by remember { mutableStateOf(initialHour) }
+    var minute by remember { mutableStateOf(initialMinute) }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(16.dp)
+    ) {
+        // Hour picker
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            IconButton(
+                onClick = {
+                    hour = if (hour <= 0) 23 else hour - 1
+                    onTimeChange(hour, minute)
+                }
+            ) {
+                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Increase hour")
+            }
+
+            Text(
+                text = String.format("%02d", hour),
+                style = MaterialTheme.typography.headlineLarge
+            )
+
+            IconButton(
+                onClick = {
+                    hour = if (hour >= 23) 0 else hour + 1
+                    onTimeChange(hour, minute)
+                }
+            ) {
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Decrease hour")
+            }
+
+            Text(
+                text = ":",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+
+            IconButton(
+                onClick = {
+                    minute = if (minute <= 0) 55 else minute - 5
+                    onTimeChange(hour, minute)
+                }
+            ) {
+                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Increase minute")
+            }
+
+            Text(
+                text = String.format("%02d", minute),
+                style = MaterialTheme.typography.headlineLarge
+            )
+
+            IconButton(
+                onClick = {
+                    minute = if (minute >= 55) 0 else minute + 5
+                    onTimeChange(hour, minute)
+                }
+            ) {
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Decrease minute")
+            }
+        }
+    }
+}
+
+@Composable
+fun TimePickerDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Select Time") },
+        text = { content() },
+        confirmButton = confirmButton,
+        dismissButton = dismissButton
+    )
 }

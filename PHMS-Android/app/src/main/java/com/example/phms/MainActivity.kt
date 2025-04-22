@@ -26,6 +26,11 @@ import androidx.compose.runtime.Composable as Composable1
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
+import android.os.Build
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -37,9 +42,25 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    100
+                )
+            }
+        }
+
         auth = FirebaseAuth.getInstance()
 
         auth.signOut()
+        AppointmentReminderWorker.initialize(this)
 
         val appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         if (!appPrefs.contains("has_launched_before")) {

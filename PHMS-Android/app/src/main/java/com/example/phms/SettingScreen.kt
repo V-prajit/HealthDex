@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,6 +187,36 @@ fun SettingScreen(
                                 Toast.makeText(context, "No user ID found", Toast.LENGTH_SHORT).show()
                             }
                         }
+                    }
+                )
+
+                Divider()
+                ListItem(
+                    headlineContent = { Text("Test Appointment Reminder") },
+                    supportingContent = { Text("Send a test notification") },
+                    trailingContent = {
+                        Icon(Icons.Default.Notifications, contentDescription = null)
+                    },
+                    modifier = Modifier.clickable {
+                        // Create and show a direct notification without using WorkManager
+                        val testAppointment = Appointment(
+                            id = 999,
+                            userId = prefs.getString("LAST_USER_UID", "") ?: "",
+                            doctorId = 1,
+                            doctorName = "Dr. Test Doctor",
+                            date = LocalDate.now().toString(),
+                            time = "12:00",
+                            duration = 30,
+                            reason = "Test Appointment",
+                            notes = "This is a test notification",
+                            status = "scheduled",
+                            reminders = true
+                        )
+
+                        val notificationManager = AppointmentNotificationManager(context)
+                        notificationManager.showAppointmentReminder(testAppointment)
+
+                        Toast.makeText(context, "Test notification sent", Toast.LENGTH_SHORT).show()
                     }
                 )
             }
