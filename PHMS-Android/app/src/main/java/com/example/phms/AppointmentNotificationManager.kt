@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import android.Manifest
@@ -59,10 +60,12 @@ class AppointmentNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // Format date and time for notification
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMMM d")
         val date = LocalDate.parse(appointment.date)
         val formattedDate = date.format(dateFormatter)
 
+        // Build notification
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Upcoming Appointment Reminder")
@@ -73,12 +76,14 @@ class AppointmentNotificationManager(private val context: Context) {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
+        // Show notification with permission check
         try {
             with(NotificationManagerCompat.from(context)) {
                 val notificationId = NOTIFICATION_ID_PREFIX + (appointment.id ?: 0)
                 notify(notificationId, builder.build())
             }
         } catch (e: SecurityException) {
+            Log.e("NotificationManager", "Permission denied for notification", e)
         }
     }
 }

@@ -203,11 +203,24 @@ fun AppointmentsScreen(
                 scope.launch {
                     if (appointment.id == null) {
                         // Add new appointment
-                        AppointmentRepository.addAppointment(appointment)
+                        val savedAppointment = AppointmentRepository.addAppointment(appointment)
+
+                        // Schedule reminders if needed
+                        if (savedAppointment != null && savedAppointment.reminders) {
+                            val context = LocalContext.current
+                            // Schedule the reminders here - we'll implement this later
+                        }
                     } else {
                         // Update existing appointment
                         AppointmentRepository.updateAppointment(appointment)
+
+                        // Update reminders if needed
+                        if (appointment.reminders) {
+                            val context = LocalContext.current
+                            // Update the reminders here - we'll implement this later
+                        }
                     }
+
                     // Refresh appointment list
                     if (userId != null) {
                         appointments = if (showAllAppointments) {
