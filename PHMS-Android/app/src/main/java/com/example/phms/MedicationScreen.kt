@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +21,7 @@ fun MedicationsScreen(
     var meds by remember { mutableStateOf<List<Medication>>(emptyList()) }
     var showDialog by remember { mutableStateOf(false) }
 
+    // initial load
     LaunchedEffect(userToken) {
         userToken?.let { uid ->
             MedicationRepository.fetchAll(uid) { fetched ->
@@ -31,6 +31,7 @@ fun MedicationsScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("Medications") },
@@ -45,24 +46,31 @@ fun MedicationsScreen(
             FloatingActionButton(onClick = { showDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Medication")
             }
-        }
+        },
+        floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
-        LazyColumn(
-            modifier = modifier
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(meds) { med ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Name: ${med.name}", style = MaterialTheme.typography.titleMedium)
-                        Text("Category: ${med.category}")
-                        Text("Dosage: ${med.dosage}")
-                        Text("Frequency: ${med.frequency}")
-                        Text("Instructions: ${med.instructions}")
+            // show count
+            Text("Loaded meds: ${meds.size}", modifier = Modifier.padding(16.dp))
+
+            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                items(meds) { med ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Name: ${med.name}", style = MaterialTheme.typography.titleMedium)
+                            Text("Category: ${med.category}")
+                            Text("Dosage: ${med.dosage}")
+                            Text("Frequency: ${med.frequency}")
+                            Text("Instructions: ${med.instructions}")
+                        }
                     }
                 }
             }
@@ -73,11 +81,12 @@ fun MedicationsScreen(
                 initial = null,
                 userId = userToken ?: return@Scaffold,
                 onSave = { newMed ->
-                    MedicationRepository.add(newMed) {
-                        MedicationRepository.fetchAll(userToken) {
-                            meds = it.orEmpty()
-                            showDialog = false
+                    MedicationRepository.add(newMed) { savedMed ->
+                        savedMed?.let {
+                            // prepend the newly saved medication so it shows immediately
+                            meds = listOf(it) + meds
                         }
+                        showDialog = false
                     }
                 },
                 onCancel = { showDialog = false }

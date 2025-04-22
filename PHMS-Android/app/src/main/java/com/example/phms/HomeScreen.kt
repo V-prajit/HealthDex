@@ -35,7 +35,8 @@ fun HomeScreen(
     firstName: String?,
     onSettingsClick: () -> Unit,
     onNavigateToChat: () -> Unit,
-    onNavigateToNotes: () -> Unit
+    onNavigateToNotes: () -> Unit,
+    onNavigateToMedications: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -141,7 +142,7 @@ fun HomeScreen(
                 label = { Text("Chat Bot") }
             )
             AssistChip(
-                onClick = { /* todo: add medicine */ },
+                onClick = onNavigateToMedications,
                 leadingIcon = { Icon(Icons.Default.LocalPharmacy, contentDescription = null) },
                 label = { Text("Medicine") }
             )
