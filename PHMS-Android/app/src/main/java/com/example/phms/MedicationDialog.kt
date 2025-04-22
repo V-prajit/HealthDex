@@ -4,6 +4,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
+import java.time.Instant
 
 @Composable
 fun MedicationDialog(
@@ -40,7 +41,8 @@ fun MedicationDialog(
                         category = category,
                         dosage = dosage,
                         frequency = frequency,
-                        instructions = instructions
+                        instructions = instructions,
+                        time = Instant.now().toString()
                     )
                 )
             }) { Text("Save") }
