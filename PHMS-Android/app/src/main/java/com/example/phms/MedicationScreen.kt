@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,8 +22,9 @@ fun MedicationsScreen(
 ) {
     var meds by remember { mutableStateOf<List<Medication>>(emptyList()) }
     var showDialog by remember { mutableStateOf(false) }
+    var dialogInitial by remember { mutableStateOf<Medication?>(null) }
 
-    // initial load
+    // load meds
     LaunchedEffect(userToken) {
         userToken?.let { uid ->
             MedicationRepository.fetchAll(uid) { fetched ->
@@ -43,7 +46,10 @@ fun MedicationsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
+            FloatingActionButton(onClick = {
+                dialogInitial = null
+                showDialog = true
+            }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Medication")
             }
         },
@@ -54,7 +60,6 @@ fun MedicationsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // show count
             Text("Loaded meds: ${meds.size}", modifier = Modifier.padding(16.dp))
 
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
@@ -62,14 +67,42 @@ fun MedicationsScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Name: ${med.name}", style = MaterialTheme.typography.titleMedium)
-                            Text("Category: ${med.category}")
-                            Text("Dosage: ${med.dosage}")
-                            Text("Frequency: ${med.frequency}")
-                            Text("Instructions: ${med.instructions}")
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text("Name: ${med.name}", style = MaterialTheme.typography.titleMedium)
+                                Text("Category: ${med.category}")
+                                Text("Dosage: ${med.dosage}")
+                                Text("Frequency: ${med.frequency}")
+                                Text("Instructions: ${med.instructions}")
+                            }
+                            Row {
+                                IconButton(onClick = {
+                                    // start edit
+                                    dialogInitial = med
+                                    showDialog = true
+                                }) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
+                                }
+                                IconButton(onClick = {
+                                    // delete
+                                    med.id?.let { id ->
+                                        MedicationRepository.delete(id) { success ->
+                                            if (success) {
+                                                meds = meds.filterNot { it.id == id }
+                                            }
+                                        }
+                                    }
+                                }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                }
+                            }
                         }
                     }
                 }
@@ -78,18 +111,30 @@ fun MedicationsScreen(
 
         if (showDialog) {
             MedicationDialog(
-                initial = null,
+                initial = dialogInitial,
                 userId = userToken ?: return@Scaffold,
-                onSave = { newMed ->
-                    MedicationRepository.add(newMed) { savedMed ->
-                        savedMed?.let {
-                            // prepend the newly saved medication so it shows immediately
-                            meds = listOf(it) + meds
+                onSave = { m ->
+                    if (dialogInitial == null) {
+                        // add new
+                        MedicationRepository.add(m) { saved ->
+                            saved?.let {
+                                meds = listOf(it) + meds
+                            }
+                            showDialog = false
                         }
-                        showDialog = false
+                    } else {
+                        // update existing
+                        MedicationRepository.update(m) { success ->
+                            if (success) {
+                                meds = meds.map { if (it.id == m.id) m else it }
+                            }
+                            showDialog = false
+                        }
                     }
                 },
-                onCancel = { showDialog = false }
+                onCancel = {
+                    showDialog = false
+                }
             )
         }
     }
