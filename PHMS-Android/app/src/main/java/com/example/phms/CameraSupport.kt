@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import java.io.File
 
 /**
  * A composable dialog that lets users choose between camera and gallery
@@ -97,6 +96,30 @@ fun useNotesCamera(
     // URI for captured image
     var photoUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Launcher for camera
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && photoUri != null) {
+            // Image captured successfully
+            photoUri?.let { onImageCaptured(it) }
+        }
+    }
+
+    // Function to launch the camera (internal implementation)
+    fun launchCameraInternal() {
+        try {
+            // Create temporary file for the photo
+            val photoFile = NoteFileUtils.createTempImageFile(context)
+            photoUri = NoteFileUtils.getUriForFile(context, photoFile)
+
+            // Launch camera with the URI
+            photoUri?.let { cameraLauncher.launch(it) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     // Launcher for camera permission request
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -104,42 +127,18 @@ fun useNotesCamera(
         hasCameraPermission = isGranted
         if (isGranted) {
             // Permission granted, launch camera
-            launchCamera()
-        }
-    }
-
-    // Launcher for camera
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success && photoUri != null) {
-            // Image captured successfully
-            onImageCaptured(photoUri!!)
-        }
-    }
-
-    // Function to launch the camera
-    fun launchCamera() {
-        try {
-            // Create temporary file for the photo
-            val photoFile = NoteFileUtils.createTempImageFile(context)
-            photoUri = NoteFileUtils.getUriForFile(context, photoFile)
-
-            // Launch camera with the URI
-            cameraLauncher.launch(photoUri)
-        } catch (e: Exception) {
-            e.printStackTrace()
+            launchCameraInternal()
         }
     }
 
     // Function to check permission and launch camera
     fun captureImage() {
         if (hasCameraPermission) {
-            launchCamera()
+            launchCameraInternal()
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
-    return Triple(::captureImage, hasCameraPermission, ::launchCamera)
+    return Triple(::captureImage, hasCameraPermission, ::launchCameraInternal)
 }
