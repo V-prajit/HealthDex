@@ -84,14 +84,12 @@ fun MedicationsScreen(
                             }
                             Row {
                                 IconButton(onClick = {
-                                    // start edit
                                     dialogInitial = med
                                     showDialog = true
                                 }) {
                                     Icon(Icons.Default.Edit, contentDescription = "Edit")
                                 }
                                 IconButton(onClick = {
-                                    // delete
                                     med.id?.let { id ->
                                         MedicationRepository.delete(id) { success ->
                                             if (success) {
@@ -115,7 +113,6 @@ fun MedicationsScreen(
                 userId = userToken ?: return@Scaffold,
                 onSave = { m ->
                     if (dialogInitial == null) {
-                        // add new
                         MedicationRepository.add(m) { saved ->
                             saved?.let {
                                 meds = listOf(it) + meds
@@ -123,7 +120,6 @@ fun MedicationsScreen(
                             showDialog = false
                         }
                     } else {
-                        // update existing
                         MedicationRepository.update(m) { success ->
                             if (success) {
                                 meds = meds.map { if (it.id == m.id) m else it }
