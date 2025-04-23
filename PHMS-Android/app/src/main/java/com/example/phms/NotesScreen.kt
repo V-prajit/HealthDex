@@ -563,39 +563,47 @@ fun NotesEditScreen(
     existingNoteNames: List<String>,
     onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
+    // ─── state ──────────────────────────────────────────────────────────
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
-    var fileTag by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }
-    val duplicateNoteMessage = stringResource(R.string.duplicate_note_title)
-    var showDuplicateDialog by remember { mutableStateOf(false) }
+    var fileTag  by remember { mutableStateOf("") }
     var originalId by remember { mutableStateOf<Int?>(null) }
+    var errorMessage by remember { mutableStateOf("") }
+
     val tagOptions = listOf("diet", "medication", "health", "misc")
     var expandedTagMenu by remember { mutableStateOf(false) }
+    var showImageSourceDialog by remember { mutableStateOf(false) }
+    var showDuplicateDialog  by remember { mutableStateOf(false) }
+    val duplicateMsg = stringResource(R.string.duplicate_note_title)
 
-    // List to store image URIs
     var imageUris by remember { mutableStateOf<List<String>>(emptyList()) }
 
+    // ─── helpers ────────────────────────────────────────────────────────
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        ActivityResultContracts.GetContent()
     ) { uri ->
-        if (uri != null) {
-            // Add the image URI to our separate list instead of the fileBody
-            imageUris = imageUris + uri.toString()
-            // Update the note content with the new structure
+        uri?.let {
+            imageUris += it.toString()
             updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
         }
     }
 
+    val (captureImage, _, _) = useNotesCamera(snackbarHostState) { uri ->
+        imageUris += uri.toString()
+        updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
+    }
+
+    // initialise from incoming note
     LaunchedEffect(noteContent) {
         val parts = parseNoteContent(noteContent)
         originalId = parts.id
-        fileName = parts.title
-        fileBody = parts.body
-        fileTag = parts.tag
-        imageUris = parts.imageUris
+        fileName   = parts.title
+        fileBody   = parts.body
+        fileTag    = parts.tag
+        imageUris  = parts.imageUris
     }
 
     Scaffold(
@@ -613,8 +621,10 @@ fun NotesEditScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -623,13 +633,10 @@ fun NotesEditScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Note Details", style = MaterialTheme.typography.titleMedium)
-
-            // Main note content card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                shape = RoundedCornerShape(12.dp),
+                shape  = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(6.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
@@ -645,8 +652,9 @@ fun NotesEditScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
+                    // Tag dropdown
                     ExposedDropdownMenuBox(
                         expanded = expandedTagMenu,
                         onExpandedChange = { expandedTagMenu = !expandedTagMenu }
@@ -654,15 +662,14 @@ fun NotesEditScreen(
                         OutlinedTextField(
                             value = fileTag,
                             onValueChange = { },
-                            label = { Text("Tag") },
                             readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTagMenu)
-                            },
+                            label = { Text("Tag") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedTagMenu) },
                             modifier = Modifier
                                 .menuAnchor()
                                 .fillMaxWidth()
                         )
+
                         DropdownMenu(
                             expanded = expandedTagMenu,
                             onDismissRequest = { expandedTagMenu = false }
@@ -680,7 +687,7 @@ fun NotesEditScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = fileBody,
@@ -696,20 +703,15 @@ fun NotesEditScreen(
                 }
             }
 
-            // Image section
             if (imageUris.isNotEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    shape = RoundedCornerShape(12.dp),
+                    shape  = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(
-                            "Images",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
+                        Text("Images", style = MaterialTheme.typography.titleMedium)
 
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -730,225 +732,91 @@ fun NotesEditScreen(
                 }
             }
 
-            // Image add button
+            // insert image button
             Button(
-                onClick = {
-                    imagePickerLauncher.launch("image/*")
-                },
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .padding(top = 8.dp)
+                onClick = { showImageSourceDialog = true },
+                modifier = Modifier.align(Alignment.End)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
+                Icon(Icons.Default.Add, null)
+                Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.insert_image))
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .navigationBarsPadding()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Save
                 Button(
                     onClick = {
                         val noteToSave = formatNoteForSaving(originalId, fileName, fileBody, fileTag, imageUris)
-                        if (fileName.isNotBlank() && existingNoteNames.filter { it != originalFileName }.any { it.equals(fileName, ignoreCase = true) }) {
+                        if (fileName.isNotBlank() &&
+                            existingNoteNames.filter { it != originalFileName }
+                                .any { it.equals(fileName, true) }
+                        ) {
                             showDuplicateDialog = true
                         } else {
                             onSave(noteToSave)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Save, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Default.Save, null)
+                    Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.save))
                 }
 
+                // Save As
                 Button(
                     onClick = {
                         val noteToSave = formatNoteForSaving(null, fileName, fileBody, fileTag, imageUris)
-                        if (fileName.isNotBlank() && existingNoteNames.filter { it != originalFileName }.any { it.equals(fileName, ignoreCase = true) }) {
+                        if (fileName.isNotBlank() &&
+                            existingNoteNames.filter { it != originalFileName }
+                                .any { it.equals(fileName, true) }
+                        ) {
                             showDuplicateDialog = true
                         } else {
                             onSaveAs(noteToSave)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.SaveAs, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Default.SaveAs, null)
+                    Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.save_as))
                 }
             }
 
-            if (errorMessage.isNotEmpty()) {
-                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
-            }
+            Spacer(Modifier.height(72.dp))   // bottom padding for scroll
+        }
+
+        if (showImageSourceDialog) {
+            ImageSourceDialog(
+                onDismiss = { showImageSourceDialog = false },
+                onCameraSelected  = { captureImage() },
+                onGallerySelected = { imagePickerLauncher.launch("image/*") }
+            )
         }
 
         if (showDuplicateDialog) {
             AlertDialog(
                 onDismissRequest = { showDuplicateDialog = false },
-                title = { Text(duplicateNoteMessage) },
-                text = { Text("Rename or Replace?") },
+                title = { Text(duplicateMsg) },
+                text  = { Text("Rename or Replace?") },
                 confirmButton = {
                     Button(onClick = {
                         val noteToSave = formatNoteForSaving(originalId, fileName, fileBody, fileTag, imageUris)
                         onSave(noteToSave)
                         showDuplicateDialog = false
-                    }) {
-                        Text("Replace")
-                    }
+                    }) { Text("Replace") }
                 },
                 dismissButton = {
-                    Button(onClick = { showDuplicateDialog = false }) {
-                        Text("Rename")
-                    }
+                    Button(onClick = { showDuplicateDialog = false }) { Text("Rename") }
                 }
             )
         }
     }
-}
-
-@Composable
-fun ImageThumbnail(
-    uri: String,
-    onDelete: () -> Unit,
-    onClick: () -> Unit = {}
-) {
-    Box(
-        modifier = Modifier
-            .size(120.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-            .clickable { onClick() }
-    ) {
-        Image(
-            painter = rememberAsyncImagePainter(uri),
-            contentDescription = "Image",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
-        // Delete button overlay
-        IconButton(
-            onClick = onDelete,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(32.dp)
-                .padding(4.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), RoundedCornerShape(16.dp))
-        ) {
-            Icon(
-                Icons.Default.Close,
-                contentDescription = "Delete",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-    }
-}
-
-data class NoteContent(
-    val id: Int?,
-    val title: String,
-    val body: String,
-    val tag: String,
-    val imageUris: List<String>
-)
-
-// Parse the note content string into components
-fun parseNoteContent(content: String): NoteContent {
-    var id: Int? = null
-    var title = ""
-    var body = ""
-    var tag = ""
-    val imageUris = mutableListOf<String>()
-
-    // Split into lines
-    val lines = content.split("\n")
-
-    // Process the first line (title/id)
-    if (lines.isNotEmpty()) {
-        val firstLine = lines[0]
-        if (firstLine.contains("|")) {
-            val parts = firstLine.split("|")
-            id = parts[0].toIntOrNull()
-            title = parts.getOrElse(1) { "" }
-        } else {
-            title = firstLine
-        }
-    }
-
-    // Process the remaining lines
-    if (lines.size > 1) {
-        val remainingLines = lines.drop(1)
-
-        // Extract images and build the actual body
-        val bodyLines = mutableListOf<String>()
-
-        for (line in remainingLines) {
-            // If it's an image marker, extract it
-            if (line.startsWith("[Image: ") && line.endsWith("]")) {
-                val imageUri = line.substring(8, line.length - 1)
-                imageUris.add(imageUri)
-            }
-            // If it's a tag marker
-            else if (line.matches(Regex("^(diet|medication|health|misc)$"))) {
-                tag = line
-            }
-            // Otherwise it's part of the body
-            else {
-                bodyLines.add(line)
-            }
-        }
-
-        body = bodyLines.joinToString("\n")
-    }
-
-    return NoteContent(id, title, body, tag, imageUris)
-}
-
-// Format the note components back into a string for saving
-fun formatNoteForSaving(id: Int?, title: String, body: String, tag: String, imageUris: List<String>): String {
-    val sb = StringBuilder()
-
-    // Add title with optional ID
-    if (id != null) {
-        sb.append("$id|$title\n")
-    } else {
-        sb.append("$title\n")
-    }
-
-    // Add body
-    sb.append(body)
-
-    // Add image markers
-    for (uri in imageUris) {
-        sb.append("\n[Image: $uri]")
-    }
-
-    // Add tag at the end
-    if (tag.isNotEmpty()) {
-        sb.append("\n$tag")
-    }
-
-    return sb.toString()
-}
-
-// Helper function to update note content
-fun updateNoteContent(
-    id: Int?,
-    title: String,
-    body: String,
-    tag: String,
-    imageUris: List<String>,
-    onContentChange: (String) -> Unit
-) {
-    val content = formatNoteForSaving(id, title, body, tag, imageUris)
-    onContentChange(content)
 }
