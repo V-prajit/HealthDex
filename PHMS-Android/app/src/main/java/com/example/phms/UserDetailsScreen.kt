@@ -191,7 +191,11 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
                     !hasAgeError.value && !hasHeightError.value && !hasWeightError.value) {
 
                     if (biometricEnabled.value) {
-                        prefs.edit().putString("LAST_USER_UID", userToken).putBoolean("LAST_USER_BIOMETRIC", true).apply()
+                        prefs.edit()
+                            .putString("LAST_USER_UID", userToken)
+                            .putString("LAST_USER_FIRSTNAME", firstName.value)  // +assistant: persist first name now
+                            .putBoolean("LAST_USER_BIOMETRIC", true)
+                            .apply()
                     }
                     val updatedBiometric = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
 
