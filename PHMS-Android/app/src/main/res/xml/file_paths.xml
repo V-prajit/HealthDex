@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- For camera capture temporary files -->
+    <external-files-path name="note_images" path="NoteImages/" />
+
+    <!-- For permanently stored note images -->
+    <files-path name="note_images" path="note_images/" />
+
+    <!-- For caching images -->
+    <cache-path name="cached_images" path="images/" />
+</paths>
