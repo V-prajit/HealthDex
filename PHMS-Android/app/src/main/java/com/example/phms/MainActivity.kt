@@ -151,7 +151,7 @@ class MainActivity : FragmentActivity() {
                                 showSettings = false
                                 returnToTab = null
                                 // Consider clearing relevant prefs on logout
-                                prefs.edit().remove("LAST_USER_UID").remove("LAST_USER_FIRSTNAME").apply()
+                                prefs.edit().remove("LAST_USER_FIRSTNAME").apply()
                             }
                         )
                     }
