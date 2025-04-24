@@ -222,7 +222,7 @@ fun AuthScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background 
     ){
-        var isRegistering by remember { mutableStateOf(true) } 
+        var isRegistering by remember { mutableStateOf(false) }
         var showForgotPassword by remember { mutableStateOf(false) }
         var userToken by remember { mutableStateOf<String?>(null) } 
         var showUserDetailsScreen by remember { mutableStateOf(false) }
