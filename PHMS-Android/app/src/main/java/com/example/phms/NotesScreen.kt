@@ -40,6 +40,7 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import com.example.phms.ImageSourceDialog
+import com.example.phms.ui.theme.*
 import com.example.phms.useNotesCamera
 
 @Composable
@@ -58,10 +59,10 @@ fun NoteTag(tag: String) {
 fun NoteTagSmall(tag: String) {
     if (tag.isNotEmpty()) {
         val tagColor = when (tag.lowercase()) {
-            "diet"      -> Color(0xFFEF5350)
-            "medication"-> Color(0xFF42A5F5)
-            "health"    -> Color(0xFF66BB6A)
-            "misc"      -> Color(0xFFFFCA28)
+            "diet"      -> TagDiet
+            "medication"-> TagMedication
+            "health"    -> TagHealth
+            "misc"      -> TagMisc
             else        -> MaterialTheme.colorScheme.outline
         }
 

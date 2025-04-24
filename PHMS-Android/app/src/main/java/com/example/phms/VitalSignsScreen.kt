@@ -178,7 +178,6 @@ fun VitalSignsScreen(
                           sysLowThreshold = thresholds.bpSysLow,
                           diaHighThreshold = thresholds.bpDiaHigh,
                           diaLowThreshold = thresholds.bpDiaLow
-                          // Colors defined inside CustomCharts.kt now
                       )
 
 
@@ -189,7 +188,7 @@ fun VitalSignsScreen(
                          data = glucoseData,
                          highThreshold = thresholds.glucoseHigh,
                          lowThreshold = thresholds.glucoseLow,
-                         lineColor = ChartOrange // Assign specific colors if desired
+                         lineColor = ChartOrange
                      )
 
                      // Cholesterol Chart
