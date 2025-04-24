@@ -22,8 +22,6 @@ import com.example.NotesDAO
 import com.example.NoteDTO
 import com.example.MedicationDAO
 import com.example.MedicationDTO
-import com.example.dao.UserDAO
-import com.example.dao.User
 
 @Serializable
 data class AuthRequest(val token: String)

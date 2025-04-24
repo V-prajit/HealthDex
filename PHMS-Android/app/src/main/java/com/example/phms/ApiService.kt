@@ -111,9 +111,7 @@ interface ApiService {
         @Query("questionId") questionId: Int,
         @Query("answer") answer: String
     ): Call<VerificationResponse>
-}
 
-    // Medications
     @GET("/medications")
     fun getMedications(@Query("userId") userId: String): Call<List<Medication>>
 
