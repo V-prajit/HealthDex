@@ -32,6 +32,9 @@ import android.Manifest
 import android.content.Context.CONTEXT_INCLUDE_CODE
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.input.VisualTransformation
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -279,6 +282,8 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
     val securityAnswer = remember { mutableStateOf("") }
     val expanded = remember { mutableStateOf(false) }
     val context = LocalContext.current
+    var passwordVisible by remember { mutableStateOf(false) }
+
     Column ( modifier = Modifier
         .fillMaxSize()
         .padding(16.dp),
@@ -305,8 +310,16 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
             onValueChange = { password.value = it },
             label = {Text(stringResource(R.string.password))},
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -427,7 +440,7 @@ fun LoginScreen(
     val context = LocalContext.current
     val errorEmptyFieldsText = stringResource(R.string.error_empty_fields)
     val loginFailedTemplate = stringResource(R.string.login_failed)
-
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -454,8 +467,16 @@ fun LoginScreen(
             onValueChange = { password.value = it },
             label = { Text(stringResource(R.string.password)) },
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
