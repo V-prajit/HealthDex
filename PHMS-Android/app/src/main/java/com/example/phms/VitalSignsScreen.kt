@@ -10,20 +10,24 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.phms.R
+import androidx.lifecycle.viewmodel.compose.viewModel // Ensure this import is present
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material.icons.filled.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VitalSignsScreen(
     userId: String?,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    vitalSignsViewModel: VitalSignsViewModel = viewModel() // Inject ViewModel
 ) {
-    // —— Strings —— 
+    // —— Strings ——
     val vitalsLabel     = stringResource(R.string.vitals)
     val backLabel       = stringResource(R.string.back)
     val addVitalDesc    = stringResource(R.string.add_vital)
@@ -39,27 +43,56 @@ fun VitalSignsScreen(
     val noRecentLabel   = stringResource(R.string.no_most_recent)
     val editDesc        = stringResource(R.string.edit_vital)
     val deleteDesc      = stringResource(R.string.delete)
+    val settingsLabel   = stringResource(R.string.settings)
+    // --- Use new string resource for the chart header ---
+    val realTimeDataLabel = stringResource(R.string.real_time_vitals_header)
+    val manualEntriesLabel = "Manual Entries" // Keep or change this as needed
 
-    // —— UI state —— 
+    // —— UI state ——
     val scope = rememberCoroutineScope()
-    var vitals       by remember { mutableStateOf<List<VitalSign>>(emptyList()) }
+    var vitals       by remember { mutableStateOf<List<VitalSign>>(emptyList()) } // For manual entries
     var showDlg      by remember { mutableStateOf(false) }
     var editing      by remember { mutableStateOf<VitalSign?>(null) }
     var selectedType by remember { mutableStateOf(allLabel) }
     var expanded     by remember { mutableStateOf(false) }
     var latestByType by remember { mutableStateOf<VitalSign?>(null) }
 
-    // —— Load data —— 
+    // -- ViewModel State --
+    val vitalHistory by vitalSignsViewModel.vitalHistory.collectAsState()
+    val thresholds by vitalSignsViewModel.thresholds.collectAsState()
+
+
+    // —— Load manual data (existing functionality) ——
     LaunchedEffect(userId) {
         if (userId != null) vitals = VitalRepository.getVitals(userId)
     }
+    // Get latest MANUAL entry (existing functionality)
     LaunchedEffect(userId, selectedType) {
         latestByType = if (userId != null && selectedType != allLabel && selectedType != otherLabel)
             VitalRepository.getLatestVital(userId, selectedType)
         else null
     }
 
-    // —— Compute filtered list —— 
+    // Prepare data for charts
+    val heartRateData = remember(vitalHistory) {
+        vitalHistory.mapNotNull { it.heartRate?.let { hr -> ChartDataPoint(it.timestampMs, hr) } }
+    }
+    val glucoseData = remember(vitalHistory) {
+        vitalHistory.mapNotNull { it.glucose?.let { g -> ChartDataPoint(it.timestampMs, g) } }
+    }
+    val cholesterolData = remember(vitalHistory) {
+        vitalHistory.mapNotNull { it.cholesterol?.let { c -> ChartDataPoint(it.timestampMs, c) } }
+    }
+    val bpData = remember(vitalHistory) {
+         vitalHistory.mapNotNull {
+             if(it.bpSystolic != null && it.bpDiastolic != null)
+                 BPChartDataPoint(it.timestampMs, it.bpSystolic, it.bpDiastolic)
+             else null
+         }
+     }
+
+
+    // —— Compute filtered list for MANUAL entries (existing functionality) ——
     val filteredVitals by remember(vitals, selectedType) {
         derivedStateOf {
             when (selectedType) {
@@ -75,7 +108,7 @@ fun VitalSignsScreen(
         }
     }
 
-    // —— Main Scaffold —— 
+    // —— Main Scaffold ——
     Scaffold(
         topBar = {
             TopAppBar(
@@ -84,17 +117,25 @@ fun VitalSignsScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = backLabel)
                     }
+                },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = settingsLabel
+                        )
+                    }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            FloatingActionButton( // FAB for adding MANUAL entries
                 onClick = {
                     editing = null
                     showDlg = true
                 },
                 modifier = Modifier
-                    .padding(bottom = 72.dp, end = 16.dp)
+                    .padding(bottom = 72.dp, end = 16.dp) // Keep padding if needed for navigation bar
                     .navigationBarsPadding()
             ) {
                 Icon(Icons.Default.Add, contentDescription = addVitalDesc)
@@ -102,116 +143,189 @@ fun VitalSignsScreen(
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        Column(
+        // Use LazyColumn for overall scrollability including charts and manual list
+        LazyColumn(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp), // Apply horizontal padding once
+             contentPadding = PaddingValues(vertical = 16.dp), // Padding for top/bottom of list
+             verticalArrangement = Arrangement.spacedBy(16.dp) // Spacing between items
         ) {
-            // — Filter row — 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(filterLabel, style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.width(8.dp))
-                Box {
-                    OutlinedButton(onClick = { expanded = true }) {
-                        Text(selectedType)
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        listOf(allLabel, bpLabel, glucoseLabel, cholLabel, hrLabel, otherLabel)
-                            .forEach { type ->
-                                DropdownMenuItem(
-                                    text = { Text(type) },
-                                    onClick = {
-                                        selectedType = type
-                                        expanded = false
-                                    }
-                                )
-                            }
-                    }
-                }
-            }
 
-            Spacer(Modifier.height(16.dp))
+             // --- Real-time Data Section ---
+             item {
+                 Column {
+                     // --- Use the new string resource here ---
+                     Text(realTimeDataLabel, style = MaterialTheme.typography.headlineSmall)
+                     Spacer(Modifier.height(12.dp))
 
-            // — Most Recent section — 
-            if (selectedType != allLabel && selectedType != otherLabel) {
-                latestByType?.let { v ->
-                    ElevatedCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        elevation = CardDefaults.elevatedCardElevation(4.dp)
-                    ) {
-                        Column(Modifier.padding(16.dp)) {
-                            Text(mostRecentLabel, style = MaterialTheme.typography.titleSmall)
-                            Spacer(Modifier.height(4.dp))
-                            Text("${v.type}: ${v.value} ${v.unit}", style = MaterialTheme.typography.bodyLarge)
-                            Spacer(Modifier.height(2.dp))
-                            Text(v.timestamp, style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                } ?: Text(noRecentLabel, style = MaterialTheme.typography.bodyMedium)
+                     // Heart Rate Chart
+                     SimpleLineChart(
+                         modifier = Modifier.fillMaxWidth(),
+                         title = "Heart Rate (bpm)",
+                         data = heartRateData,
+                         highThreshold = thresholds.hrHigh,
+                         lowThreshold = thresholds.hrLow,
+                         lineColor = ChartRed // Assign specific colors if desired
+                     )
 
-                Spacer(Modifier.height(16.dp))
-            }
+                     // Blood Pressure Chart
+                      BloodPressureChart(
+                          modifier = Modifier.fillMaxWidth(),
+                          data = bpData,
+                          sysHighThreshold = thresholds.bpSysHigh,
+                          sysLowThreshold = thresholds.bpSysLow,
+                          diaHighThreshold = thresholds.bpDiaHigh,
+                          diaLowThreshold = thresholds.bpDiaLow
+                      )
 
-            // — Full filtered list — 
-            if (filteredVitals.isEmpty()) {
-                Text(noEntriesLabel, style = MaterialTheme.typography.bodyMedium)
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(filteredVitals) { v ->
-                        ElevatedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp),
-                            elevation = CardDefaults.elevatedCardElevation(2.dp)
-                        ) {
-                            ListItem(
-                                headlineContent   = { Text(v.type) },
-                                supportingContent = { Text("${v.value} ${v.unit}") },
-                                trailingContent   = {
-                                    Row {
-                                        IconButton(onClick = {
-                                            editing = v
-                                            showDlg = true
-                                        }) {
-                                            Icon(Icons.Default.Edit, contentDescription = editDesc)
-                                        }
-                                        IconButton(onClick = {
-                                            scope.launch {
-                                                v.id?.let { id ->
-                                                    if (VitalRepository.deleteVital(id)) {
-                                                        vitals = VitalRepository.getVitals(userId!!)
-                                                    }
-                                                }
-                                            }
-                                        }) {
-                                            Icon(Icons.Default.Delete, contentDescription = deleteDesc)
-                                        }
-                                    }
-                                }
-                            )
-                            Divider()
-                            Text(
-                                text = v.timestamp,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
-                            )
-                        }
-                    }
-                }
-            }
+
+                     // Glucose Chart
+                     SimpleLineChart(
+                         modifier = Modifier.fillMaxWidth(),
+                         title = "Glucose (mg/dL)",
+                         data = glucoseData,
+                         highThreshold = thresholds.glucoseHigh,
+                         lowThreshold = thresholds.glucoseLow,
+                         lineColor = ChartOrange
+                     )
+
+                     // Cholesterol Chart
+                     SimpleLineChart(
+                         modifier = Modifier.fillMaxWidth(),
+                         title = "Total Cholesterol (mg/dL)",
+                         data = cholesterolData,
+                         highThreshold = thresholds.cholesterolHigh,
+                         lowThreshold = thresholds.cholesterolLow,
+                          lineColor = ChartPurple // Assign specific colors if desired
+                     )
+                 }
+             }
+
+             // --- Manual Entries Section Separator ---
+             item {
+                 Divider(modifier = Modifier.padding(vertical = 8.dp))
+                 Text(manualEntriesLabel, style = MaterialTheme.typography.headlineSmall)
+                 Spacer(Modifier.height(12.dp))
+             }
+
+             // --- Manual Entries Filter Row ---
+             item {
+                 Row(verticalAlignment = Alignment.CenterVertically) {
+                     Text(filterLabel, style = MaterialTheme.typography.bodyMedium)
+                     Spacer(Modifier.width(8.dp))
+                     Box {
+                         OutlinedButton(onClick = { expanded = true }) {
+                             Text(selectedType)
+                             Icon(
+                                 Icons.Default.ArrowDropDown,
+                                 contentDescription = null,
+                                 modifier = Modifier.size(20.dp)
+                             )
+                         }
+                         DropdownMenu(
+                             expanded = expanded,
+                             onDismissRequest = { expanded = false }
+                         ) {
+                             listOf(allLabel, bpLabel, glucoseLabel, cholLabel, hrLabel, otherLabel)
+                                 .forEach { type ->
+                                     DropdownMenuItem(
+                                         text = { Text(type) },
+                                         onClick = {
+                                             selectedType = type
+                                             expanded = false
+                                         }
+                                     )
+                                 }
+                         }
+                     }
+                 }
+             }
+
+
+             // --- Most Recent Manual Entry section ---
+             if (selectedType != allLabel && selectedType != otherLabel) {
+                 item {
+                     latestByType?.let { v ->
+                         ElevatedCard(
+                             modifier = Modifier.fillMaxWidth(),
+                             shape = RoundedCornerShape(12.dp),
+                             elevation = CardDefaults.elevatedCardElevation(4.dp)
+                         ) {
+                             Column(Modifier.padding(16.dp)) {
+                                 Text(mostRecentLabel, style = MaterialTheme.typography.titleSmall)
+                                 Spacer(Modifier.height(4.dp))
+                                 Text("${v.type}: ${v.value} ${v.unit}", style = MaterialTheme.typography.bodyLarge)
+                                 Spacer(Modifier.height(2.dp))
+                                 Text(v.timestamp, style = MaterialTheme.typography.bodySmall)
+                             }
+                         }
+                     } ?: Text(noRecentLabel, style = MaterialTheme.typography.bodyMedium)
+                 }
+             }
+
+             // --- Full filtered list of Manual Entries ---
+             if (filteredVitals.isEmpty()) {
+                 item {
+                     // Conditionally display message if *both* manual and simulated are empty maybe?
+                      // For now, just the manual entry message
+                      if(vitalHistory.isEmpty()) { // Check if simulated history is also empty
+                          Text("No vital signs data available.", style = MaterialTheme.typography.bodyMedium)
+                      } else {
+                          Text(noEntriesLabel, style = MaterialTheme.typography.bodyMedium)
+                      }
+                 }
+             } else {
+                 items(filteredVitals, key = { it.id ?: UUID.randomUUID() }) { v -> // Use a key for stability
+                     ElevatedCard(
+                         modifier = Modifier.fillMaxWidth(),
+                         shape = RoundedCornerShape(8.dp),
+                         elevation = CardDefaults.elevatedCardElevation(2.dp)
+                     ) {
+                         ListItem(
+                             headlineContent   = { Text(v.type) },
+                             supportingContent = { Text("${v.value} ${v.unit}") },
+                             trailingContent   = {
+                                 Row {
+                                     IconButton(onClick = {
+                                         editing = v
+                                         showDlg = true
+                                     }) {
+                                         Icon(Icons.Default.Edit, contentDescription = editDesc)
+                                     }
+                                     IconButton(onClick = {
+                                         scope.launch {
+                                             v.id?.let { id ->
+                                                 if (VitalRepository.deleteVital(id)) {
+                                                     vitals = VitalRepository.getVitals(userId!!)
+                                                 }
+                                             }
+                                         }
+                                     }) {
+                                         Icon(Icons.Default.Delete, contentDescription = deleteDesc)
+                                     }
+                                 }
+                             }
+                         )
+                         Divider()
+                         Text(
+                             text = v.timestamp,
+                             style = MaterialTheme.typography.bodySmall,
+                             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp, end = 16.dp) // Padding added
+                         )
+                     }
+                 }
+             }
+
+             // Add some bottom padding to prevent FAB overlap if needed
+             item {
+                 Spacer(Modifier.height(80.dp))
+             }
         }
     }
 
-    // — Add/Edit dialog — 
+    // — Add/Edit dialog for MANUAL entries (Existing Functionality - Unchanged) —
     if (showDlg) {
         VitalDialog(
             initial  = editing,
@@ -220,7 +334,7 @@ fun VitalSignsScreen(
                 scope.launch {
                     if (newV.id == null) VitalRepository.addVital(newV)
                     else                  VitalRepository.updateVital(newV)
-                    vitals = VitalRepository.getVitals(userId!!)
+                    vitals = VitalRepository.getVitals(userId!!) // Reload manual entries
                     showDlg = false
                 }
             },
@@ -229,6 +343,7 @@ fun VitalSignsScreen(
     }
 }
 
+// --- VitalDialog (Existing Functionality - Unchanged) ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VitalDialog(

@@ -42,4 +42,6 @@ dependencies {
     implementation("io.ktor:ktor-server-core:2.x.x")
     implementation("io.ktor:ktor-server-netty:2.x.x")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.x.x")
+    implementation("com.sun.mail:javax.mail:1.6.2")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 }

@@ -2,39 +2,108 @@ package com.example.phms
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SaveAs
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
+import com.example.phms.ImageSourceDialog
+import com.example.phms.ui.theme.*
+import com.example.phms.useNotesCamera
+
+@Composable
+fun NoteTag(tag: String) {
+    if (tag.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(8.dp))
+        AssistChip(
+            onClick = { },
+            label = { Text(tag) },
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+@Composable
+fun NoteTagSmall(tag: String) {
+    if (tag.isNotEmpty()) {
+        val tagColor = when (tag.lowercase()) {
+            "diet"      -> TagDiet
+            "medication"-> TagMedication
+            "health"    -> TagHealth
+            "misc"      -> TagMisc
+            else        -> MaterialTheme.colorScheme.outline
+        }
+
+        AssistChip(
+            onClick = { },
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(color = tagColor)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = tag, style = MaterialTheme.typography.labelSmall)
+                }
+            },
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+
 
 @Composable
 fun NotesFullApp(
     userToken: String? = null,
     onSettingsClick: () -> Unit = {},
+    onBackClick: () -> Unit = {},
     newNoteRequested: Boolean = false
 ) {
     val context = LocalContext.current
     var notes by remember { mutableStateOf(listOf<String>()) }
     val scope = rememberCoroutineScope()
+
+    // Image viewer state variables
+    var showImageViewer by remember { mutableStateOf(false) }
+    var selectedImageUris by remember { mutableStateOf<List<String>>(emptyList()) }
+    var initialImageIndex by remember { mutableStateOf(0) }
 
     // loads notes only once composable composed
     LaunchedEffect(Unit) {
@@ -51,99 +120,121 @@ fun NotesFullApp(
     var selectedNoteIndex by remember { mutableStateOf<Int?>(null) }
     var noteContent by remember { mutableStateOf("") }
 
-    when (currentScreen) {
-        "list" -> {
-            NotesListScreen(
-                notes = notes,
-                onNoteClick = { index, note ->
-                    selectedNoteIndex = index
-                    noteContent = note
-                    currentScreen = "edit"
-                    // notes index is saved and it moves to edit screedn
-                },
-                onNewNoteClick = {
-                    selectedNoteIndex = null
-                    noteContent = ""
-                    currentScreen = "edit"
-                    //for new note, sice it doesnt already have an index, idx is null
-                },
-                onNoteDelete = { index ->
-                    if (!userToken.isNullOrEmpty()) {
-                        scope.launch {
-                            val noteId = notes[index].split("\n").firstOrNull()
-                                ?.split("|")?.getOrElse(0) { "" }?.toIntOrNull() ?: (index + 1)
-                            NotesRepositoryBackend.deleteNote(noteId)
-                            notes = NotesRepositoryBackend.getNotes(userToken) // Refresh
-                        }
-                    } else {
-                        val mutableNotes = notes.toMutableList()
-                        mutableNotes.removeAt(index)
-                        notes = mutableNotes
-                        NotesRepository.saveNotes(context, notes)
-                    }
-                },
-                onSettingsClick = onSettingsClick
-            )
-        }
-        "edit" -> {
-            NotesEditScreen(
-                noteContent = noteContent,
-                onContentChange = { noteContent = it },
-                onSave = { updatedContent ->
-                    // function to save updates to the existing note or add as new.
-                    if (selectedNoteIndex != null) {
-                        val mutableNotes = notes.toMutableList()
-                        mutableNotes[selectedNoteIndex!!] = updatedContent
-                        notes = mutableNotes
-                    }
-                    else {
-                        val title = updatedContent.split("\n").firstOrNull()?.trim() ?: ""
-                        val indexToUpdate = notes.indexOfFirst { it.split("\n").firstOrNull()?.trim() == title }
-                        if (indexToUpdate != -1) {
-                            val mutableNotes = notes.toMutableList()
-                            mutableNotes[indexToUpdate] = updatedContent
-                            notes = mutableNotes
+    // Decide which screen to show
+    if (showImageViewer) {
+        // Show image viewer
+        NoteImageViewer(
+            imageUris = selectedImageUris,
+            initialImageIndex = initialImageIndex,
+            onClose = { showImageViewer = false }
+        )
+    } else {
+        // Show normal screens
+        when (currentScreen) {
+            "list" -> {
+                NotesListScreen(
+                    notes = notes,
+                    onNoteClick = { index, note ->
+                        selectedNoteIndex = index
+                        noteContent = note
+                        currentScreen = "edit"
+                        // notes index is saved and it moves to edit screen
+                    },
+                    onNewNoteClick = {
+                        selectedNoteIndex = null
+                        noteContent = ""
+                        currentScreen = "edit"
+                        //for new note, since it doesn't already have an index, idx is null
+                    },
+                    onNoteDelete = { index ->
+                        if (!userToken.isNullOrEmpty()) {
+                            scope.launch {
+                                val noteId = notes[index].split("\n").firstOrNull()
+                                    ?.split("|")?.getOrElse(0) { "" }?.toIntOrNull() ?: (index + 1)
+                                NotesRepositoryBackend.deleteNote(noteId)
+                                notes = NotesRepositoryBackend.getNotes(userToken) // Refresh
+                            }
                         } else {
-                            notes = notes + updatedContent
-                        }
-                    }
-                    scope.launch {
-                        if (!userToken.isNullOrEmpty()) {
-                            NotesRepositoryBackend.saveNote(userToken, updatedContent)
-                            // reloads notes from backend after saving
-                            notes = NotesRepositoryBackend.getNotes(userToken)
-                        }
-                        else {
+                            val mutableNotes = notes.toMutableList()
+                            mutableNotes.removeAt(index)
+                            notes = mutableNotes
                             NotesRepository.saveNotes(context, notes)
                         }
-                        currentScreen = "list"
+                    },
+                    onSettingsClick = onSettingsClick,
+                    onBackClick = onBackClick,
+                    onImageClick = { uris, index ->
+                        selectedImageUris = uris
+                        initialImageIndex = index
+                        showImageViewer = true
                     }
-                },
-                onSaveAs = { updatedContent ->
-                    // save as creates a new note and updates repository
-                    val mutableNotes = notes.toMutableList()
-                    mutableNotes.add(updatedContent)
-                    notes = mutableNotes
-                    scope.launch {
-                        if (!userToken.isNullOrEmpty()) {
-                            NotesRepositoryBackend.saveNote(userToken, updatedContent)
-                            // Reload notes from backend after saving
-                            notes = NotesRepositoryBackend.getNotes(userToken)
+                )
+            }
+            "edit" -> {
+                NotesEditScreen(
+                    noteContent = noteContent,
+                    onContentChange = { noteContent = it },
+                    onSave = { updatedContent ->
+                        // function to save updates to the existing note or add as new.
+                        if (selectedNoteIndex != null) {
+                            val mutableNotes = notes.toMutableList()
+                            mutableNotes[selectedNoteIndex!!] = updatedContent
+                            notes = mutableNotes
                         }
                         else {
-                            NotesRepository.saveNotes(context, notes)
+                            val title = updatedContent.split("\n").firstOrNull()?.trim() ?: ""
+                            val indexToUpdate = notes.indexOfFirst { it.split("\n").firstOrNull()?.trim() == title }
+                            if (indexToUpdate != -1) {
+                                val mutableNotes = notes.toMutableList()
+                                mutableNotes[indexToUpdate] = updatedContent
+                                notes = mutableNotes
+                            } else {
+                                notes = notes + updatedContent
+                            }
                         }
+                        scope.launch {
+                            if (!userToken.isNullOrEmpty()) {
+                                NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                                // reloads notes from backend after saving
+                                notes = NotesRepositoryBackend.getNotes(userToken)
+                            }
+                            else {
+                                NotesRepository.saveNotes(context, notes)
+                            }
+                            currentScreen = "list"
+                        }
+                    },
+                    onSaveAs = { updatedContent ->
+                        // save as creates a new note and updates repository
+                        val mutableNotes = notes.toMutableList()
+                        mutableNotes.add(updatedContent)
+                        notes = mutableNotes
+                        scope.launch {
+                            if (!userToken.isNullOrEmpty()) {
+                                NotesRepositoryBackend.saveNote(userToken, updatedContent)
+                                // Reload notes from backend after saving
+                                notes = NotesRepositoryBackend.getNotes(userToken)
+                            }
+                            else {
+                                NotesRepository.saveNotes(context, notes)
+                            }
+                            currentScreen = "list"
+                        }
+                    },
+                    onCancel = {
+                        // goes back to the list screen
                         currentScreen = "list"
+                    },
+                    // passed original file name and list of existing note names for duplicate check.
+                    originalFileName = noteContent.split("\n").firstOrNull()?.trim() ?: "",
+                    existingNoteNames = notes.map { it.split("\n").firstOrNull()?.trim() ?: "" },
+                    onImageClick = { uris, index ->
+                        selectedImageUris = uris
+                        initialImageIndex = index
+                        showImageViewer = true
                     }
-                },
-                onCancel = {
-                    // goes back to the list screen
-                    currentScreen = "list"
-                },
-                // passed original file name and list of existing note names for duplicate check.
-                originalFileName = noteContent.split("\n").firstOrNull()?.trim() ?: "",
-                existingNoteNames = notes.map { it.split("\n").firstOrNull()?.trim() ?: "" }
-            )
+                )
+            }
         }
     }
 }
@@ -155,41 +246,57 @@ fun NotesListScreen(
     onNoteClick: (Int, String) -> Unit,
     onNewNoteClick: () -> Unit,
     onNoteDelete: (Int) -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onBackClick: () -> Unit,
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
+    val backLabel = stringResource(R.string.back)
     var isListLayout by remember { mutableStateOf(true) }
-    // toggle sort by tag
     var selectedSortTag by remember { mutableStateOf("All") }
-    // display notes based on selected tag
+
+    // Filter notes based on selected tag
     val displayedNotes = if (selectedSortTag == "All") {
         notes
     } else {
         notes.filter { it.split("\n").getOrElse(2) { "" } == selectedSortTag }
     }
+
     Scaffold(
         topBar = {
-            // upper bar that shows/ displays the title and action icons.
             TopAppBar(
-                title = { Text(stringResource(R.string.notes), style = MaterialTheme.typography.headlineLarge) },
+                title = { Text(stringResource(R.string.notes)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = backLabel)
+                    }
+                },
                 actions = {
-                    IconButton(onClick = onNewNoteClick) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_note))
+                    TextButton(onClick = { isListLayout = !isListLayout }) {
+                        Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
                     }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
-                    // to toggle between list and grid view
-                    TextButton(onClick = { isListLayout = !isListLayout }) {
-                        Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
-                    }
                 }
             )
-        }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNewNoteClick,
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.add_note)) },
+                modifier = Modifier
+                    .padding(bottom = 72.dp, end = 16.dp)
+                    .navigationBarsPadding()
+            )
+        },
+        floatingActionButtonPosition = FabPosition.End
     ) { padding ->
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(padding)) {
-            // sub panel for filtering by tag using a dropdown.
+
+            // Tag filter dropdown
             val tagOptions = listOf("All", "diet", "medication", "health", "misc")
             var expandedSortMenu by remember { mutableStateOf(false) }
             Row(
@@ -208,8 +315,26 @@ fun NotesListScreen(
                     onDismissRequest = { expandedSortMenu = false }
                 ) {
                     tagOptions.forEach { tag ->
+                        //tag color next to text
+                        val tagColor = when (tag.lowercase()) {
+                            "diet"      -> Color(0xFFEF5350)
+                            "medication"-> Color(0xFF42A5F5)
+                            "health"    -> Color(0xFF66BB6A)
+                            "misc"      -> Color(0xFFFFCA28)
+                            else        -> MaterialTheme.colorScheme.outline
+                        }
                         DropdownMenuItem(
-                            text = { Text(tag) },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(tagColor, shape = CircleShape)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(tag)
+                                }
+                            },
                             onClick = {
                                 selectedSortTag = tag
                                 expandedSortMenu = false
@@ -218,64 +343,126 @@ fun NotesListScreen(
                     }
                 }
             }
+
+            // Note list/grid
             val modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
+
             if (isListLayout) {
                 LazyColumn(
                     modifier = modifier,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
-                        val noteName = note.split("\n").firstOrNull()?.let { line ->
-                            if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
-                        } ?: ""
+                        val parsedNote = parseNoteContent(note)
+                        val tag = note.split("\n").getOrElse(2) { "" }
+                        val bgColor = MaterialTheme.colorScheme.surfaceVariant
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onNoteClick(index, note) }
+                                .clickable { onNoteClick(index, note) },
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            colors = CardDefaults.cardColors(containerColor = bgColor)
                         ) {
-                            Row(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    .padding(16.dp)
                             ) {
-                                Text(
-                                    //displays the title of the note
-                                    text = noteName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                var expanded by remember { mutableStateOf(false) }
-                                IconButton(onClick = { expanded = true }) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = null)
-                                }
-                                DropdownMenu(
-                                    //dropdown menu- reame, delete options for now. todo- add more options
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.rename)) },
-                                        onClick = {
-                                            onNoteClick(index, note)
-                                            expanded = false
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = parsedNote.title,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        if (parsedNote.body.isNotBlank()) {
+                                            Text(
+                                                text = parsedNote.body.take(60),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                modifier = Modifier.padding(top = 4.dp)
+                                            )
                                         }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.delete)) },
-                                        onClick = {
-                                            onNoteDelete(index)
-                                            expanded = false
+                                    }
+
+                                    var expanded by remember { mutableStateOf(false) }
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(Icons.Default.MoreVert, contentDescription = null)
+                                    }
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.rename)) },
+                                            onClick = {
+                                                onNoteClick(index, note)
+                                                expanded = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.delete)) },
+                                            onClick = {
+                                                onNoteDelete(index)
+                                                expanded = false
+                                            }
+                                        )
+                                    }
+                                }
+
+                                if (parsedNote.imageUris.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        items(parsedNote.imageUris.take(3)) { uri ->
+                                            Image(
+                                                painter = rememberAsyncImagePainter(uri),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(60.dp)
+                                                    .clip(RoundedCornerShape(4.dp))
+                                                    .clickable { onImageClick(parsedNote.imageUris, parsedNote.imageUris.indexOf(uri)) },
+                                                contentScale = ContentScale.Crop
+                                            )
                                         }
-                                    )
+
+                                        // Show count if there are more images
+                                        if (parsedNote.imageUris.size > 3) {
+                                            item {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(60.dp)
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+                                                        .clickable { onImageClick(parsedNote.imageUris, 0) },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        "+${parsedNote.imageUris.size - 3}",
+                                                        color = MaterialTheme.colorScheme.onPrimary
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (parsedNote.tag.isNotEmpty()) {
+                                    NoteTag(parsedNote.tag)
                                 }
                             }
                         }
                     }
                 }
             } else {
+                // Grid layout
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = modifier,
@@ -283,59 +470,119 @@ fun NotesListScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
-                        val parts = note.split("\n", limit = 3)
-                        val noteTitle = parts.getOrElse(0) { "" }.let { line ->
-                            if (line.contains("|")) line.split("|").getOrElse(1) { line } else line
-                        }
-                        val noteSummary = parts.getOrElse(1) { "" }
+                        val parsedNote = parseNoteContent(note)
+                        val tag = note.split("\n").getOrElse(2) { "" }
+                        val bgColor = MaterialTheme.colorScheme.surfaceVariant
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .clickable { onNoteClick(index, note) }
+                                .aspectRatio(0.8f)
+                                .clickable { onNoteClick(index, note) },
+                            shape = RoundedCornerShape(10.dp),
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            colors = CardDefaults.cardColors(containerColor = bgColor)
                         ) {
-                            Box(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(8.dp)
+                                    .padding(12.dp)
                             ) {
-                                Column {
-                                    Text(text = noteTitle, style = MaterialTheme.typography.titleMedium)
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .size(50.dp)
-                                            .background(Color.LightGray),
-                                        contentAlignment = Alignment.Center
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Text(
+                                        text = parsedNote.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    var expanded by remember { mutableStateOf(false) }
+                                    IconButton(
+                                        onClick = { expanded = true },
+                                        modifier = Modifier.size(32.dp)
                                     ) {
-                                        Text(text = noteSummary, style = MaterialTheme.typography.bodySmall)
+                                        Icon(
+                                            Icons.Default.MoreVert,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.rename)) },
+                                            onClick = {
+                                                onNoteClick(index, note)
+                                                expanded = false
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.delete)) },
+                                            onClick = {
+                                                onNoteDelete(index)
+                                                expanded = false
+                                            }
+                                        )
                                     }
                                 }
-                                var expanded by remember { mutableStateOf(false) }
-                                IconButton(
-                                    onClick = { expanded = true },
-                                    modifier = Modifier.align(Alignment.TopEnd)
-                                ) {
-                                    Icon(Icons.Default.MoreVert, contentDescription = null)
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                if (parsedNote.body.isNotBlank()) {
+                                    Text(
+                                        text = parsedNote.body.take(40),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.weight(1f)
+                                    )
                                 }
-                                DropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.rename)) },
-                                        onClick = {
-                                            onNoteClick(index, note)
-                                            expanded = false
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                if (parsedNote.imageUris.isNotEmpty()) {
+                                    val previewImageUri = parsedNote.imageUris.first()
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(80.dp)
+                                    ) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(previewImageUri),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(8.dp)),
+                                            contentScale = ContentScale.Crop
+                                        )
+
+                                        if (parsedNote.imageUris.size > 1) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(4.dp)
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    "+${parsedNote.imageUris.size - 1}",
+                                                    color = MaterialTheme.colorScheme.onPrimary,
+                                                    style = MaterialTheme.typography.labelSmall
+                                                )
+                                            }
                                         }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.delete)) },
-                                        onClick = {
-                                            onNoteDelete(index)
-                                            expanded = false
-                                        }
-                                    )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                if (parsedNote.tag.isNotEmpty()) {
+                                    NoteTagSmall(parsedNote.tag)
                                 }
                             }
                         }
@@ -355,44 +602,52 @@ fun NotesEditScreen(
     onSaveAs: (String) -> Unit,
     onCancel: () -> Unit,
     originalFileName: String,
-    existingNoteNames: List<String>
+    existingNoteNames: List<String>,
+    onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
+    //state
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
-    var fileTag by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }
-    val duplicateNoteMessage = stringResource(R.string.duplicate_note_title)
-    var showDuplicateDialog by remember { mutableStateOf(false) }
+    var fileTag  by remember { mutableStateOf("") }
     var originalId by remember { mutableStateOf<Int?>(null) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    val tagOptions = listOf("diet", "medication", "health", "misc")
+    var expandedTagMenu by remember { mutableStateOf(false) }
+    var showImageSourceDialog by remember { mutableStateOf(false) }
+    var showDuplicateDialog  by remember { mutableStateOf(false) }
+    val duplicateMsg = stringResource(R.string.duplicate_note_title)
+
+    var imageUris by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    // helpers
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        ActivityResultContracts.GetContent()
     ) { uri ->
-        if (uri != null) {
-            fileBody += "\n[Image: $uri]"
-            onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
+        uri?.let {
+            imageUris += it.toString()
+            updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
         }
     }
-    val videoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            fileBody += "\n[Video: $uri]"
-            onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
-        }
+
+    val (captureImage, _, _) = useNotesCamera(snackbarHostState) { uri ->
+        imageUris += uri.toString()
+        updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
     }
+
+    // initialise from incoming note
     LaunchedEffect(noteContent) {
-        val lines = noteContent.split("\n", limit = 3)
-        val firstLine = lines.getOrElse(0) { "" }
-        if (firstLine.contains("|")) {
-            val parts = firstLine.split("|")
-            originalId = parts[0].toIntOrNull()
-            fileName = parts.getOrElse(1) { "" }
-        } else {
-            fileName = firstLine
-        }
-        fileBody = lines.getOrElse(1) { "" }
-        fileTag = lines.getOrElse(2) { "" }
+        val parts = parseNoteContent(noteContent)
+        originalId = parts.id
+        fileName   = parts.title
+        fileBody   = parts.body
+        fileTag    = parts.tag
+        imageUris  = parts.imageUris
     }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -401,122 +656,207 @@ fun NotesEditScreen(
                     IconButton(onClick = onCancel) {
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
+                },
+                actions = {
+                    IconButton(onClick = onCancel) {
+                        Icon(Icons.Default.Close, contentDescription = "Cancel")
+                    }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            OutlinedTextField(
-                value = fileName,
-                onValueChange = {
-                    fileName = it
-                    errorMessage = ""
-                    onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
-                },
-                label = { Text(stringResource(R.string.file_name)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            val tagOptions = listOf("diet", "medication", "health", "misc")
-            var expandedTagMenu by remember { mutableStateOf(false) }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expandedTagMenu = true }
-            ) {
-                OutlinedTextField(
-                    value = fileTag,
-                    onValueChange = { },
-                    label = { Text("Tag") },
-                    singleLine = true,
-                    enabled = false,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                DropdownMenu(
-                    expanded = expandedTagMenu,
-                    onDismissRequest = { expandedTagMenu = false }
-                ) {
-                    tagOptions.forEach { tag ->
-                        DropdownMenuItem(
-                            text = { Text(tag) },
-                            onClick = {
-                                fileTag = tag
-                                onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
-                                expandedTagMenu = false
-                            }
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = fileBody,
-                onValueChange = {
-                    fileBody = it
-                    onContentChange("${if(originalId != null) "$originalId|$fileName" else fileName}\n$fileBody\n$fileTag")
-                },
-                label = { Text(stringResource(R.string.file_content)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
-            Row(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape  = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(6.dp)
             ) {
-                Button(onClick = {
-                    imagePickerLauncher.launch("image/*")
-                }) {
-                    Text(stringResource(R.string.insert_image))
+                Column(Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = fileName,
+                        onValueChange = {
+                            fileName = it
+                            errorMessage = ""
+                            updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
+                        },
+                        label = { Text(stringResource(R.string.file_name)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // Tag dropdown
+                    ExposedDropdownMenuBox(
+                        expanded = expandedTagMenu,
+                        onExpandedChange = { expandedTagMenu = !expandedTagMenu }
+                    ) {
+                        OutlinedTextField(
+                            value = fileTag,
+                            onValueChange = { },
+                            readOnly = true,
+                            label = { Text("Tag") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedTagMenu) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+
+                        DropdownMenu(
+                            expanded = expandedTagMenu,
+                            onDismissRequest = { expandedTagMenu = false }
+                        ) {
+                            tagOptions.forEach { tag ->
+                                DropdownMenuItem(
+                                    text = { Text(tag) },
+                                    onClick = {
+                                        fileTag = tag
+                                        updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
+                                        expandedTagMenu = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = fileBody,
+                        onValueChange = {
+                            fileBody = it
+                            updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
+                        },
+                        label = { Text(stringResource(R.string.file_content)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
                 }
             }
-            if (errorMessage.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+
+            if (imageUris.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape  = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Images", style = MaterialTheme.typography.titleMedium)
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(imageUris) { uri ->
+                                ImageThumbnail(
+                                    uri = uri,
+                                    onDelete = {
+                                        imageUris = imageUris.filter { it != uri }
+                                        updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
+                                    },
+                                    onClick = { onImageClick(imageUris, imageUris.indexOf(uri)) }
+                                )
+                            }
+                        }
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Button(onClick = {
-                    val noteToSave = if (originalId != null) "$originalId|$fileName\n$fileBody\n$fileTag" else "$fileName\n$fileBody\n$fileTag"
-                    if (fileName.isNotBlank() && existingNoteNames.filter { it != originalFileName }.any { it.equals(fileName, ignoreCase = true) }) {
-                        showDuplicateDialog = true
-                    }
-                    else {
-                        onSave(noteToSave)
-                    }
-                }) {
+
+            // insert image button
+            Button(
+                onClick = { showImageSourceDialog = true },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Icon(Icons.Default.Add, null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.insert_image))
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Save
+                Button(
+                    onClick = {
+                        val noteToSave = formatNoteForSaving(originalId, fileName, fileBody, fileTag, imageUris)
+                        if (fileName.isNotBlank() &&
+                            existingNoteNames.filter { it != originalFileName }
+                                .any { it.equals(fileName, true) }
+                        ) {
+                            showDuplicateDialog = true
+                        } else {
+                            onSave(noteToSave)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Save, null)
+                    Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.save))
                 }
-                Button(onClick = {
-                    if (fileName.isNotBlank() && existingNoteNames.filter { it != originalFileName }.any { it.equals(fileName, ignoreCase = true) }) {
-                        showDuplicateDialog = true
-                    } else {
-                        onSaveAs("$fileName\n$fileBody\n$fileTag")
-                    }
-                }) {
+
+                // Save As
+                Button(
+                    onClick = {
+                        val noteToSave = formatNoteForSaving(null, fileName, fileBody, fileTag, imageUris)
+                        if (fileName.isNotBlank() &&
+                            existingNoteNames.filter { it != originalFileName }
+                                .any { it.equals(fileName, true) }
+                        ) {
+                            showDuplicateDialog = true
+                        } else {
+                            onSaveAs(noteToSave)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.SaveAs, null)
+                    Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.save_as))
                 }
             }
+
+            Spacer(Modifier.height(72.dp))   // bottom padding for scroll
         }
+
+        if (showImageSourceDialog) {
+            ImageSourceDialog(
+                onDismiss = { showImageSourceDialog = false },
+                onCameraSelected  = { captureImage() },
+                onGallerySelected = { imagePickerLauncher.launch("image/*") }
+            )
+        }
+
         if (showDuplicateDialog) {
             AlertDialog(
                 onDismissRequest = { showDuplicateDialog = false },
-                title = { Text(duplicateNoteMessage) },
-                text = { Text("Rename or Replace?") },
+                title = { Text(duplicateMsg) },
+                text  = { Text("Rename or Replace?") },
                 confirmButton = {
-                    Button(onClick = { onSave(if (originalId != null) "$originalId|$fileName\n$fileBody\n$fileTag" else "$fileName\n$fileBody\n$fileTag"); showDuplicateDialog = false }) {
-                        Text("Replace")
-                    }
+                    Button(onClick = {
+                        val noteToSave = formatNoteForSaving(originalId, fileName, fileBody, fileTag, imageUris)
+                        onSave(noteToSave)
+                        showDuplicateDialog = false
+                    }) { Text("Replace") }
                 },
                 dismissButton = {
-                    Button(onClick = { showDuplicateDialog = false }) {
-                        Text("Rename")
-                    }
+                    Button(onClick = { showDuplicateDialog = false }) { Text("Rename") }
                 }
             )
         }

@@ -189,9 +189,14 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
                 // Only proceed if all fields are valid
                 if (!hasFirstNameError.value && !hasLastNameError.value &&
                     !hasAgeError.value && !hasHeightError.value && !hasWeightError.value) {
-
+                    val securityQuestionId = prefs.getInt("SECURITY_QUESTION_ID", 1)
+                    val securityAnswer = prefs.getString("SECURITY_ANSWER", "") ?: ""
                     if (biometricEnabled.value) {
-                        prefs.edit().putString("LAST_USER_UID", userToken).putBoolean("LAST_USER_BIOMETRIC", true).apply()
+                        prefs.edit()
+                            .putString("LAST_USER_UID", userToken)
+                            .putString("LAST_USER_FIRSTNAME", firstName.value)
+                            .putBoolean("LAST_USER_BIOMETRIC", true)
+                            .apply()
                     }
                     val updatedBiometric = prefs.getBoolean("LAST_USER_BIOMETRIC", false)
 
@@ -203,7 +208,9 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
                         age.value,
                         height.value,
                         weight.value,
-                        updatedBiometric
+                        updatedBiometric,
+                        securityQuestionId,
+                        securityAnswer
                     ) {
                         message.value = it
                         if (userToken != null){

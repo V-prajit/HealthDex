@@ -3,6 +3,14 @@ package com.example
 
 import com.example.VitalsDAO
 import com.example.VitalDTO
+import com.example.dao.User
+import com.example.dao.UserDAO
+import com.example.dao.Doctor
+import com.example.dao.DoctorDAO
+import com.example.dao.Appointment
+import com.example.dao.AppointmentDAO
+import com.example.dao.EmergencyContact
+import com.example.dao.EmergencyContactDAO
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -17,7 +25,6 @@ import com.example.MedicationDTO
 import com.example.dao.UserDAO
 import com.example.dao.User
 
-
 @Serializable
 data class AuthRequest(val token: String)
 
@@ -30,7 +37,23 @@ data class UserDTO(
     val age: Int?,
     val height: Double?,
     val weight: Double?,
-    val biometricEnabled: Boolean
+    val biometricEnabled: Boolean,
+    val securityQuestionId: Int? = null,
+    val securityAnswer: String? = null
+)
+
+@Serializable
+data class VitalAlertRequest(
+    val userId: String,
+    val vitalName: String,
+    val value: Float,
+    val threshold: Float,
+    val isHigh: Boolean
+)
+
+@Serializable
+data class VerificationResponse(
+    val verified: Boolean
 )
 
 fun Application.configureRouting() {
@@ -68,7 +91,9 @@ fun Application.configureRouting() {
                         user.age,
                         user.height,
                         user.weight,
-                        user.biometricEnabled
+                        user.biometricEnabled,
+                        user.securityQuestionId,
+                        user.securityAnswer
                     )
                 )
                 call.respond(HttpStatusCode.Created, "User added successfully")
@@ -84,6 +109,41 @@ fun Application.configureRouting() {
                     call.respond(HttpStatusCode.NotFound, "User not found")
                 }
             }
+
+            get("/email/{email}") {
+                val email = call.parameters["email"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing email")
+
+                // Log the request
+                log.info("Looking up user with email: $email")
+
+                try {
+                    val users = UserDAO.getUsersByEmail(email)
+                    if (users.isNotEmpty()) {
+                        log.info("User found with email: $email")
+                        call.respond(HttpStatusCode.OK, users.first())
+                    } else {
+                        log.warn("No user found with email: $email")
+                        call.respond(HttpStatusCode.NotFound, "User not found")
+                    }
+                } catch (e: Exception) {
+                    log.error("Error looking up user by email", e)
+                    call.respond(HttpStatusCode.InternalServerError, "Server error: ${e.message}")
+                }
+            }
+
+            post("/verify-security-question") {
+                val userId = call.request.queryParameters["userId"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing userId")
+                val questionId = call.request.queryParameters["questionId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Invalid questionId")
+                val answer = call.request.queryParameters["answer"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing answer")
+
+                val user = UserDAO.getUserByFirebaseUid(userId)
+                if (user != null && user.securityQuestionId == questionId && user.securityAnswer?.equals(answer, ignoreCase = true) == true) {
+                    call.respond(HttpStatusCode.OK, VerificationResponse(true))
+                } else {
+                    call.respond(HttpStatusCode.OK, VerificationResponse(false))
+                }
+            }
+
         }
 
         route("/notes") {
@@ -223,5 +283,196 @@ fun Application.configureRouting() {
             }
         }
 
+        route("/doctors") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val doctors = DoctorDAO.getDoctorsByUserId(userId)
+                call.respond(HttpStatusCode.OK, doctors)
+            }
+
+            get("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid doctor ID")
+
+                val doctor = DoctorDAO.getDoctorById(id)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Doctor not found")
+
+                call.respond(HttpStatusCode.OK, doctor)
+            }
+
+            post {
+                val doctor = call.receive<Doctor>()
+                val addedDoctor = DoctorDAO.addDoctor(doctor)
+                call.respond(HttpStatusCode.Created, addedDoctor)
+            }
+
+            put {
+                val doctor = call.receive<Doctor>()
+                val updated = DoctorDAO.updateDoctor(doctor)
+
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, doctor)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Doctor not found or missing ID")
+                }
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid doctor ID")
+
+                val deleted = DoctorDAO.deleteDoctor(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Doctor deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Doctor not found")
+                }
+            }
+        }
+
+        route("/appointments") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val appointments = AppointmentDAO.getAppointmentsByUserId(userId)
+                call.respond(HttpStatusCode.OK, appointments)
+            }
+
+            get("/upcoming") {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val appointments = AppointmentDAO.getUpcomingAppointments(userId)
+                call.respond(HttpStatusCode.OK, appointments)
+            }
+
+            get("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid appointment ID")
+
+                val appointment = AppointmentDAO.getAppointmentById(id)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Appointment not found")
+
+                call.respond(HttpStatusCode.OK, appointment)
+            }
+
+            post {
+                val appointment = call.receive<Appointment>()
+                val addedAppointment = AppointmentDAO.addAppointment(appointment)
+                call.respond(HttpStatusCode.Created, addedAppointment)
+            }
+
+            put {
+                val appointment = call.receive<Appointment>()
+                val updated = AppointmentDAO.updateAppointment(appointment)
+
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, appointment)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Appointment not found or missing ID")
+                }
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid appointment ID")
+
+                val deleted = AppointmentDAO.deleteAppointment(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Appointment deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Appointment not found")
+                }
+            }
+        }
+
+        route("/emergency-contacts") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val contacts = EmergencyContactDAO.getContactsByUserId(userId)
+                call.respond(HttpStatusCode.OK, contacts)
+            }
+
+            post {
+                val contact = call.receive<EmergencyContact>()
+                val addedContact = EmergencyContactDAO.addContact(contact)
+                call.respond(HttpStatusCode.Created, addedContact)
+            }
+
+            put {
+                val contact = call.receive<EmergencyContact>()
+                val updated = EmergencyContactDAO.updateContact(contact)
+
+                if (updated) {
+                    call.respond(HttpStatusCode.OK, contact)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Contact not found or missing ID")
+                }
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid ID")
+
+                val deleted = EmergencyContactDAO.deleteContact(id)
+                if (deleted) {
+                    call.respond(HttpStatusCode.OK, "Contact deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Contact not found")
+                }
+            }
+        }
+
+        post("/send-vital-alert") {
+            val alertRequest = call.receive<VitalAlertRequest>()
+
+            val contacts = EmergencyContactDAO.getContactsByUserId(alertRequest.userId)
+                .filter { it.notifyOnEmergency }
+
+            val doctors = DoctorDAO.getDoctorsByUserId(alertRequest.userId)
+                .filter { it.notifyOnEmergency }
+
+            val user = UserDAO.getUserByFirebaseUid(alertRequest.userId)
+            val patientName = "${user?.firstName} ${user?.lastName}"
+
+            var emailsSent = 0
+
+            // Send emails to emergency contacts
+            contacts.forEach { contact ->
+                if (EmailService.sendVitalAlertEmail(
+                        recipientEmail = contact.email,
+                        recipientName = contact.name,
+                        patientName = patientName,
+                        vitalName = alertRequest.vitalName,
+                        value = alertRequest.value,
+                        threshold = alertRequest.threshold,
+                        isHigh = alertRequest.isHigh
+                    )) {
+                    emailsSent++
+                }
+            }
+
+            // Send emails to doctors
+            doctors.forEach { doctor ->
+                if (EmailService.sendVitalAlertEmail(
+                        recipientEmail = doctor.email,
+                        recipientName = "Dr. ${doctor.name}",
+                        patientName = patientName,
+                        vitalName = alertRequest.vitalName,
+                        value = alertRequest.value,
+                        threshold = alertRequest.threshold,
+                        isHigh = alertRequest.isHigh
+                    )) {
+                    emailsSent++
+                }
+            }
+
+            call.respond(HttpStatusCode.OK, mapOf("emailsSent" to emailsSent))
+        }
     }
 }

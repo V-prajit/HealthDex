@@ -16,7 +16,13 @@ data class UserDataRequest(
     val age: Int?,
     val height: Double?,
     val weight: Double?,
-    val biometricEnabled: Boolean
+    val biometricEnabled: Boolean,
+    val securityQuestionId: Int,
+    val securityAnswer: String
+)
+
+data class VerificationResponse(
+    val verified: Boolean
 )
 
 interface ApiService {
@@ -47,6 +53,65 @@ interface ApiService {
 
     @DELETE("/vitals/{id}")
     fun deleteVital(@Path("id") id: Int): Call<ResponseBody>
+
+    @GET("/doctors")
+    fun getDoctors(@Query("userId") userId: String): Call<List<Doctor>>
+
+    @GET("/doctors/{id}")
+    fun getDoctor(@Path("id") id: Int): Call<Doctor>
+
+    @POST("/doctors")
+    fun addDoctor(@Body doctor: Doctor): Call<Doctor>
+
+    @PUT("/doctors")
+    fun updateDoctor(@Body doctor: Doctor): Call<Doctor>
+
+    @DELETE("/doctors/{id}")
+    fun deleteDoctor(@Path("id") id: Int): Call<ResponseBody>
+
+    @GET("/appointments")
+    fun getAppointments(@Query("userId") userId: String): Call<List<Appointment>>
+
+    @GET("/appointments/upcoming")
+    fun getUpcomingAppointments(@Query("userId") userId: String): Call<List<Appointment>>
+
+    @GET("/appointments/{id}")
+    fun getAppointment(@Path("id") id: Int): Call<Appointment>
+
+    @POST("/appointments")
+    fun addAppointment(@Body appointment: Appointment): Call<Appointment>
+
+    @PUT("/appointments")
+    fun updateAppointment(@Body appointment: Appointment): Call<Appointment>
+
+    @DELETE("/appointments/{id}")
+    fun deleteAppointment(@Path("id") id: Int): Call<ResponseBody>
+
+    @GET("/emergency-contacts")
+    fun getEmergencyContacts(@Query("userId") userId: String): Call<List<EmergencyContact>>
+
+    @POST("/emergency-contacts")
+    fun addEmergencyContact(@Body contact: EmergencyContact): Call<EmergencyContact>
+
+    @PUT("/emergency-contacts")
+    fun updateEmergencyContact(@Body contact: EmergencyContact): Call<EmergencyContact>
+
+    @DELETE("/emergency-contacts/{id}")
+    fun deleteEmergencyContact(@Path("id") id: Int): Call<ResponseBody>
+
+    @POST("/send-vital-alert")
+    suspend fun sendVitalAlert(@Body alertRequest: VitalAlertRequest): retrofit2.Response<Map<String, Int>>
+
+    @GET("/users/email/{email}")
+    fun findUserByEmail(@Path("email") email: String): Call<UserDTO>
+
+    @POST("/users/verify-security-question")
+    fun verifySecurityAnswer(
+        @Query("userId") userId: String,
+        @Query("questionId") questionId: Int,
+        @Query("answer") answer: String
+    ): Call<VerificationResponse>
+}
 
     // Medications
     @GET("/medications")

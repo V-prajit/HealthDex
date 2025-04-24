@@ -15,3 +15,5 @@ PHMS-Backend/data.db
 /PHMS-Android/app/.idea
 PHMS-Android/.env
 /PHMS-Backend/local.properties
+PHMS-Backend/.env
+/PHMS-Backend/.kotlin/sessions
