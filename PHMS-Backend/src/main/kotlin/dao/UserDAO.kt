@@ -66,7 +66,9 @@ object UserDAO {
 
     fun getUsersByEmail(email: String): List<User> {
         return transaction {
-            Users.selectAll().where { Users.email eq email }
+            Users.selectAll().where {
+                Users.email.lowerCase() eq email.lowercase()
+            }
                 .map {
                     User(
                         it[Users.firebaseUid],

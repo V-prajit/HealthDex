@@ -88,23 +88,31 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
                         isLoading = true
                         message = ""
 
+                        Log.d("ForgotPassword", "Finding user with email: $email")
+
                         // Find user by email to get security question
                         RetrofitClient.apiService.findUserByEmail(email).enqueue(object : Callback<UserDTO> {
                             override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
                                 isLoading = false
+                                Log.d("ForgotPassword", "Response code: ${response.code()}")
+
                                 if (response.isSuccessful && response.body() != null) {
                                     val user = response.body()!!
+                                    Log.d("ForgotPassword", "User found: ${user.firebaseUid}")
                                     userId = user.firebaseUid
                                     securityQuestionId = user.securityQuestionId ?: 1
                                     securityQuestion = SecurityQuestions.questions.find { it.id == securityQuestionId }?.question ?: ""
                                     userFound = true
                                 } else {
+                                    val errorBody = response.errorBody()?.string() ?: "No error details"
+                                    Log.e("ForgotPassword", "Error finding user: $errorBody")
                                     message = "User not found with this email"
                                 }
                             }
 
                             override fun onFailure(call: Call<UserDTO>, t: Throwable) {
                                 isLoading = false
+                                Log.e("ForgotPassword", "Request failed", t)
                                 message = "Error: ${t.message}"
                             }
                         })
