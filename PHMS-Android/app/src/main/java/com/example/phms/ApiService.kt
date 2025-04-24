@@ -35,13 +35,14 @@ interface ApiService {
     @GET("/users/{firebaseUid}")
     fun getUser(@Path("firebaseUid") firebaseUid: String): Call<UserDTO>
 
+    // Vitals
     @GET("/vitals")
     fun getVitals(@Query("userId") userId: String): Call<List<VitalSign>>
 
     @GET("/vitals/latest")
     fun getLatestVital(
-    @Query("userId") userId: String,
-    @Query("type")   type: String
+        @Query("userId") userId: String,
+        @Query("type") type: String
     ): Call<VitalSign>
 
     @POST("/vitals")
@@ -110,8 +111,19 @@ interface ApiService {
         @Query("questionId") questionId: Int,
         @Query("answer") answer: String
     ): Call<VerificationResponse>
-}
 
+    @GET("/medications")
+    fun getMedications(@Query("userId") userId: String): Call<List<Medication>>
+
+    @POST("/medications")
+    fun addMedication(@Body med: Medication): Call<Medication>
+
+    @PUT("/medications")
+    fun updateMedication(@Body med: Medication): Call<Void>
+
+    @DELETE("/medications/{id}")
+    fun deleteMedication(@Path("id") id: Int): Call<Void>
+}
 
 object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:8085/"

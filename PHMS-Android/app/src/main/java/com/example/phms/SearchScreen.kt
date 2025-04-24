@@ -34,7 +34,8 @@ fun SearchScreen(
     onBackClick: () -> Unit,
     onNavigateToNotes: () -> Unit,
     onNavigateToVitals: () -> Unit,
-    onNavigateToAppointments: () -> Unit
+    onNavigateToAppointments: () -> Unit,
+    onNavigateToMedications: () -> Unit
 ) {
     val context = LocalContext.current
     var query by remember { mutableStateOf("") }
