@@ -27,21 +27,10 @@ fun DashboardScreen(
     onSettingsClick: (originTab: String?) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(initialSelectedTab) }
-    // New flag: when true, NotesScreen will open in "edit" (new note) mode
     var newNoteRequested by remember { mutableStateOf(false) }
     var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    }
-                }
-            )
-        },
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(

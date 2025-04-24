@@ -40,7 +40,6 @@ import java.util.Calendar
 fun HomeScreen(
     firstName: String?,
     onSettingsClick: () -> Unit,
-    onNavigateToChat: () -> Unit,
     onNavigateToMedications: () -> Unit,
     onNavigateToVitals: () -> Unit,
     onNavigateToNotes: () -> Unit,
