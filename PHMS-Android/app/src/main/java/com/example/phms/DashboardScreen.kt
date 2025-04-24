@@ -1,9 +1,14 @@
 package com.example.phms
 
 import android.util.Log
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Note
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.example.phms.VitalSignsScreen
 import com.example.phms.SearchScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     firstName: String? = null,
@@ -21,7 +27,6 @@ fun DashboardScreen(
     onSettingsClick: (originTab: String?) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(initialSelectedTab) }
-    // New flag: when true, NotesScreen will open in "edit" (new note) mode
     var newNoteRequested by remember { mutableStateOf(false) }
     var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
 
@@ -44,7 +49,7 @@ fun DashboardScreen(
                 )
                 NavigationBarItem(
                     selected = selectedTab == "notes",
-                    onClick = {
+                    onClick  = {
                         selectedTab = "notes"
                         newNoteRequested = false
                     },
@@ -53,15 +58,21 @@ fun DashboardScreen(
                 )
                 NavigationBarItem(
                     selected = selectedTab == "chat",
-                    onClick = { selectedTab = "chat" },
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
-                    label = { Text(stringResource(R.string.chat)) }
+                    onClick  = { selectedTab = "chat" },
+                    icon     = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
+                    label    = { Text(stringResource(R.string.chat)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "vitals",
                     onClick  = { selectedTab = "vitals" },
                     icon     = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
                     label    = { Text(stringResource(R.string.vitals)) }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == "medications",
+                    onClick  = { selectedTab = "medications" },
+                    icon     = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
+                    label    = { Text("Meds") }
                 )
             }
         }
@@ -83,7 +94,8 @@ fun DashboardScreen(
                         },
                         onNavigateToAppointments = {
                             selectedTab = "appointments"
-                        }
+                        },
+                        onNavigateToMedications = { selectedTab = "medications" }
                     )
                 }
                 else {
@@ -104,6 +116,7 @@ fun DashboardScreen(
                         onNavigateToAppointments = {
                           selectedTab = "appointments"
                         },
+                        onNavigateToMedications = { selectedTab = "medications" },
                         onNavigateToSearch = { showSearchScreen = true }
                     )
                 }
@@ -157,13 +170,20 @@ fun DashboardScreen(
                 onBackClick = { selectedTab = "home" },
                 onSettingsClick = { onSettingsClick("vitals") }
             )
+            "medications" -> MedicationsScreen(
+                userToken = userToken,
+                modifier = Modifier.padding(innerPadding),
+                onBack = { selectedTab = "home" }
+            )
         }
     }
 }
 
+// Note: remove any stray imports of com.example.phms.NotesScreen — this file declares NotesScreen below
+
 @Composable
 fun NotesScreen(
-    userToken: String? = null,
+    userToken: String?,
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit = {},
     onBackClick: () -> Unit = {},

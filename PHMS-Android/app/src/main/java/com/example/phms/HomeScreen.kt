@@ -40,6 +40,7 @@ import java.util.Calendar
 fun HomeScreen(
     firstName: String?,
     onSettingsClick: () -> Unit,
+    onNavigateToMedications: () -> Unit,
     onNavigateToVitals: () -> Unit,
     onNavigateToNotes: () -> Unit,
     onNavigateToSearch: () -> Unit,
@@ -189,7 +190,7 @@ fun HomeScreen(
                 label = { Text(stringResource(R.string.doctors)) }
             )
             AssistChip(
-                onClick = { /* todo: add medicine */ },
+                onClick = onNavigateToMedications,
                 leadingIcon = { Icon(Icons.Default.LocalPharmacy, contentDescription = null) },
                 label = { Text(stringResource(R.string.medications)) }
             )

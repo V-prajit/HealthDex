@@ -12,24 +12,29 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
+import android.content.ContentValues
+import android.content.Context
+import android.os.Build
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import kotlinx.coroutines.launch
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import android.util.Log
 
-/**
- * A hook that provides camera functionality for the notes screen.
- * Returns:
- *   1) captureImage() – call this to open the camera
- *   2) hasCameraPermission – state value
- *   3) launchCameraInternal() – low-level launcher (rarely needed)
- */
 @Composable
 fun useNotesCamera(
     snackbarHostState: SnackbarHostState,
     onImageCaptured: (Uri) -> Unit
 ): Triple<() -> Unit, Boolean, () -> Unit> {
-
+    val TAG = "NotesCamera"
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // ─── permission state ────────────────────────────────────────────────
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -38,60 +43,101 @@ fun useNotesCamera(
         )
     }
 
-    // ─── ActivityResult launchers ────────────────────────────────────────
     var photoUri by remember { mutableStateOf<Uri?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success ->
         if (success && photoUri != null) {
+            Log.d(TAG, "Camera capture successful: $photoUri")
             onImageCaptured(photoUri!!)
+        } else {
+            Log.e(TAG, "Camera capture failed. Success: $success, URI: $photoUri")
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Failed to capture image")
+            }
         }
     }
 
-    fun launchCameraInternal(): Boolean = try {
-        val photoFile = NoteFileUtils.createTempImageFile(context)
-        photoUri = NoteFileUtils.getUriForFile(context, photoFile)
-        photoUri?.let { cameraLauncher.launch(it) }
-        true
-    } catch (e: Exception) {
-        e.printStackTrace()
-        false
+    fun createImageUri(): Uri? {
+        try {
+            // For API 29+ use MediaStore
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, "img_${System.currentTimeMillis()}.jpg")
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                    put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PHMS")
+                }
+                return context.contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
+            } else {
+                // For older versions, use the FileProvider approach
+                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                val imageFile = File(
+                    context.getExternalFilesDir("Pictures"),
+                    "JPEG_${timeStamp}_.jpg"
+                ).apply {
+                    parentFile?.mkdirs()
+                }
+
+                return FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    imageFile
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating image URI", e)
+            return null
+        }
+    }
+
+    fun launchCameraInternal(): Boolean {
+        try {
+            // Create a new URI for each capture
+            photoUri = createImageUri()
+
+            if (photoUri != null) {
+                Log.d(TAG, "Launching camera with URI: $photoUri")
+                cameraLauncher.launch(photoUri!!)
+                return true
+            } else {
+                Log.e(TAG, "Failed to create photo URI")
+                return false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error launching camera", e)
+            return false
+        }
     }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
+        Log.d(TAG, "Camera permission granted: $isGranted")
         hasCameraPermission = isGranted
-        if (isGranted) launchCameraInternal()
+        if (isGranted) {
+            launchCameraInternal()
+        } else {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Camera permission required to take photos")
+            }
+        }
     }
 
-    // ─── public function: captureImage() ─────────────────────────────────
     fun captureImage() {
-        val activity = context as? Activity
-        val shouldShowRationale = activity?.let {
-            ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.CAMERA)
-        } ?: false
-
-        if (!hasCameraPermission && !shouldShowRationale) {
-            // permanently denied
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar(
-                    "Camera permission permanently denied. Enable it in App Settings."
-                )
-            }
-            return
-        }
-
         if (hasCameraPermission) {
             if (!launchCameraInternal()) {
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
-                        "Could not open camera – see logs or check storage path."
+                        "Could not launch camera. Please check app permissions."
                     )
                 }
             }
         } else {
+            // Request permission
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
