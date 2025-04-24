@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
 import com.example.phms.ImageSourceDialog
 import com.example.phms.useNotesCamera
 
@@ -56,13 +57,36 @@ fun NoteTag(tag: String) {
 @Composable
 fun NoteTagSmall(tag: String) {
     if (tag.isNotEmpty()) {
+        val tagColor = when (tag.lowercase()) {
+            "diet"      -> Color(0xFFEF5350)
+            "medication"-> Color(0xFF42A5F5)
+            "health"    -> Color(0xFF66BB6A)
+            "misc"      -> Color(0xFFFFCA28)
+            else        -> MaterialTheme.colorScheme.outline
+        }
+
         AssistChip(
             onClick = { },
-            label = { Text(tag, style = MaterialTheme.typography.labelSmall) },
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(color = tagColor)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = tag, style = MaterialTheme.typography.labelSmall)
+                }
+            },
             modifier = Modifier.padding(top = 4.dp)
         )
     }
 }
+
+
 
 @Composable
 fun NotesFullApp(
@@ -290,8 +314,26 @@ fun NotesListScreen(
                     onDismissRequest = { expandedSortMenu = false }
                 ) {
                     tagOptions.forEach { tag ->
+                        //tag color next to text
+                        val tagColor = when (tag.lowercase()) {
+                            "diet"      -> Color(0xFFEF5350)
+                            "medication"-> Color(0xFF42A5F5)
+                            "health"    -> Color(0xFF66BB6A)
+                            "misc"      -> Color(0xFFFFCA28)
+                            else        -> MaterialTheme.colorScheme.outline
+                        }
                         DropdownMenuItem(
-                            text = { Text(tag) },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(tagColor, shape = CircleShape)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(tag)
+                                }
+                            },
                             onClick = {
                                 selectedSortTag = tag
                                 expandedSortMenu = false
@@ -313,6 +355,8 @@ fun NotesListScreen(
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
                         val parsedNote = parseNoteContent(note)
+                        val tag = note.split("\n").getOrElse(2) { "" }
+                        val bgColor = MaterialTheme.colorScheme.surfaceVariant
 
                         Card(
                             modifier = Modifier
@@ -320,7 +364,7 @@ fun NotesListScreen(
                                 .clickable { onNoteClick(index, note) },
                             shape = RoundedCornerShape(12.dp),
                             elevation = CardDefaults.cardElevation(4.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            colors = CardDefaults.cardColors(containerColor = bgColor)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -409,7 +453,6 @@ fun NotesListScreen(
                                     }
                                 }
 
-                                // Show tag if present
                                 if (parsedNote.tag.isNotEmpty()) {
                                     NoteTag(parsedNote.tag)
                                 }
@@ -427,6 +470,8 @@ fun NotesListScreen(
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
                         val parsedNote = parseNoteContent(note)
+                        val tag = note.split("\n").getOrElse(2) { "" }
+                        val bgColor = MaterialTheme.colorScheme.surfaceVariant
 
                         Card(
                             modifier = Modifier
@@ -435,7 +480,7 @@ fun NotesListScreen(
                                 .clickable { onNoteClick(index, note) },
                             shape = RoundedCornerShape(10.dp),
                             elevation = CardDefaults.cardElevation(4.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            colors = CardDefaults.cardColors(containerColor = bgColor)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -487,7 +532,6 @@ fun NotesListScreen(
 
                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                // Body preview
                                 if (parsedNote.body.isNotBlank()) {
                                     Text(
                                         text = parsedNote.body.take(40),
@@ -498,7 +542,6 @@ fun NotesListScreen(
 
                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                // Images preview
                                 if (parsedNote.imageUris.isNotEmpty()) {
                                     val previewImageUri = parsedNote.imageUris.first()
                                     Box(
@@ -515,7 +558,6 @@ fun NotesListScreen(
                                             contentScale = ContentScale.Crop
                                         )
 
-                                        // Show count if there are more images
                                         if (parsedNote.imageUris.size > 1) {
                                             Box(
                                                 modifier = Modifier
@@ -538,7 +580,6 @@ fun NotesListScreen(
 
                                 Spacer(modifier = Modifier.height(4.dp))
 
-                                // Tag
                                 if (parsedNote.tag.isNotEmpty()) {
                                     NoteTagSmall(parsedNote.tag)
                                 }
@@ -563,7 +604,7 @@ fun NotesEditScreen(
     existingNoteNames: List<String>,
     onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
-    // ─── state ──────────────────────────────────────────────────────────
+    //state
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
     var fileTag  by remember { mutableStateOf("") }
@@ -578,7 +619,7 @@ fun NotesEditScreen(
 
     var imageUris by remember { mutableStateOf<List<String>>(emptyList()) }
 
-    // ─── helpers ────────────────────────────────────────────────────────
+    // helpers
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
