@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 object Diets : Table() {
     val id             = integer("id").autoIncrement()
     val userId         = varchar("userId", 50)
-    val timestamp      = varchar("timestamp", 50)   // store ISO‐string
+    val timestamp      = varchar("timestamp", 50)
     val mealType       = varchar("mealType", 50)
     val calories       = integer("calories")
     val description    = text("description").nullable()

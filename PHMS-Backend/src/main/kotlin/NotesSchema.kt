@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
-// define the notes table to store notes for each user.
 object Notes : Table() {
     val id = integer("id").autoIncrement()
     val userId = varchar("user_id", 255) // Firebase UID of the note owner
@@ -15,7 +14,6 @@ object Notes : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
-//data transfer object for note
 @Serializable
 data class NoteDTO(
     val id: Int? = null,
@@ -24,7 +22,6 @@ data class NoteDTO(
     val body: String
 )
 
-// for interacting with the notes table
 object NotesDAO {
     fun getNotesForUser(userId: String): List<NoteDTO> = transaction {
         Notes.selectAll().where { Notes.userId eq userId }.map{
