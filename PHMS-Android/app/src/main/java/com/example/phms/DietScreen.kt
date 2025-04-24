@@ -26,35 +26,20 @@ fun DietScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
     var diets by remember { mutableStateOf<List<DietDTO>>(emptyList()) }
     var showMealDialog by remember { mutableStateOf(false) }
     var showGoalDialog by remember { mutableStateOf(false) }
-
-    // Persistent goals
-    var calorieGoal by remember { mutableStateOf(readPref(context, "calorieGoal")?.toIntOrNull()) }
-    var proteinGoal by remember { mutableStateOf(readPref(context, "proteinGoal")?.toIntOrNull()) }
-    var fatGoal by remember { mutableStateOf(readPref(context, "fatGoal")?.toIntOrNull()) }
-    var carbGoal by remember { mutableStateOf(readPref(context, "carbGoal")?.toIntOrNull()) }
-
-    // Meal dialog input states moved outside so they are accessible
-    var mealType by remember { mutableStateOf("") }
+    var calorieGoal by remember { mutableStateOf(0) }
+    var proteinGoal by remember { mutableStateOf(0) }
+    var fatGoal by remember { mutableStateOf(0) }
+    var carbGoal by remember { mutableStateOf(0) }
+    var mealType by remember { mutableStateOf("Breakfast") }
     var calories by remember { mutableStateOf("") }
+    var carbohydrates by remember { mutableStateOf("") }
     var protein by remember { mutableStateOf("") }
     var fats by remember { mutableStateOf("") }
-    var carbs by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-
-    LaunchedEffect(userToken) {
-        Log.d("DietScreen", "Loading diets for userToken: $userToken")
-        userToken?.let { uid ->
-            DietRepository.fetchAll(uid) { fetched ->
-                Log.d("DietScreen", "Fetched diets: $fetched")
-                diets = fetched.orEmpty()
-            }
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -79,137 +64,84 @@ fun DietScreen(
         }
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding).padding(16.dp)) {
-            if (diets.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No meals found. Add one using the + button.")
-                }
-            } else {
-                Text("Goal Progress", style = MaterialTheme.typography.titleMedium)
+            if (showMealDialog) {
+                AlertDialog(
+                    onDismissRequest = { showMealDialog = false },
+                    title = { Text("Add Meal") },
+                    text = {
+                        val mealOptions = listOf("Breakfast", "Lunch", "Dinner", "Snack")
+                        var expanded by remember { mutableStateOf(false) }
 
-                val caloriesSoFar = diets.sumOf { it.calories }
-                val proteinSoFar = diets.sumOf { it.protein ?: 0 }
-                val fatSoFar = diets.sumOf { it.fats ?: 0 }
-                val carbsSoFar = diets.sumOf { it.carbohydrates ?: 0 }
-
-                GoalBar("Calories", caloriesSoFar, calorieGoal)
-                GoalBar("Protein (g)", proteinSoFar, proteinGoal)
-                GoalBar("Fats (g)", fatSoFar, fatGoal)
-                GoalBar("Carbs (g)", carbsSoFar, carbGoal)
-
-                Spacer(Modifier.height(16.dp))
-
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(diets) { diet ->
-                        Card(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Meal: ${diet.mealType}", style = MaterialTheme.typography.titleMedium)
-                                Text("Calories: ${diet.calories}")
-                                Text("Protein: ${diet.protein ?: "-"}g, Fats: ${diet.fats ?: "-"}g, Carbs: ${diet.carbohydrates ?: "-"}g")
-                                Text("Weight: ${diet.weight ?: "-"}g")
-                                Text("When: ${diet.timestamp}")
-                                diet.description?.let { Text("Notes: $it") }
+                        Column {
+                            ExposedDropdownMenuBox(
+                                expanded = expanded,
+                                onExpandedChange = { expanded = !expanded }
+                            ) {
+                                OutlinedTextField(
+                                    value = mealType,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Meal Type") },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    mealOptions.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option) },
+                                            onClick = {
+                                                mealType = option
+                                                expanded = false
+                                            }
+                                        )
+                                    }
+                                }
                             }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            OutlinedTextField(value = calories, onValueChange = { calories = it }, label = { Text("Calories") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                            OutlinedTextField(value = carbohydrates, onValueChange = { carbohydrates = it }, label = { Text("Carbohydrates") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                            OutlinedTextField(value = protein, onValueChange = { protein = it }, label = { Text("Protein") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                            OutlinedTextField(value = fats, onValueChange = { fats = it }, label = { Text("Fats") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                            OutlinedTextField(value = weight, onValueChange = { weight = it }, label = { Text("Weight") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
+                            OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Notes") })
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val dto = DietDTO(
+                                id = null,
+                                userId = userToken ?: return@TextButton,
+                                timestamp = DateFormat.format("yyyy-MM-dd'T'HH:mm:ss", Date()).toString(),
+                                mealType = mealType,
+                                calories = calories.toIntOrNull() ?: 0,
+                                carbohydrates = carbohydrates.toIntOrNull(),
+                                protein = protein.toIntOrNull(),
+                                fats = fats.toIntOrNull(),
+                                weight = weight.toIntOrNull(),
+                                description = description.ifBlank { null }
+                            )
+                            DietRepository.add(dto) {
+                                userToken?.let { DietRepository.fetchAll(it) { diets = it.orEmpty() } }
+                            }
+                            showMealDialog = false
+                        }) {
+                            Text("Save")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showMealDialog = false }) {
+                            Text("Cancel")
                         }
                     }
-                }
+                )
             }
         }
-
-        if (showMealDialog) {
-            AlertDialog(
-                onDismissRequest = { showMealDialog = false },
-                title = { Text("Add Meal") },
-                text = {
-                    Column {
-                        OutlinedTextField(value = mealType, onValueChange = { mealType = it }, label = { Text("Meal Type") })
-                        OutlinedTextField(value = calories, onValueChange = { calories = it }, label = { Text("Calories") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
-                        OutlinedTextField(value = protein, onValueChange = { protein = it }, label = { Text("Protein") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
-                        OutlinedTextField(value = fats, onValueChange = { fats = it }, label = { Text("Fats") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
-                        OutlinedTextField(value = carbs, onValueChange = { carbs = it }, label = { Text("Carbs") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
-                        OutlinedTextField(value = weight, onValueChange = { weight = it }, label = { Text("Weight") }, keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number))
-                        OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Notes") })
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        val dto = DietDTO(
-                            id = null,
-                            userId = userToken ?: return@TextButton,
-                            timestamp = DateFormat.format("yyyy-MM-dd'T'HH:mm:ss", Date()).toString(),
-                            mealType = mealType,
-                            calories = calories.toIntOrNull() ?: 0,
-                            description = description.ifBlank { null },
-                            protein = protein.toIntOrNull(),
-                            fats = fats.toIntOrNull(),
-                            carbohydrates = carbs.toIntOrNull(),
-                            weight = weight.toIntOrNull(),
-                            calorieGoal = null,
-                            proteinGoal = null,
-                            fatGoal = null,
-                            carbGoal = null
-                        )
-                        DietRepository.add(dto) {
-                            DietRepository.fetchAll(userToken!!) { diets = it.orEmpty() }
-                        }
-                        showMealDialog = false
-                    }) { Text("Save") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showMealDialog = false }) { Text("Cancel") }
-                }
-            )
-        }
-
-        if (showGoalDialog) {
-            AlertDialog(
-                onDismissRequest = { showGoalDialog = false },
-                title = { Text("Set Daily Goals") },
-                text = {
-                    Column {
-                        GoalInput("Calories", calorieGoal) { calorieGoal = it }
-                        GoalInput("Protein", proteinGoal) { proteinGoal = it }
-                        GoalInput("Fats", fatGoal) { fatGoal = it }
-                        GoalInput("Carbs", carbGoal) { carbGoal = it }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        writePref(context, "calorieGoal", calorieGoal?.toString())
-                        writePref(context, "proteinGoal", proteinGoal?.toString())
-                        writePref(context, "fatGoal", fatGoal?.toString())
-                        writePref(context, "carbGoal", carbGoal?.toString())
-                        showGoalDialog = false
-                    }) { Text("Save") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showGoalDialog = false }) { Text("Cancel") }
-                }
-            )
-        }
     }
-}
-
-
-@Composable
-fun GoalBar(label: String, value: Int, goal: Int?) {
-    Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text("$label: $value / ${goal ?: "-"}")
-        LinearProgressIndicator(
-            progress = if (goal != null && goal > 0) value / goal.toFloat().coerceAtMost(1f) else 0f,
-            modifier = Modifier.fillMaxWidth().height(6.dp)
-        )
-    }
-}
-
-@Composable
-fun GoalInput(label: String, value: Int?, onValueChange: (Int?) -> Unit) {
-    OutlinedTextField(
-        value = value?.toString() ?: "",
-        onValueChange = { onValueChange(it.toIntOrNull()) },
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-    )
 }
 
 fun writePref(context: Context, key: String, value: String?) {

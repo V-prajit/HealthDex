@@ -16,4 +16,3 @@ data class DietDTO(
     val fatGoal: Int? = null,
     val carbGoal: Int? = null
 )
-

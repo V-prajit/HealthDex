@@ -11,9 +11,10 @@ object DietRepository {
     fun fetchAll(userId: String, onResult: (List<DietDTO>?) -> Unit) {
         api.getAllDiets(userId).enqueue(object : Callback<List<DietDTO>> {
             override fun onResponse(call: Call<List<DietDTO>>, resp: Response<List<DietDTO>>) {
-                Log.d("DietRepo", "Fetched: ${'$'}{resp.body()}")
+                Log.d("DietRepo", "Fetched: ${resp.body()}")
                 onResult(resp.body())
             }
+
             override fun onFailure(call: Call<List<DietDTO>>, t: Throwable) {
                 Log.e("DietRepo", "Error fetching diets", t)
                 onResult(null)
@@ -26,6 +27,7 @@ object DietRepository {
             override fun onResponse(call: Call<DietDTO>, response: Response<DietDTO>) {
                 onResult(response.body())
             }
+
             override fun onFailure(call: Call<DietDTO>, t: Throwable) {
                 Log.e("DietRepo", "Error adding diet", t)
                 onResult(null)
@@ -38,6 +40,7 @@ object DietRepository {
             override fun onResponse(call: Call<DietDTO>, response: Response<DietDTO>) {
                 onResult(response.body())
             }
+
             override fun onFailure(call: Call<DietDTO>, t: Throwable) {
                 Log.e("DietRepo", "Error updating diet", t)
                 onResult(null)
