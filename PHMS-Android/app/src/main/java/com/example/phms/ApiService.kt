@@ -16,7 +16,13 @@ data class UserDataRequest(
     val age: Int?,
     val height: Double?,
     val weight: Double?,
-    val biometricEnabled: Boolean
+    val biometricEnabled: Boolean,
+    val securityQuestionId: Int,
+    val securityAnswer: String
+)
+
+data class VerificationResponse(
+    val verified: Boolean
 )
 
 interface ApiService {
@@ -94,6 +100,16 @@ interface ApiService {
 
     @POST("/send-vital-alert")
     suspend fun sendVitalAlert(@Body alertRequest: VitalAlertRequest): retrofit2.Response<Map<String, Int>>
+
+    @GET("/users/email/{email}")
+    fun findUserByEmail(@Path("email") email: String): Call<UserDTO>
+
+    @POST("/users/verify-security-question")
+    fun verifySecurityAnswer(
+        @Query("userId") userId: String,
+        @Query("questionId") questionId: Int,
+        @Query("answer") answer: String
+    ): Call<VerificationResponse>
 }
 
 

@@ -11,4 +11,6 @@ object Users: IntIdTable() {
     val height = double("height").nullable()
     val weight = double("weight").nullable()
     val biometricEnabled = bool("biometric_enabled").default(false)
+    val securityQuestionId = integer("security_question_id").nullable()
+    val securityAnswer = varchar("security_answer", 255).nullable()
 }

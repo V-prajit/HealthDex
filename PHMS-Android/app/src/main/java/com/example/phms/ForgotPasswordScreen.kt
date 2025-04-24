@@ -13,19 +13,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForgotPasswordScreen(onBackClick: () -> Unit) {
     var email by remember { mutableStateOf("") }
+    var securityAnswer by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var isSuccess by remember { mutableStateOf(false) }
+    var userFound by remember { mutableStateOf(false) }
+    var securityQuestion by remember { mutableStateOf("") }
+    var userId by remember { mutableStateOf("") }
+    var securityQuestionId by remember { mutableStateOf(0) }
 
     // Store string resources in local variables
     val emailRequiredMessage = stringResource(R.string.error_empty_email)
     val passwordResetSentMessage = stringResource(R.string.password_reset_email_sent)
     val passwordResetFailedMessage = stringResource(R.string.password_reset_failed)
+    val securityAnswerRequiredMessage = "Security answer is required"
+    val securityAnswerWrongMessage = "Security answer is incorrect"
 
     Scaffold(
         topBar = {
@@ -66,9 +77,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (isLoading) {
-                CircularProgressIndicator()
-            } else {
+            if (!userFound) {
                 Button(
                     onClick = {
                         if (email.isBlank()) {
@@ -79,27 +88,104 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
                         isLoading = true
                         message = ""
 
-                        Log.d("ForgotPassword", "Attempting to send reset email to: $email")
-                        FirebaseAuth.getInstance().sendPasswordResetEmail(email)
-                            .addOnCompleteListener { task ->
+                        // Find user by email to get security question
+                        RetrofitClient.apiService.findUserByEmail(email).enqueue(object : Callback<UserDTO> {
+                            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
                                 isLoading = false
-                                if (task.isSuccessful) {
-                                    isSuccess = true
-                                    message = passwordResetSentMessage
-                                    Log.d("ForgotPassword", "Password reset email sent successfully")
+                                if (response.isSuccessful && response.body() != null) {
+                                    val user = response.body()!!
+                                    userId = user.firebaseUid
+                                    securityQuestionId = user.securityQuestionId ?: 1
+                                    securityQuestion = SecurityQuestions.questions.find { it.id == securityQuestionId }?.question ?: ""
+                                    userFound = true
                                 } else {
-                                    message = task.exception?.message ?: passwordResetFailedMessage
-                                    Log.e("ForgotPassword", "Failed to send reset email: ${task.exception}")
-                                    // Print the full stack trace for more details
-                                    task.exception?.printStackTrace()
+                                    message = "User not found with this email"
                                 }
                             }
+
+                            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                                isLoading = false
+                                message = "Error: ${t.message}"
+                            }
+                        })
+                    },
+                    modifier = Modifier.fillMaxWidth(0.6f),
+                    enabled = !isLoading && !isSuccess && !userFound
+                ) {
+                    Text("Find Account")
+                }
+            } else {
+                // Show security question
+                Text(
+                    text = "Security Question:",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Text(
+                    text = securityQuestion,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                OutlinedTextField(
+                    value = securityAnswer,
+                    onValueChange = { securityAnswer = it },
+                    label = { Text("Your Answer") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading && !isSuccess
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        if (securityAnswer.isBlank()) {
+                            message = securityAnswerRequiredMessage
+                            return@Button
+                        }
+
+                        isLoading = true
+                        message = ""
+
+                        RetrofitClient.apiService.verifySecurityAnswer(userId, securityQuestionId, securityAnswer)
+                            .enqueue(object : Callback<VerificationResponse> {
+                                override fun onResponse(call: Call<VerificationResponse>, response: Response<VerificationResponse>) {
+                                    if (response.isSuccessful && response.body()?.verified == true) {
+                                        // If verified, send password reset email
+                                        FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                                            .addOnCompleteListener { task ->
+                                                isLoading = false
+                                                if (task.isSuccessful) {
+                                                    isSuccess = true
+                                                    message = passwordResetSentMessage
+                                                } else {
+                                                    message = task.exception?.message ?: passwordResetFailedMessage
+                                                }
+                                            }
+                                    } else {
+                                        isLoading = false
+                                        message = securityAnswerWrongMessage
+                                    }
+                                }
+
+                                override fun onFailure(call: Call<VerificationResponse>, t: Throwable) {
+                                    isLoading = false
+                                    message = "Error: ${t.message}"
+                                }
+                            })
                     },
                     modifier = Modifier.fillMaxWidth(0.6f),
                     enabled = !isLoading && !isSuccess
                 ) {
                     Text(stringResource(R.string.send_reset_link))
                 }
+            }
+
+            if (isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                CircularProgressIndicator()
             }
 
             Spacer(modifier = Modifier.height(16.dp))

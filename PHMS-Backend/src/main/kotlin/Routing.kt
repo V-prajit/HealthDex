@@ -28,7 +28,9 @@ data class UserDTO(
     val age: Int?,
     val height: Double?,
     val weight: Double?,
-    val biometricEnabled: Boolean
+    val biometricEnabled: Boolean,
+    val securityQuestionId: Int? = null,
+    val securityAnswer: String? = null
 )
 
 @Serializable
@@ -38,6 +40,10 @@ data class VitalAlertRequest(
     val value: Float,
     val threshold: Float,
     val isHigh: Boolean
+)
+
+data class VerificationResponse(
+    val verified: Boolean
 )
 
 fun Application.configureRouting() {
@@ -75,7 +81,9 @@ fun Application.configureRouting() {
                         user.age,
                         user.height,
                         user.weight,
-                        user.biometricEnabled
+                        user.biometricEnabled,
+                        user.securityQuestionId,
+                        user.securityAnswer
                     )
                 )
                 call.respond(HttpStatusCode.Created, "User added successfully")
@@ -390,5 +398,30 @@ fun Application.configureRouting() {
 
             call.respond(HttpStatusCode.OK, mapOf("emailsSent" to emailsSent))
         }
+
+        get("/email/{email}") {
+            val email = call.parameters["email"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing email")
+
+            val users = UserDAO.getUsersByEmail(email)
+            if (users.isNotEmpty()) {
+                call.respond(HttpStatusCode.OK, users.first())
+            } else {
+                call.respond(HttpStatusCode.NotFound, "User not found")
+            }
+        }
+
+        post("/verify-security-question") {
+            val userId = call.request.queryParameters["userId"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing userId")
+            val questionId = call.request.queryParameters["questionId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest, "Invalid questionId")
+            val answer = call.request.queryParameters["answer"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing answer")
+
+            val user = UserDAO.getUserByFirebaseUid(userId)
+            if (user != null && user.securityQuestionId == questionId && user.securityAnswer?.equals(answer, ignoreCase = true) == true) {
+                call.respond(HttpStatusCode.OK, VerificationResponse(true))
+            } else {
+                call.respond(HttpStatusCode.OK, VerificationResponse(false))
+            }
+        }
+
     }
 }
