@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import android.os.Build
 import androidx.core.content.ContextCompat
 import android.Manifest
+import android.content.Context.CONTEXT_INCLUDE_CODE
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 
@@ -267,12 +268,16 @@ fun AuthScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable1
 fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSuccess: (String) -> Unit) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val message = remember { mutableStateOf("") }
-    val enableBiometric = remember { mutableStateOf(false) } 
+    val enableBiometric = remember { mutableStateOf(false) }
+    val selectedQuestionIndex = remember { mutableStateOf(0) }
+    val securityAnswer = remember { mutableStateOf("") }
+    val expanded = remember { mutableStateOf(false) }
     val context = LocalContext.current
     Column ( modifier = Modifier
         .fillMaxSize()
@@ -306,6 +311,50 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+        // Security Question Dropdown
+        ExposedDropdownMenuBox(
+            expanded = expanded.value,
+            onExpandedChange = { expanded.value = it }
+        ) {
+            OutlinedTextField(
+                value = SecurityQuestions.questions[selectedQuestionIndex.value].question,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Security Question") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded.value) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded.value,
+                onDismissRequest = { expanded.value = false }
+            ) {
+                SecurityQuestions.questions.forEachIndexed { index, question ->
+                    DropdownMenuItem(
+                        text = { Text(question.question) },
+                        onClick = {
+                            selectedQuestionIndex.value = index
+                            expanded.value = false
+                        }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        // Security Answer Input
+        OutlinedTextField(
+            value = securityAnswer.value,
+            onValueChange = { securityAnswer.value = it },
+            label = { Text("Security Answer") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -333,6 +382,8 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
                                 prefs.edit()
                                     .putBoolean("LAST_USER_BIOMETRIC", enableBiometric.value)
                                     .putString("LAST_USER_UID", firebaseUser.uid)
+                                    .putInt("SECURITY_QUESTION_ID", SecurityQuestions.questions[selectedQuestionIndex.value].id)
+                                    .putString("SECURITY_ANSWER", securityAnswer.value)
                                     .apply()
 
                                 onRegistrationSuccess(firebaseUser.uid)

@@ -14,8 +14,10 @@ data class UserDTO(
     @SerializedName("email") val email: String,
     @SerializedName("age") val age: Int?,
     @SerializedName("height") val height: Double?,
-    @SerializedName("weight") val weight: Double?
-    ,@SerializedName("biometricEnabled") val biometricEnabled: Boolean = false
+    @SerializedName("weight") val weight: Double?,
+    @SerializedName("biometricEnabled") val biometricEnabled: Boolean = false,
+    @SerializedName("securityQuestionId") val securityQuestionId: Int? = null,
+    @SerializedName("securityAnswer") val securityAnswer: String? = null
 )
 
 
@@ -42,7 +44,19 @@ fun sendAuthTokenToBackend(token: String?) {
     })
 }
 
-fun sendUserDataToBackend(firebaseUid: String?, email: String, firstName: String, lastName:String, age: String, height: String, weight: String,biometricEnabled: Boolean, callback: (String) -> Unit) {
+fun sendUserDataToBackend(
+    firebaseUid: String?,
+    email: String,
+    firstName: String,
+    lastName:String,
+    age: String,
+    height: String,
+    weight: String,
+    biometricEnabled: Boolean,
+    securityQuestionId: Int,
+    securityAnswer: String,
+    callback: (String) -> Unit
+) {
     if (firebaseUid == null) {
         callback("Empty token")
         return
@@ -56,7 +70,9 @@ fun sendUserDataToBackend(firebaseUid: String?, email: String, firstName: String
         age = age.toIntOrNull(),
         height = height.toDoubleOrNull(),
         weight = weight.toDoubleOrNull(),
-        biometricEnabled = biometricEnabled
+        biometricEnabled = biometricEnabled,
+        securityQuestionId = securityQuestionId,
+        securityAnswer = securityAnswer
     )
 
     RetrofitClient.apiService.sendUserData(request).enqueue(object : retrofit2.Callback<ResponseBody> {
