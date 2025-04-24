@@ -5,8 +5,6 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
-import com.example.phms.DietDTO  // ✅ Use centralized DTO
-import com.example.phms.Medication  // ✅ Already defined elsewhere
 
 data class AuthRequest(val token: String)
 
@@ -49,22 +47,6 @@ interface ApiService {
 
     @DELETE("/vitals/{id}")
     fun deleteVital(@Path("id") id: Int): Call<ResponseBody>
-
-    // Diet
-    @GET("/diet")
-    fun getAllDiets(@Query("userId") userId: String): Call<List<DietDTO>>
-
-    @GET("/diet/latest")
-    fun getLatestDiet(@Query("userId") userId: String): Call<DietDTO>
-
-    @POST("/diet")
-    fun addDiet(@Body dto: DietDTO): Call<DietDTO>
-
-    @PUT("/diet")
-    fun updateDiet(@Body dto: DietDTO): Call<DietDTO>
-
-    @DELETE("/diet/{id}")
-    fun deleteDiet(@Path("id") id: Int): Call<Void>
 
     // Medications
     @GET("/medications")

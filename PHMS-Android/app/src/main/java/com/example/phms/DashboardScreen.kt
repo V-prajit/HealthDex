@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalDining
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Settings
@@ -67,12 +66,6 @@ fun DashboardScreen(
                     label    = { Text("Vitals") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == "diet",
-                    onClick  = { selectedTab = "diet" },
-                    icon     = { Icon(Icons.Default.LocalDining, contentDescription = "Diet") },
-                    label    = { Text("Diet") }
-                )
-                NavigationBarItem(
                     selected = selectedTab == "medications",
                     onClick  = { selectedTab = "medications" },
                     icon     = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
@@ -106,13 +99,6 @@ fun DashboardScreen(
                 userId = userToken,
                 onBackClick = { selectedTab = "home" }
             )
-
-            "diet" -> DietScreen(
-                userToken = userToken,
-                modifier = Modifier.padding(innerPadding),
-                onBack = { selectedTab = "home" }
-            )
-
             "medications" -> MedicationsScreen(
                 userToken = userToken,
                 modifier = Modifier.padding(innerPadding),
