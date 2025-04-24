@@ -123,6 +123,24 @@ interface ApiService {
 
     @DELETE("/medications/{id}")
     fun deleteMedication(@Path("id") id: Int): Call<Void>
+
+    @GET("/diets")
+    fun getDiets(@Query("userId") userId: String): Call<List<Diet>>
+
+    @POST("/diets")
+    fun addDiet(@Body diet: Diet): Call<Diet>
+
+    @PUT("/diets")
+    fun updateDiet(@Body diet: Diet): Call<Diet>
+
+    @DELETE("/diets/{id}")
+    fun deleteDiet(@Path("id") id: Int): Call<ResponseBody>
+
+    @GET("/diets/goals")
+    fun getDietGoals(@Query("userId") userId: String): Call<DietGoalDTO>
+
+    @POST("/diets/goals")
+    fun setDietGoals(@Body goals: DietGoalDTO): Call<DietGoalDTO>
 }
 
 object RetrofitClient {

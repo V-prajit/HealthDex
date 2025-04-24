@@ -74,6 +74,12 @@ fun DashboardScreen(
                     icon     = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
                     label    = { Text("Meds") }
                 )
+                NavigationBarItem(
+                    selected = selectedTab == "diet",
+                    onClick = { selectedTab = "diet" },
+                    icon = { Icon(Icons.Default.Restaurant, contentDescription = "Diet") },
+                    label = { Text("Diet") }
+                )
             }
         }
     ) { innerPadding ->
@@ -175,11 +181,14 @@ fun DashboardScreen(
                 modifier = Modifier.padding(innerPadding),
                 onBack = { selectedTab = "home" }
             )
+            "diet" -> DietScreen(
+                userId = userToken,
+                onBackClick = { selectedTab = "home" },
+                onSettingsClick = { onSettingsClick("diet") }
+            )
         }
     }
 }
-
-// Note: remove any stray imports of com.example.phms.NotesScreen — this file declares NotesScreen below
 
 @Composable
 fun NotesScreen(

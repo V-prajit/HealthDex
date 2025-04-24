@@ -15,7 +15,7 @@ object DatabaseFactory {
        Database.connect("jdbc:sqlite:./data.db", driver = "org.sqlite.JDBC")
 
         transaction {
-            SchemaUtils.create(Users, Notes, Vitals, Doctors, Appointments, EmergencyContacts, Medications)
+            SchemaUtils.create(Users, Notes, Vitals, Doctors, Appointments, EmergencyContacts, Medications, Diets, DietGoals)
         }
     }
 }

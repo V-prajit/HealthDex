@@ -1,8 +1,6 @@
 // Routing.kt
 package com.example
 
-import com.example.VitalsDAO
-import com.example.VitalDTO
 import com.example.dao.User
 import com.example.dao.UserDAO
 import com.example.dao.Doctor
@@ -17,11 +15,8 @@ import io.ktor.server.response.*
 import io.ktor.server.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import java.rmi.server.UID
-import com.example.NotesDAO
-import com.example.NoteDTO
-import com.example.MedicationDAO
-import com.example.MedicationDTO
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Serializable
 data class AuthRequest(val token: String)
@@ -327,6 +322,105 @@ fun Application.configureRouting() {
                 } else {
                     call.respond(HttpStatusCode.NotFound, "Doctor not found")
                 }
+            }
+        }
+
+        route("/diets") {
+            get {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val date = call.request.queryParameters["date"]
+
+                val diets = if (date != null) {
+                    try {
+                        val parsedDate = LocalDate.parse(date)
+                        DietDAO.getAllDietsByUser(userId).filter {
+                            try {
+                                val entryDate = LocalDateTime.parse(it.timestamp).toLocalDate()
+                                entryDate == parsedDate
+                            } catch (e: Exception) {
+                                false
+                            }
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid date format")
+                        return@get
+                    }
+                } else {
+                    // Otherwise return all diets for the user
+                    DietDAO.getAllDietsByUser(userId)
+                }
+
+                call.respond(HttpStatusCode.OK, diets)
+            }
+
+            post {
+                val diet = call.receive<DietDTO>()
+                call.respond(HttpStatusCode.Created, DietDAO.addDiet(diet))
+            }
+
+            put {
+                val diet = call.receive<DietDTO>()
+                if (DietDAO.updateDiet(diet)) {
+                    call.respond(HttpStatusCode.OK, diet)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Diet not found or missing ID")
+                }
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                    ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid diet ID")
+
+                if (DietDAO.deleteDiet(id)) {
+                    call.respond(HttpStatusCode.OK, "Diet deleted")
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "Diet not found")
+                }
+            }
+
+            get("/goals") {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val goals = mapOf(
+                    "calorieGoal" to 2000,
+                    "proteinGoal" to 75,
+                    "fatGoal" to 65,
+                    "carbGoal" to 300
+                )
+
+                call.respond(HttpStatusCode.OK, goals)
+            }
+
+            post("/goals") {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val goals = call.receive<Map<String, Int>>()
+                call.respond(HttpStatusCode.OK, goals)
+            }
+
+            get("/goals") {
+                val userId = call.request.queryParameters["userId"]
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Missing userId")
+
+                val goals = DietGoalDAO.getGoalsByUserId(userId) ?: DietGoalDTO(
+                    userId = userId,
+                    calorieGoal = 2000,
+                    proteinGoal = 75,
+                    fatGoal = 65,
+                    carbGoal = 300
+                )
+
+                call.respond(HttpStatusCode.OK, goals)
+            }
+
+            post("/goals") {
+                val goals = call.receive<DietGoalDTO>()
+                val updatedGoals = DietGoalDAO.setGoals(goals)
+                call.respond(HttpStatusCode.OK, updatedGoals)
             }
         }
 
