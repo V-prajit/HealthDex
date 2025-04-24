@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <external-cache-path
-        name="tmp_images"
-        path="." />
-
-    <external-files-path name="note_images" path="NoteImages/" />
-    <files-path        name="note_images"  path="note_images/" />
-    <cache-path        name="cached_images" path="images/" />
+<paths>
+    <external-path name="external_files" path="Pictures/"/>
+    <external-files-path name="images" path="Pictures" />
+    <files-path name="note_images" path="note_images" />
+    <cache-path name="shared_images" path="images/"/>
 </paths>
