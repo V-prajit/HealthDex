@@ -2,43 +2,90 @@ package com.example.phms
 
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.work.WorkManager
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.time.format.DateTimeParseException
+import android.provider.Settings
 
 class AppointmentAlarmManager(private val context: Context) {
 
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    private fun hasExactAlarmPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val am = context.getSystemService(AlarmManager::class.java)
+            am.canScheduleExactAlarms()
+        } else {
+            true
+        }
+    }
+
+    private fun requestExactAlarmPermissionOnce() {
+        val prefs = context.getSharedPreferences("alarms_prefs", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("asked_exact_alarm", false)) {
+            requestExactAlarmPermission()
+            prefs.edit().putBoolean("asked_exact_alarm", true).apply()
+        }
+    }
+
+
+    private fun requestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        }
+    }
+
     fun scheduleAppointmentReminders(appointment: Appointment) {
-        if (!appointment.reminders) return
+        Log.d("AlarmManager", "scheduleAppointmentReminders called for appointment: ${appointment.id}, reminders enabled: ${appointment.reminders}")
+        if (!appointment.reminders) {
+            Log.d("AlarmManager", "Reminders are disabled for appointment ${appointment.id}, returning.")
+            return
+        }
 
         cancelAppointmentReminders(appointment)
 
         val appointmentId = appointment.id ?: return
+        if (appointmentId == null) {
+            Log.e("AlarmManager", "Appointment ID is null! Cannot schedule reminders.")
+            return
+        }
 
         try {
             val dateStr = appointment.date
             val timeStr = appointment.time
 
+            Log.d("AlarmManager", "Parsing date: '$dateStr', time: '$timeStr' for appointment $appointmentId")
+
             val dateParts = dateStr.split("-")
-            if (dateParts.size != 3) return
+            if (dateParts.size != 3) {
+                Log.e("AlarmManager", "Invalid date format: '$dateStr' for appointment $appointmentId")
+                return
+            }
 
             val timeParts = timeStr.split(":")
-            if (timeParts.size != 2) return
+            if (timeParts.size != 2) {
+                Log.e("AlarmManager", "Invalid time format: '$timeStr' for appointment $appointmentId")
+                return
+            }
 
-            val year = dateParts[0].toInt()
-            val month = dateParts[1].toInt()
-            val day = dateParts[2].toInt()
-            val hour = timeParts[0].toInt()
-            val minute = timeParts[1].toInt()
+            val year = dateParts[0].toIntOrNull()
+            val month = dateParts[1].toIntOrNull()
+            val day = dateParts[2].toIntOrNull()
+            val hour = timeParts[0].toIntOrNull()
+            val minute = timeParts[1].toIntOrNull()
+
+            if (year == null || month == null || day == null || hour == null || minute == null) {
+                Log.e("AlarmManager", "Failed to parse date/time components for appointment $appointmentId")
+                return
+            }
 
             val appointmentDateTime = LocalDateTime.of(
                 year, month, day, hour, minute
@@ -49,23 +96,36 @@ class AppointmentAlarmManager(private val context: Context) {
 
             val currentDateTime = LocalDateTime.now()
 
+            Log.d("AlarmManager", "Appointment: $appointmentId, Appt Time: $appointmentDateTime, Current Time: $currentDateTime")
+            Log.d("AlarmManager", "Checking 1 Day Before: $oneDayBefore (is future? ${oneDayBefore.isAfter(currentDateTime)})")
+            Log.d("AlarmManager", "Checking 1 Hour Before: $oneHourBefore (is future? ${oneHourBefore.isAfter(currentDateTime)})")
+
             if (oneDayBefore.isAfter(currentDateTime)) {
                 scheduleNotification(appointment, oneDayBefore, NotificationType.ONE_DAY_BEFORE)
-                Log.d("AppointmentAlarm", "Scheduled 1-day reminder for appointment $appointmentId")
+                Log.d("AlarmManager", "Scheduled 1-day reminder for appointment $appointmentId") // Keep original log
+            } else {
+                Log.w("AlarmManager", "1-day reminder time ($oneDayBefore) is in the past for appointment $appointmentId, not scheduling.")
             }
 
             if (oneHourBefore.isAfter(currentDateTime)) {
                 scheduleNotification(appointment, oneHourBefore, NotificationType.ONE_HOUR_BEFORE)
-                Log.d("AppointmentAlarm", "Scheduled 1-hour reminder for appointment $appointmentId")
+                Log.d("AlarmManager", "Scheduled 1-hour reminder for appointment $appointmentId") // Keep original log
+            } else {
+                Log.w("AlarmManager", "1-hour reminder time ($oneHourBefore) is in the past for appointment $appointmentId, not scheduling.")
             }
 
+        } catch (e: DateTimeParseException) {
+            Log.e("AlarmManager", "DateTimeParseException for appointment $appointmentId: ${e.message}")
+        } catch (e: NumberFormatException) {
+            Log.e("AlarmManager", "NumberFormatException parsing date/time for appointment $appointmentId: ${e.message}")
         } catch (e: Exception) {
-            Log.e("AppointmentAlarm", "Error scheduling reminders for appointment $appointmentId", e)
+            Log.e("AlarmManager", "Error scheduling reminders for appointment $appointmentId", e)
         }
     }
 
     fun cancelAppointmentReminders(appointment: Appointment) {
         val appointmentId = appointment.id ?: return
+        Log.d("AlarmManager", "Cancelling reminders for appointment $appointmentId")
 
         val oneDayIntent = createReminderIntent(appointment, NotificationType.ONE_DAY_BEFORE)
         val oneDayPendingIntent = PendingIntent.getBroadcast(
@@ -109,6 +169,11 @@ class AppointmentAlarmManager(private val context: Context) {
         notificationTime: LocalDateTime,
         notificationType: NotificationType
     ) {
+        if (!hasExactAlarmPermission()){
+            requestExactAlarmPermissionOnce()
+            return
+        }
+
         val appointmentId = appointment.id ?: return
 
         val notificationTimeMillis = notificationTime
@@ -123,6 +188,8 @@ class AppointmentAlarmManager(private val context: Context) {
             NotificationType.ONE_HOUR_BEFORE -> getHourBeforeRequestCode(appointmentId)
         }
 
+        Log.d("AlarmManager", "scheduleNotification called for Appt ID: $appointmentId, Type: $notificationType, Time (ms): $notificationTimeMillis, RequestCode: $requestCode")
+
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             requestCode,
@@ -131,20 +198,38 @@ class AppointmentAlarmManager(private val context: Context) {
         )
 
         // Schedule the alarm
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                notificationTimeMillis,
-                pendingIntent
-            )
-        } else {
-            alarmManager.setExact(
-                AlarmManager.RTC_WAKEUP,
-                notificationTimeMillis,
-                pendingIntent
-            )
+        try { // Add try-catch around alarm setting
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // Check for exact alarm permission if needed on Android 12+
+                // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                //     if (!alarmManager.canScheduleExactAlarms()) {
+                //         Log.w("AlarmManager", "Cannot schedule exact alarms. Scheduling approximate for $appointmentId.")
+                //         // Fallback to non-exact alarm or prompt user for permission
+                //         alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, notificationTimeMillis, pendingIntent)
+                //         return
+                //     }
+                // }
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    notificationTimeMillis,
+                    pendingIntent
+                )
+                Log.d("AlarmManager", "Scheduled using setExactAndAllowWhileIdle for $appointmentId")
+            } else {
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    notificationTimeMillis,
+                    pendingIntent
+                )
+                Log.d("AlarmManager", "Scheduled using setExact for $appointmentId")
+            }
+        } catch (se: SecurityException) {
+            Log.e("AlarmManager", "SecurityException setting alarm for $appointmentId. Check SCHEDULE_EXACT_ALARM permission?", se)
+        } catch (e: Exception) {
+            Log.e("AlarmManager", "Exception setting alarm for $appointmentId", e)
         }
     }
+
 
     private fun createReminderIntent(
         appointment: Appointment,

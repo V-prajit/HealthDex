@@ -1,5 +1,6 @@
 package com.example.phms
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -203,10 +204,15 @@ fun AppointmentsScreen(
             onSave = { appointment ->
                 scope.launch {
                     if (appointment.id == null) {
+                        Log.d("ApptScreenSave", "Attempting to add new appointment: $appointment") // Log data being sent
                         val saved = AppointmentRepository.addAppointment(appointment)
+                        Log.d("ApptScreenSave", "AppointmentRepository returned: $saved") // Log the result
 
                         if (saved != null && saved.reminders) {
+                            Log.d("ApptScreenSave", "Scheduling reminders for ID: ${saved.id}") // Log before scheduling
                             AppointmentAlarmManager(context).scheduleAppointmentReminders(saved)
+                        } else{
+                            Log.w("ApptScreenSave", "NOT scheduling reminders. Saved is null? ${saved == null}. Reminders enabled? ${saved?.reminders}") // Log why not scheduling
                         }
                     } else {
                         AppointmentRepository.updateAppointment(appointment)

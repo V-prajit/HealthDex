@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 class AppointmentReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("AppointmentReceiver", "Received appointment reminder broadcast")
+        Log.d("AppointmentReceiver", ">>> ReminderReceiver triggered! <<< Intent Action: ${intent.action}") // Log trigger
 
         val appointmentId = intent.getIntExtra(AppointmentAlarmManager.EXTRA_APPOINTMENT_ID, -1)
         if (appointmentId == -1) {
