@@ -12,7 +12,7 @@ interface NutritionApiService {
     @GET("v1/foods/search")
     suspend fun searchFoods(
         @Query("query")   query: String,
-        @Query("pageSize") pageSize: Int = 1,
+        @Query("pageSize") pageSize: Int = 10,
         @Query("api_key") apiKey: String = BuildConfig.FDC_API_KEY
     ): SearchResponse
 

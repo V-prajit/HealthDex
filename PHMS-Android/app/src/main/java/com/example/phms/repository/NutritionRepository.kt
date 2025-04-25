@@ -1,10 +1,7 @@
 package com.example.phms.repository
 
 import android.content.Context
-import com.example.phms.data.local.FoodEntity
-import com.example.phms.data.local.FoodDatabase
-import com.example.phms.model.nutrition.NutritionInfo
-import com.example.phms.model.nutrition.toNutritionInfo
+import com.example.phms.model.nutrition.*
 import com.example.phms.network.NutritionRetrofit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,21 +14,22 @@ object NutritionRepository {
 
     fun init(context: Context) { appContext = context.applicationContext }
 
-    private val dao by lazy { FoodDatabase.get(appContext).foodDao() }
     private val service get() = NutritionRetrofit.service
 
-    suspend fun getNutrition(name: String): NutritionInfo? = withContext(Dispatchers.IO) {
+    suspend fun searchFoodsByName(name: String): List<FoodHit> = withContext(Dispatchers.IO) {
         val key = name.lowercase(Locale.US)
+        val hits = runCatching {
+            service.searchFoods(key).foods
+        }.getOrNull() ?: emptyList()
 
-        dao.getByName(key)?.toDomain()?.let { return@withContext it }
+        return@withContext hits
+    }
 
-        val hit = runCatching { service.searchFoods(key).foods.firstOrNull() }.getOrNull()
-            ?: return@withContext null
+    suspend fun getFoodDetails(fdcId: Long): NutritionInfo? = withContext(Dispatchers.IO) {
+        val info = runCatching {
+            service.getFood(fdcId).toNutritionInfo()
+        }.getOrNull()
 
-        val info = runCatching { service.getFood(hit.fdcId).toNutritionInfo() }.getOrNull()
-            ?: return@withContext null
-
-        dao.insert(FoodEntity(key, info.calories, info.protein, info.fat, info.carbs))
-        info
+        return@withContext info
     }
 }
