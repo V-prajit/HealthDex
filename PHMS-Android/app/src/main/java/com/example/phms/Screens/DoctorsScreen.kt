@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -36,7 +37,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -319,7 +323,7 @@ fun DoctorCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun DoctorDialog(
     doctor: Doctor?,
@@ -328,7 +332,6 @@ fun DoctorDialog(
     onCancel: () -> Unit
 ) {
     var name by remember { mutableStateOf(doctor?.name.orEmpty()) }
-    var specialization by remember { mutableStateOf(doctor?.specialization.orEmpty()) }
     var phone by remember { mutableStateOf(doctor?.phone.orEmpty()) }
     var email by remember { mutableStateOf(doctor?.email.orEmpty()) }
     var address by remember { mutableStateOf(doctor?.address.orEmpty()) }
@@ -341,6 +344,29 @@ fun DoctorDialog(
     var addressError by remember { mutableStateOf(false) }
     var notifyOnEmergency by remember { mutableStateOf(doctor?.notifyOnEmergency ?: false) }
 
+    val specificSpecializations = listOf(
+        "Allergist / Immunologist", // Allergies, asthma, immune disorders
+        "Cardiologist",             // Heart
+        "Dermatologist",            // Skin
+        "Endocrinologist",          // Hormones, glands, diabetes, thyroid
+        "ENT (Otolaryngologist)",   // Ear, Nose, Throat
+        "Gastroenterologist",       // Digestive system
+        "Gynecologist / OB-GYN",    // Women's health, pregnancy
+        "Neurologist",              // Brain, nerves
+        "Oncologist",               // Cancer
+        "Ophthalmologist",          // Eyes (medical & surgical care)
+        "Orthopedist",              // Bones, joints, muscles
+        "Pediatrician",             // Children
+        "Primary Care / Internist", // General adult health (replaces Primary)
+        "Psychiatrist",             // Mental health (MD, can prescribe)
+        "Other"                     // Catch-all
+    )
+
+    var specializationExpanded by remember { mutableStateOf(false) }
+    var specialization by remember { mutableStateOf(doctor?.specialization?.takeIf { it in specificSpecializations } ?: "") }
+    var customSpecialization by remember {
+        mutableStateOf(doctor?.specialization?.takeIf { it !in specificSpecializations.dropLast(1) } ?: "")
+    }
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -374,23 +400,71 @@ fun DoctorDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = specialization,
-                    onValueChange = {
-                        specialization = it
-                        specializationError = it.isBlank()
-                    },
-                    label = { Text(stringResource(R.string.specialization)) },
-                    isError = specializationError,
-                    supportingText = {
-                        if (specializationError) {
-                            Text(stringResource(R.string.required_field))
+                ExposedDropdownMenuBox(
+                    expanded = specializationExpanded,
+                    onExpandedChange = { specializationExpanded = !specializationExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = when {
+                            specialization == "Other" && customSpecialization.isNotBlank() -> "Other: $customSpecialization"
+                            specialization == "Other" -> "Other"
+                            else -> specialization
+                        },
+                        onValueChange = { /* Read-only for dropdown selection */ },
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.specialization)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = specializationExpanded) },
+                        isError = specializationError && (specialization.isBlank() || (specialization == "Other" && customSpecialization.isBlank())),
+                        supportingText = {
+                            if (specializationError && (specialization.isBlank() || (specialization == "Other" && customSpecialization.isBlank()))) {
+                                Text(stringResource(R.string.required_field))
+                            }
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = specializationExpanded,
+                        onDismissRequest = { specializationExpanded = false }
+                    ) {
+                        specificSpecializations.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption) },
+                                onClick = {
+                                    specialization = selectionOption
+                                    specializationExpanded = false
+                                    if (selectionOption != "Other") {
+                                        customSpecialization = ""
+                                    }
+                                    specializationError = selectionOption == "Other" && customSpecialization.isBlank()
+                                }
+                            )
                         }
-                    },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    }
+                }
                 Spacer(Modifier.height(8.dp))
+
+                if (specialization == "Other") {
+                    OutlinedTextField(
+                        value = customSpecialization,
+                        onValueChange = {
+                            customSpecialization = it
+                            specializationError = it.isBlank()
+                        },
+                        label = { Text("Specify Specialization") },
+                        isError = specializationError,
+                        supportingText = {
+                            if (specializationError) {
+                                Text("Please specify the specialization")
+                            }
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -493,7 +567,9 @@ fun DoctorDialog(
             TextButton(
                 onClick = {
                     nameError = name.isBlank()
-                    specializationError = specialization.isBlank()
+
+                    val finalSpecialization = if (specialization == "Other") customSpecialization.trim() else specialization
+                    specializationError = finalSpecialization.isBlank()
 
                     val isPhoneValid = phone.isNotBlank() && phone.matches(Regex("^\\+?\\d{10,15}$"))
                     if (!isPhoneValid && phoneError == null) {
@@ -510,12 +586,12 @@ fun DoctorDialog(
                             id = doctor?.id,
                             userId = userId,
                             name = name,
-                            specialization = specialization,
+                            specialization = finalSpecialization,
                             phone = phone,
                             email = email,
                             address = address,
                             notes = notes,
-                            notifyOnEmergency = doctor?.notifyOnEmergency ?: false
+                            notifyOnEmergency = notifyOnEmergency
                         )
                         onSave(updatedDoctor)
                     }
