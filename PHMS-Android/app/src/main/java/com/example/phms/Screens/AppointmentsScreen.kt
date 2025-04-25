@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.phms.Screens
 
 import android.util.Log
@@ -27,6 +29,9 @@ import com.example.phms.Doctor
 import com.example.phms.R
 import com.example.phms.repository.AppointmentRepository
 import com.example.phms.repository.DoctorRepository
+import android.os.Build
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,11 +55,7 @@ fun AppointmentsScreen(
     LaunchedEffect(userId, showAllAppointments) {
         if (userId != null) {
             doctors = DoctorRepository.getDoctors(userId)
-            appointments = if (showAllAppointments) {
-                AppointmentRepository.getAppointments(userId)
-            } else {
-                AppointmentRepository.getUpcomingAppointments(userId)
-            }
+            appointments = AppointmentRepository.getAppointments(userId)
         }
     }
 
@@ -109,94 +110,17 @@ fun AppointmentsScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // Toggle switch for showing all vs upcoming appointments
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = if (showAllAppointments)
-                        stringResource(R.string.all_appointments)
-                    else
-                        stringResource(R.string.upcoming_appointments),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Switch(
-                    checked = showAllAppointments,
-                    onCheckedChange = { showAllAppointments = it }
-                )
-            }
-
-            if (appointments.isEmpty()) {
-                // Empty state
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            Icons.Default.EventNote,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = stringResource(R.string.no_appointments),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = stringResource(R.string.tap_to_add_appointment),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+            AppointmentCalendarWithScroll(
+                appointments = appointments,
+                doctors = doctors,
+                onEdit = {
+                    currentAppointment = it
+                    showAppointmentDialog = true
+                },
+                onDelete = {
+                    confirmDeleteDialog = it
                 }
-            } else {
-                // Group appointments by date
-                val groupedAppointments = appointments.groupBy { it.date }
-                val sortedDates = groupedAppointments.keys.sortedBy { LocalDate.parse(it) }
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    for (date in sortedDates) {
-                        val formattedDate = formatDate(date)
-                        item {
-                            Text(
-                                text = formattedDate,
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
-
-                        items(groupedAppointments[date]!!.sortedBy { it.time }) { appointment ->
-                            AppointmentCard(
-                                appointment = appointment,
-                                doctorName = appointment.doctorName ?: doctors.find { it.id == appointment.doctorId }?.name ?: "",
-                                onEdit = {
-                                    currentAppointment = appointment
-                                    showAppointmentDialog = true
-                                },
-                                onDelete = {
-                                    confirmDeleteDialog = appointment
-                                }
-                            )
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                }
-            }
+            )
         }
     }
 
@@ -232,11 +156,7 @@ fun AppointmentsScreen(
 
                     // Refresh appointment list
                     if (userId != null) {
-                        appointments = if (showAllAppointments) {
-                            AppointmentRepository.getAppointments(userId)
-                        } else {
-                            AppointmentRepository.getUpcomingAppointments(userId)
-                        }
+                        appointments = AppointmentRepository.getAppointments(userId)
                     }
                     showAppointmentDialog = false
                 }
@@ -273,11 +193,7 @@ fun AppointmentsScreen(
                                 AppointmentRepository.deleteAppointment(appointmentToDelete.id)
                                 // Refresh appointment list
                                 if (userId != null) {
-                                    appointments = if (showAllAppointments) {
-                                        AppointmentRepository.getAppointments(userId)
-                                    } else {
-                                        AppointmentRepository.getUpcomingAppointments(userId)
-                                    }
+                                    appointments = AppointmentRepository.getAppointments(userId)
                                 }
                             }
                             confirmDeleteDialog = null
@@ -863,4 +779,128 @@ fun TimePickerDialog(
         confirmButton = confirmButton,
         dismissButton = dismissButton
     )
+}
+@Composable
+fun AppointmentCalendarWithScroll(
+    appointments: List<Appointment>,
+    doctors: List<Doctor>,
+    onEdit: (Appointment) -> Unit,
+    onDelete: (Appointment) -> Unit
+) {
+    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
+
+    var calendarViewEnabled by remember { mutableStateOf(true) }
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    var showAllAppointments by remember { mutableStateOf(false) }
+
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val markedDates = appointments.mapNotNull {
+        try { LocalDate.parse(it.date, formatter) } catch (e: Exception) { null }
+    }.toSet()
+
+    val today = remember { LocalDate.now() }
+    val calendarState = rememberDatePickerState(
+        initialDisplayedMonthMillis = today.toEpochDay() * 86_400_000,
+        initialSelectedDateMillis = today.toEpochDay() * 86_400_000
+    )
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = { calendarViewEnabled = !calendarViewEnabled }) {
+                Icon(
+                    imageVector = if (calendarViewEnabled) Icons.Default.ViewList else Icons.Default.DateRange,
+                    contentDescription = "Toggle View"
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(if (calendarViewEnabled) "List View" else "Calendar View")
+            }
+        }
+
+        if (calendarViewEnabled) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f) // +update: slightly taller to include top row properly
+            ) {
+                DatePicker(
+                    state = calendarState,
+                    showModeToggle = false,
+                    colors = DatePickerDefaults.colors(),
+                    title = null,
+                    headline = null
+                )
+            }
+
+            LaunchedEffect(calendarState.selectedDateMillis) {
+                calendarState.selectedDateMillis?.let {
+                    selectedDate = LocalDate.ofEpochDay(it / 86_400_000)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            val selectedDayAppointments = appointments.filter {
+                try { LocalDate.parse(it.date) == selectedDate } catch (e: Exception) { false }
+            }.sortedBy { it.time }
+
+            if (selectedDate != null && selectedDayAppointments.isNotEmpty()) {
+                selectedDayAppointments.forEach { appointment ->
+                    AppointmentCard(
+                        appointment = appointment,
+                        doctorName = appointment.doctorName ?: doctors.find { it.id == appointment.doctorId }?.name ?: "",
+                        onEdit = { onEdit(appointment) },
+                        onDelete = { onDelete(appointment) }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("All Appointments")
+                Switch(
+                    checked = showAllAppointments,
+                    onCheckedChange = { showAllAppointments = it }
+                )
+            }
+
+            val baseFilteredAppointments = appointments.filter {
+                try {
+                    val date = LocalDate.parse(it.date)
+                    showAllAppointments || date >= today
+                } catch (e: Exception) { false }
+            }
+
+            val groupedAppointments = baseFilteredAppointments.groupBy { it.date }
+            val sortedDates = groupedAppointments.keys.sortedBy { it }
+
+            sortedDates.forEach { date ->
+                val readableDate = try {
+                    LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy"))
+                } catch (e: Exception) {
+                    date
+                }
+
+                Text(text = readableDate, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(vertical = 8.dp))
+                groupedAppointments[date]?.forEach { appointment ->
+                    AppointmentCard(
+                        appointment = appointment,
+                        doctorName = appointment.doctorName ?: doctors.find { it.id == appointment.doctorId }?.name ?: "",
+                        onEdit = { onEdit(appointment) },
+                        onDelete = { onDelete(appointment) }
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            }
+        }
+    }
 }
