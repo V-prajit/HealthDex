@@ -42,10 +42,30 @@ fun MedicationDialog(
     val weekdays = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     val selectedDays = remember { mutableStateListOf<String>() }
 
+    val initialTimes = initial?.time?.split(",") ?: listOf("09:00")
     val freqInt = frequency.toIntOrNull() ?: 1
-    val timeList = remember { mutableStateListOf<String>().apply {
-        repeat(freqInt) { add("09:00") }
-    }}
+
+    val timeList = remember {
+        mutableStateListOf<String>().apply {
+            if (initial != null && initial.time.isNotEmpty()) {
+                // Handle both single time and comma-separated times
+                if (initial.time.contains(",")) {
+                    // Multiple times
+                    addAll(initial.time.split(","))
+                } else {
+                    // Single time
+                    add(initial.time)
+                }
+
+                // Adjust list size if needed based on frequency
+                while (size < freqInt) add("09:00")
+                while (size > freqInt) removeAt(lastIndex)
+            } else {
+                // No saved times, use defaults
+                repeat(freqInt) { add("09:00") }
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -140,7 +160,7 @@ fun MedicationDialog(
                     }
                 }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 timeList.forEachIndexed { i, time ->
                     val cal = Calendar.getInstance()
                     val hour = time.substringBefore(":").toIntOrNull() ?: 9
@@ -189,6 +209,7 @@ fun MedicationDialog(
         },
         confirmButton = {
             TextButton(onClick = {
+                val timeString = timeList.joinToString(",")
                 val med = Medication(
                     id = initial?.id,
                     userId = userId,
@@ -196,7 +217,8 @@ fun MedicationDialog(
                     category = category,
                     dosage = dosage,
                     frequency = frequency,
-                    instructions = instructions
+                    instructions = instructions,
+                    time = timeString
                 )
                 onSave(med)
             }) {

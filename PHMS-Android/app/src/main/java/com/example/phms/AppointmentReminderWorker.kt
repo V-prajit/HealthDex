@@ -1,6 +1,7 @@
 package com.example.phms
 
 import android.content.Context
+import android.util.Log
 import androidx.work.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,35 +17,6 @@ class AppointmentReminderWorker(
     override suspend fun doWork(): Result {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val userId = prefs.getString("LAST_USER_UID", null) ?: return Result.failure()
-
-        val appointments = withContext(Dispatchers.IO) {
-            try {
-                AppointmentRepository.getUpcomingAppointments(userId)
-            } catch (e: Exception) {
-                emptyList()
-            }
-        }
-
-        val today = LocalDate.now()
-        val tomorrow = today.plusDays(1)
-        val notificationManager = AppointmentNotificationManager(context)
-
-        appointments.forEach { appointment ->
-            if (!appointment.reminders) return@forEach
-
-            val appointmentDate = LocalDate.parse(appointment.date)
-
-            when {
-                appointmentDate == today -> {
-                    notificationManager.showAppointmentReminder(appointment)
-                }
-                appointmentDate == tomorrow -> {
-                    notificationManager.showAppointmentReminder(appointment)
-                }
-            }
-        }
-
-        scheduleNextCheck(context)
 
         return Result.success()
     }
@@ -77,6 +49,7 @@ class AppointmentReminderWorker(
                 .build()
 
             WorkManager.getInstance(context).enqueue(oneTimeRequest)
+            Log.d("AppointmentReminderWorker", "Initialization called.")
         }
     }
 }

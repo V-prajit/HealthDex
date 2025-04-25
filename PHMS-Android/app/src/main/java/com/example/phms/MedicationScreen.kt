@@ -1,5 +1,6 @@
 package com.example.phms
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +27,8 @@ fun MedicationsScreen(
     var meds by remember { mutableStateOf<List<Medication>>(emptyList()) }
     var showDialog by remember { mutableStateOf(false) }
     var dialogInitial by remember { mutableStateOf<Medication?>(null) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // load meds
     LaunchedEffect(userToken) {
@@ -91,9 +97,16 @@ fun MedicationsScreen(
                                 }
                                 IconButton(onClick = {
                                     med.id?.let { id ->
+                                        // Save reference to medication before deletion
+                                        val medicationToDelete = med
+
                                         MedicationRepository.delete(id) { success ->
                                             if (success) {
                                                 meds = meds.filterNot { it.id == id }
+
+                                                // Add this code for notification cancellation
+                                                val alarmManager = MedicationAlarmManager(context)
+                                                alarmManager.cancelMedicationReminders(medicationToDelete)
                                             }
                                         }
                                     }
@@ -113,16 +126,28 @@ fun MedicationsScreen(
                 userId = userToken ?: return@Scaffold,
                 onSave = { m ->
                     if (dialogInitial == null) {
+                        Log.d("MedicationScreen", "Adding medication: ${m.name}, time: ${m.time}")
                         MedicationRepository.add(m) { saved ->
                             saved?.let {
+                                Log.d("MedicationScreen", "Saved medication: ${it.name}, time: ${it.time}")
                                 meds = listOf(it) + meds
+
+                                // Add this code for notification scheduling
+                                val alarmManager = MedicationAlarmManager(context)
+                                alarmManager.scheduleMedicationReminders(it)
                             }
                             showDialog = false
                         }
                     } else {
+                        Log.d("MedicationScreen", "Updating medication: ${m.name}, time: ${m.time}")
                         MedicationRepository.update(m) { success ->
                             if (success) {
+                                Log.d("MedicationScreen", "Updated medication successfully")
                                 meds = meds.map { if (it.id == m.id) m else it }
+
+                                // Add this code for notification updating
+                                val alarmManager = MedicationAlarmManager(context)
+                                alarmManager.scheduleMedicationReminders(m)
                             }
                             showDialog = false
                         }
