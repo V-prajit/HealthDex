@@ -59,11 +59,11 @@ fun NoteTag(tag: String) {
 fun NoteTagSmall(tag: String) {
     if (tag.isNotEmpty()) {
         val tagColor = when (tag.lowercase()) {
-            "diet"      -> TagDiet
-            "medication"-> TagMedication
-            "health"    -> TagHealth
-            "misc"      -> TagMisc
-            else        -> MaterialTheme.colorScheme.outline
+            "diet"      -> Color(0xFFFAB038) // Pikachu yellow
+            "medication"-> Color(0xFF99D5FF) // Squirtle blue
+            "health"    -> Color(0xFF94CC7B) // Bulbasaur green
+            "misc"      -> Color(0xFFE44E58) // Charmander red
+            else        -> Color(0xFF424242)
         }
 
         AssistChip(
@@ -82,7 +82,7 @@ fun NoteTagSmall(tag: String) {
                     Text(text = tag, style = MaterialTheme.typography.labelSmall)
                 }
             },
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 4.dp) ,
         )
     }
 }
@@ -296,7 +296,9 @@ fun NotesListScreen(
             .fillMaxSize()
             .padding(padding)) {
 
-            // Tag filter dropdown
+
+
+// Tag filter dropdown
             val tagOptions = listOf("All", "diet", "medication", "health", "misc")
             var expandedSortMenu by remember { mutableStateOf(false) }
             Row(
@@ -317,11 +319,11 @@ fun NotesListScreen(
                     tagOptions.forEach { tag ->
                         //tag color next to text
                         val tagColor = when (tag.lowercase()) {
-                            "diet"      -> Color(0xFFEF5350)
-                            "medication"-> Color(0xFF42A5F5)
-                            "health"    -> Color(0xFF66BB6A)
-                            "misc"      -> Color(0xFFFFCA28)
-                            else        -> MaterialTheme.colorScheme.outline
+                            "diet"      -> Color(0xFFFAB038)
+                            "medication"-> Color(0xFF99D5FF)
+                            "health"    -> Color(0xFF94CC7B)
+                            "misc"      -> Color(0xFFE44E58)
+                            else        -> Color(0xFF424242)
                         }
                         DropdownMenuItem(
                             text = {
@@ -357,7 +359,13 @@ fun NotesListScreen(
                     itemsIndexed(displayedNotes) { index, note ->
                         val parsedNote = parseNoteContent(note)
                         val tag = note.split("\n").getOrElse(2) { "" }
-                        val bgColor = MaterialTheme.colorScheme.surfaceVariant
+                        val bgColor = when (tag.lowercase()) {
+                            "diet" -> Color(0xFFFAB038)
+                            "medication" -> Color(0xFF99D5FF)
+                            "health" -> Color(0xFF94CC7B)
+                            "misc" -> Color(0xFFE44E58)
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
 
                         Card(
                             modifier = Modifier
@@ -365,7 +373,7 @@ fun NotesListScreen(
                                 .clickable { onNoteClick(index, note) },
                             shape = RoundedCornerShape(12.dp),
                             elevation = CardDefaults.cardElevation(4.dp),
-                            colors = CardDefaults.cardColors(containerColor = bgColor)
+                            colors = CardDefaults.cardColors(containerColor = bgColor).copy(contentColor = Color.Black)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -472,7 +480,13 @@ fun NotesListScreen(
                     itemsIndexed(displayedNotes) { index, note ->
                         val parsedNote = parseNoteContent(note)
                         val tag = note.split("\n").getOrElse(2) { "" }
-                        val bgColor = MaterialTheme.colorScheme.surfaceVariant
+                        val bgColor = when (tag.lowercase()) {
+                            "diet" -> Color(0xFFFAB038)
+                            "medication" -> Color(0xFF99D5FF)
+                            "health" -> Color(0xFF94CC7B)
+                            "misc" -> Color(0xFFE44E58)
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
 
                         Card(
                             modifier = Modifier
@@ -481,7 +495,7 @@ fun NotesListScreen(
                                 .clickable { onNoteClick(index, note) },
                             shape = RoundedCornerShape(10.dp),
                             elevation = CardDefaults.cardElevation(4.dp),
-                            colors = CardDefaults.cardColors(containerColor = bgColor)
+                            colors = CardDefaults.cardColors(containerColor = bgColor).copy(contentColor = Color.Black)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -502,7 +516,7 @@ fun NotesListScreen(
                                     var expanded by remember { mutableStateOf(false) }
                                     IconButton(
                                         onClick = { expanded = true },
-                                        modifier = Modifier.size(32.dp)
+                                        modifier = Modifier.fillMaxWidth().size(32.dp)
                                     ) {
                                         Icon(
                                             Icons.Default.MoreVert,

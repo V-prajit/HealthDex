@@ -1,6 +1,14 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.phms
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,7 +23,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DoctorsScreen(
     userId: String?,
@@ -27,11 +36,8 @@ fun DoctorsScreen(
     var currentDoctor by remember { mutableStateOf<Doctor?>(null) }
     var confirmDeleteDialog by remember { mutableStateOf<Doctor?>(null) }
 
-    // Load doctors when screen is shown
     LaunchedEffect(userId) {
-        if (userId != null) {
-            doctors = DoctorRepository.getDoctors(userId)
-        }
+        userId?.let { doctors = DoctorRepository.getDoctors(it) }
     }
 
     Scaffold(
@@ -40,7 +46,10 @@ fun DoctorsScreen(
                 title = { Text(stringResource(R.string.doctors)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 }
             )
@@ -48,14 +57,17 @@ fun DoctorsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    currentDoctor = null // Ensure we're creating a new doctor
+                    currentDoctor = null
                     showDoctorDialog = true
                 },
                 modifier = Modifier
                     .padding(bottom = 72.dp, end = 16.dp)
                     .navigationBarsPadding()
             ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_doctor))
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add_doctor)
+                )
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -67,7 +79,6 @@ fun DoctorsScreen(
                 .padding(16.dp)
         ) {
             if (doctors.isEmpty()) {
-                // Empty state
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -95,8 +106,8 @@ fun DoctorsScreen(
                     }
                 }
             } else {
-                // List of doctors
                 LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(doctors) { doctor ->
@@ -114,66 +125,62 @@ fun DoctorsScreen(
                 }
             }
         }
-    }
 
-    // Edit/Add Doctor Dialog
-    if (showDoctorDialog) {
-        DoctorDialog(
-            doctor = currentDoctor,
-            userId = userId ?: "",
-            onSave = { doctor ->
-                scope.launch {
-                    if (doctor.id == null) {
-                        // Add new doctor
-                        DoctorRepository.addDoctor(doctor)
-                    } else {
-                        // Update existing doctor
-                        DoctorRepository.updateDoctor(doctor)
-                    }
-                    // Refresh doctor list
-                    if (userId != null) {
-                        doctors = DoctorRepository.getDoctors(userId)
-                    }
-                    showDoctorDialog = false
-                }
-            },
-            onCancel = {
-                showDoctorDialog = false
-            }
-        )
-    }
-
-    // Confirm Delete Dialog
-    if (confirmDeleteDialog != null) {
-        AlertDialog(
-            onDismissRequest = { confirmDeleteDialog = null },
-            title = { Text(stringResource(R.string.confirm_delete)) },
-            text = { Text(stringResource(R.string.delete_doctor_confirmation, confirmDeleteDialog!!.name)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            val doctorToDelete = confirmDeleteDialog
-                            if (doctorToDelete?.id != null) {
-                                DoctorRepository.deleteDoctor(doctorToDelete.id)
-                                // Refresh doctor list
-                                if (userId != null) {
-                                    doctors = DoctorRepository.getDoctors(userId)
-                                }
-                            }
-                            confirmDeleteDialog = null
+        if (showDoctorDialog) {
+            DoctorDialog(
+                doctor = currentDoctor,
+                userId = userId ?: "",
+                onSave = { doctor ->
+                    scope.launch {
+                        if (doctor.id == null) {
+                            DoctorRepository.addDoctor(doctor)
+                        } else {
+                            DoctorRepository.updateDoctor(doctor)
                         }
+                        userId?.let { doctors = DoctorRepository.getDoctors(it) }
+                        showDoctorDialog = false
                     }
-                ) {
-                    Text(stringResource(R.string.delete))
+                },
+                onCancel = { showDoctorDialog = false }
+            )
+        }
+
+        if (confirmDeleteDialog != null) {
+            AlertDialog(
+                onDismissRequest = { confirmDeleteDialog = null },
+                title = { Text(stringResource(R.string.confirm_delete)) },
+                text = {
+                    Text(
+                        stringResource(
+                            R.string.delete_doctor_confirmation,
+                            confirmDeleteDialog!!.name
+                        )
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            scope.launch {
+                                confirmDeleteDialog?.id?.let {
+                                    DoctorRepository.deleteDoctor(it)
+                                    userId?.let { uid ->
+                                        doctors = DoctorRepository.getDoctors(uid)
+                                    }
+                                }
+                                confirmDeleteDialog = null
+                            }
+                        }
+                    ) {
+                        Text(stringResource(R.string.delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { confirmDeleteDialog = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmDeleteDialog = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -188,22 +195,15 @@ fun DoctorCard(
             .fillMaxWidth()
             .clickable { onEdit() },
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = doctor.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = doctor.name, style = MaterialTheme.typography.titleMedium)
                 Row {
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
@@ -220,63 +220,58 @@ fun DoctorCard(
                 color = MaterialTheme.colorScheme.secondary
             )
 
+            val ctx = LocalContext.current
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = {
+                    ctx.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${doctor.phone}")))
+                }) {
+                    Icon(Icons.Default.Phone, contentDescription = "Call")
+                }
+                IconButton(onClick = {
+                    ctx.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${doctor.email}")))
+                }) {
+                    Icon(Icons.Default.Email, contentDescription = "Email")
+                }
+                IconButton(onClick = {
+                    val q = Uri.encode(doctor.address)
+                    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$q")))
+                }) {
+                    Icon(Icons.Default.LocationOn, contentDescription = "Map")
+                }
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
+            // unchanged: details rows
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Phone,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = doctor.phone,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(text = doctor.phone, style = MaterialTheme.typography.bodyMedium)
             }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
+            Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Email,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = doctor.email,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(text = doctor.email, style = MaterialTheme.typography.bodyMedium)
             }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
+            Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.Top) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = doctor.address,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Icon(Icons.Default.LocationOn, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(text = doctor.address, style = MaterialTheme.typography.bodySmall)
             }
 
             if (!doctor.notes.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
                 Divider()
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = doctor.notes,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Spacer(Modifier.height(8.dp))
+                Text(text = doctor.notes, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -290,19 +285,12 @@ fun DoctorDialog(
     onSave: (Doctor) -> Unit,
     onCancel: () -> Unit
 ) {
-    var name by remember { mutableStateOf(doctor?.name ?: "") }
-    var specialization by remember { mutableStateOf(doctor?.specialization ?: "") }
-    var phone by remember { mutableStateOf(doctor?.phone ?: "") }
-    var email by remember { mutableStateOf(doctor?.email ?: "") }
-    var address by remember { mutableStateOf(doctor?.address ?: "") }
-    var notes by remember { mutableStateOf(doctor?.notes ?: "") }
-
-    var nameError by remember { mutableStateOf(false) }
-    var specializationError by remember { mutableStateOf(false) }
-    var phoneError by remember { mutableStateOf(false) }
-    var emailError by remember { mutableStateOf(false) }
-    var addressError by remember { mutableStateOf(false) }
-    var notifyOnEmergency by remember { mutableStateOf(doctor?.notifyOnEmergency ?: false) }
+    var name by remember { mutableStateOf(doctor?.name.orEmpty()) }
+    var specialization by remember { mutableStateOf(doctor?.specialization.orEmpty()) }
+    var phone by remember { mutableStateOf(doctor?.phone.orEmpty()) }
+    var email by remember { mutableStateOf(doctor?.email.orEmpty()) }
+    var address by remember { mutableStateOf(doctor?.address.orEmpty()) }
+    var notes by remember { mutableStateOf(doctor?.notes.orEmpty()) }
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -316,101 +304,57 @@ fun DoctorDialog(
         },
         text = {
             Column {
+                // -- name --
                 OutlinedTextField(
                     value = name,
-                    onValueChange = {
-                        name = it
-                        nameError = it.isBlank()
-                    },
+                    onValueChange = { name = it },
                     label = { Text(stringResource(R.string.doctor_name)) },
-                    isError = nameError,
-                    supportingText = {
-                        if (nameError) {
-                            Text(stringResource(R.string.required_field))
-                        }
-                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
+                // -- specialization --
                 OutlinedTextField(
                     value = specialization,
-                    onValueChange = {
-                        specialization = it
-                        specializationError = it.isBlank()
-                    },
+                    onValueChange = { specialization = it },
                     label = { Text(stringResource(R.string.specialization)) },
-                    isError = specializationError,
-                    supportingText = {
-                        if (specializationError) {
-                            Text(stringResource(R.string.required_field))
-                        }
-                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
+                // -- phone --
                 OutlinedTextField(
                     value = phone,
-                    onValueChange = {
-                        phone = it
-                        phoneError = it.isBlank()
-                    },
+                    onValueChange = { phone = it },
                     label = { Text(stringResource(R.string.phone)) },
-                    isError = phoneError,
-                    supportingText = {
-                        if (phoneError) {
-                            Text(stringResource(R.string.required_field))
-                        }
-                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
+                // -- email --
                 OutlinedTextField(
                     value = email,
-                    onValueChange = {
-                        email = it
-                        emailError = it.isBlank()
-                    },
+                    onValueChange = { email = it },
                     label = { Text(stringResource(R.string.email)) },
-                    isError = emailError,
-                    supportingText = {
-                        if (emailError) {
-                            Text(stringResource(R.string.required_field))
-                        }
-                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
+                // -- address --
                 OutlinedTextField(
                     value = address,
-                    onValueChange = {
-                        address = it
-                        addressError = it.isBlank()
-                    },
+                    onValueChange = { address = it },
                     label = { Text(stringResource(R.string.address)) },
-                    isError = addressError,
-                    supportingText = {
-                        if (addressError) {
-                            Text(stringResource(R.string.required_field))
-                        }
-                    },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2
                 )
+                Spacer(Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
+                // -- notes --
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -418,33 +362,13 @@ fun DoctorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Checkbox(
-                        checked = notifyOnEmergency,
-                        onCheckedChange = { notifyOnEmergency = it }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.notify_on_vital_emergencies))
-                }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    nameError = name.isBlank()
-                    specializationError = specialization.isBlank()
-                    phoneError = phone.isBlank()
-                    emailError = email.isBlank()
-                    addressError = address.isBlank()
-
-                    if (!nameError && !specializationError && !phoneError && !emailError && !addressError) {
-                        val updatedDoctor = Doctor(
+                    onSave(
+                        Doctor(
                             id = doctor?.id,
                             userId = userId,
                             name = name,
@@ -453,10 +377,9 @@ fun DoctorDialog(
                             email = email,
                             address = address,
                             notes = notes,
-                            notifyOnEmergency = notifyOnEmergency
+                            notifyOnEmergency = doctor?.notifyOnEmergency ?: false
                         )
-                        onSave(updatedDoctor)
-                    }
+                    )
                 }
             ) {
                 Text(stringResource(R.string.save))
