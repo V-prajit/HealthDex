@@ -1,8 +1,10 @@
 package com.example.phms.repository
 
 import android.content.Context
-import com.example.phms.model.nutrition.*
+import com.example.phms.FoodHit
+import com.example.phms.NutritionInfo
 import com.example.phms.network.NutritionRetrofit
+import com.example.phms.toNutritionInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale

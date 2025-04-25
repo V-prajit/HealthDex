@@ -16,14 +16,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import com.example.phms.repository.NutritionRepository
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import com.example.phms.model.nutrition.FoodHit
+import com.example.phms.repository.NutritionRepository
 
 private enum class DietEntryMode {
     SEARCH,

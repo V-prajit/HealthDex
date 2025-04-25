@@ -1,10 +1,9 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,11 +35,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Color
 import com.example.phms.ImageSourceDialog
+import com.example.phms.ImageThumbnail
+import com.example.phms.NoteImageViewer
+import com.example.phms.R
+import com.example.phms.formatNoteForSaving
+import com.example.phms.parseNoteContent
+import com.example.phms.repository.NotesRepository
+import com.example.phms.repository.NotesRepositoryBackend
 import com.example.phms.ui.theme.*
+import com.example.phms.updateNoteContent
 import com.example.phms.useNotesCamera
 
 @Composable
@@ -272,7 +278,9 @@ fun NotesListScreen(
                 },
                 actions = {
                     TextButton(onClick = { isListLayout = !isListLayout }) {
-                        Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list))
+                        Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(
+                            R.string.switch_to_list
+                        ))
                     }
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))

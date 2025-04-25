@@ -1,18 +1,62 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.phms.EmergencyContact
+import com.example.phms.R
+import com.example.phms.repository.EmergencyContactRepository
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -265,7 +309,7 @@ fun EmergencyContactDialog(
 
     var nameError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
-    var phoneError by remember { mutableStateOf(false) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
     var relationshipError by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -314,15 +358,30 @@ fun EmergencyContactDialog(
 
                 OutlinedTextField(
                     value = phone,
-                    onValueChange = {
-                        phone = it
-                        phoneError = it.isBlank()
+                    onValueChange = { newValue ->
+                        val filteredValue = newValue.filterIndexed { index, char ->
+                            char.isDigit() || (index == 0 && char == '+')
+                        }
+                        phone = filteredValue
+                        when {
+                            filteredValue.isBlank() -> {
+                                phoneError = "Phone number is required"
+                            }
+                            !filteredValue.matches(Regex("^\\+?\\d{10,15}$")) -> {
+                                phoneError = "Enter a valid phone number (e.g., +1234567890 or 1234567890)"
+                            }
+                            else -> {
+                                phoneError = null
+                            }
+                        }
                     },
                     label = { Text(stringResource(R.string.phone)) },
-                    isError = phoneError,
+                    isError = phoneError != null,
                     supportingText = {
-                        if (phoneError) Text(stringResource(R.string.required_field))
+                        phoneError?.let { Text(it) }
                     },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -362,10 +421,17 @@ fun EmergencyContactDialog(
                 onClick = {
                     nameError = name.isBlank()
                     emailError = email.isBlank()
-                    phoneError = phone.isBlank()
+
+                    val isPhoneValid = phone.isNotBlank() && phone.matches(Regex("^\\+?\\d{10,15}$"))
+                    if (!isPhoneValid && phoneError == null) {
+                        phoneError = if (phone.isBlank()) "Phone number is required" else "Enter a valid phone number"
+                    } else if (isPhoneValid) {
+                        phoneError = null
+                    }
+
                     relationshipError = relationship.isBlank()
 
-                    if (!nameError && !emailError && !phoneError && !relationshipError) {
+                    if (!nameError && !emailError && phoneError == null && !relationshipError) {
                         val updatedContact = EmergencyContact(
                             id = contact?.id,
                             userId = userId,

@@ -1,4 +1,4 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel // Ensure this import is present
@@ -18,6 +17,17 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.filled.Settings
+import com.example.phms.BPChartDataPoint
+import com.example.phms.BloodPressureChart
+import com.example.phms.ChartDataPoint
+import com.example.phms.ChartOrange
+import com.example.phms.ChartPurple
+import com.example.phms.ChartRed
+import com.example.phms.R
+import com.example.phms.SimpleLineChart
+import com.example.phms.VitalRepository
+import com.example.phms.VitalSign
+import com.example.phms.VitalSignsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

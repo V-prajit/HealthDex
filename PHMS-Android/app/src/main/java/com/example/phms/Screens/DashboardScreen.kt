@@ -1,4 +1,4 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.padding
@@ -8,15 +8,12 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Note
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import com.example.phms.VitalSignsScreen
-import com.example.phms.SearchScreen
+import com.example.phms.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -7,13 +7,10 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.provider.Settings
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.work.*
+import com.example.phms.repository.AppointmentRepository
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.time.format.DateTimeParseException
 
 class AppointmentAlarmManager(private val context: Context) {
 

@@ -1,26 +1,68 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.phms
+package com.example.phms.Screens
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.phms.Doctor
+import com.example.phms.R
+import com.example.phms.repository.DoctorRepository
 import kotlinx.coroutines.launch
 
 
@@ -292,6 +334,14 @@ fun DoctorDialog(
     var address by remember { mutableStateOf(doctor?.address.orEmpty()) }
     var notes by remember { mutableStateOf(doctor?.notes.orEmpty()) }
 
+    var nameError by remember { mutableStateOf(false) }
+    var specializationError by remember { mutableStateOf(false) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf(false) }
+    var addressError by remember { mutableStateOf(false) }
+    var notifyOnEmergency by remember { mutableStateOf(doctor?.notifyOnEmergency ?: false) }
+
+
     AlertDialog(
         onDismissRequest = onCancel,
         title = {
@@ -304,57 +354,118 @@ fun DoctorDialog(
         },
         text = {
             Column {
-                // -- name --
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        name = it
+                        nameError = it.isBlank()
+                    },
                     label = { Text(stringResource(R.string.doctor_name)) },
+                    isError = nameError,
+                    supportingText = {
+                        if (nameError) {
+                            Text(stringResource(R.string.required_field))
+                        }
+                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
 
-                // -- specialization --
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = specialization,
-                    onValueChange = { specialization = it },
+                    onValueChange = {
+                        specialization = it
+                        specializationError = it.isBlank()
+                    },
                     label = { Text(stringResource(R.string.specialization)) },
+                    isError = specializationError,
+                    supportingText = {
+                        if (specializationError) {
+                            Text(stringResource(R.string.required_field))
+                        }
+                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
 
-                // -- phone --
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = phone,
-                    onValueChange = { phone = it },
+                    onValueChange = { newValue ->
+                        val filteredValue = newValue.filterIndexed { index, char ->
+                            char.isDigit() || (index == 0 && char == '+')
+                        }
+                        phone = filteredValue
+                        when {
+                            filteredValue.isBlank() -> {
+                                phoneError = "Phone number is required"
+                            }
+                            !filteredValue.matches(Regex("^\\+?\\d{10,15}$")) -> {
+                                phoneError = "Enter a valid phone number (e.g., +1234567890 or 1234567890)"
+                            }
+                            else -> {
+                                phoneError = null
+                            }
+                        }
+                    },
                     label = { Text(stringResource(R.string.phone)) },
+                    isError = phoneError != null,
+                    supportingText = {
+                            phoneError?.let { Text(it) }
+                    },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
 
-                // -- email --
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        emailError = it.isBlank()
+                    },
                     label = { Text(stringResource(R.string.email)) },
+                    isError = emailError,
+                    supportingText = {
+                        if (emailError) {
+                            Text(stringResource(R.string.required_field))
+                        }
+                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
 
-                // -- address --
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = address,
-                    onValueChange = { address = it },
+                    onValueChange = {
+                        address = it
+                        addressError = it.isBlank()
+                    },
                     label = { Text(stringResource(R.string.address)) },
+                    isError = addressError,
+                    supportingText = {
+                        if (addressError) {
+                            Text(stringResource(R.string.required_field))
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2
                 )
                 Spacer(Modifier.height(8.dp))
 
-                // -- notes --
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -362,13 +473,40 @@ fun DoctorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = notifyOnEmergency,
+                        onCheckedChange = { notifyOnEmergency = it }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.notify_on_vital_emergencies))
+                }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    onSave(
-                        Doctor(
+                    nameError = name.isBlank()
+                    specializationError = specialization.isBlank()
+
+                    val isPhoneValid = phone.isNotBlank() && phone.matches(Regex("^\\+?\\d{10,15}$"))
+                    if (!isPhoneValid && phoneError == null) {
+                        phoneError = if (phone.isBlank()) "Phone number is required" else "Enter a valid phone number"
+                    } else if (isPhoneValid) {
+                        phoneError = null
+                    }
+
+                    emailError = email.isBlank()
+                    addressError = address.isBlank()
+
+                    if (!nameError && !specializationError && phoneError == null && !emailError && !addressError) {
+                        val updatedDoctor = Doctor(
                             id = doctor?.id,
                             userId = userId,
                             name = name,
@@ -379,7 +517,8 @@ fun DoctorDialog(
                             notes = notes,
                             notifyOnEmergency = doctor?.notifyOnEmergency ?: false
                         )
-                    )
+                        onSave(updatedDoctor)
+                    }
                 }
             ) {
                 Text(stringResource(R.string.save))

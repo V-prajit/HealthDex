@@ -1,11 +1,12 @@
-package com.example.phms
+package com.example.phms.repository
 
 import android.util.Log
+import com.example.phms.Diet
+import com.example.phms.RetrofitClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 object DietRepository {
     private val apiService = RetrofitClient.apiService

@@ -1,4 +1,4 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,6 +23,12 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.material.icons.filled.Edit
+import com.example.phms.Diet
+import com.example.phms.DietDialog
+import com.example.phms.DietGoalDTO
+import com.example.phms.DietGoalsSettingsDialog
+import com.example.phms.repository.DietGoalRepository
+import com.example.phms.repository.DietRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
