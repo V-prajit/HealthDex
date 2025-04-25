@@ -12,6 +12,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.example.phms.repository.NutritionRepository
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +42,10 @@ fun DietDialog(
     } else {
         LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
     }
+
+    val scope = rememberCoroutineScope()
+    var loading by remember { mutableStateOf(false) }
+    var apiError by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -153,6 +159,31 @@ fun DietDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(Modifier.height(8.dp))
+
+                Button(
+                    enabled = description.isNotBlank() && !loading,
+                    onClick = {
+                        loading = true
+                        apiError = null
+                        scope.launch {
+                            val info = NutritionRepository.getNutrition(description)
+                            loading = false
+                            if (info != null) {
+                                calories = info.calories.toString()
+                                protein  = info.protein.toString()
+                                fats     = info.fat.toString()
+                                carbs    = info.carbs.toString()
+                            } else {
+                                apiError = "No nutrition found — try a more specific name"
+                            }
+                        }
+                    }
+                ) {
+                    Text(if (loading) "Loading…" else "Auto-fill")
+                }
+                apiError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             }
         },
         confirmButton = {
