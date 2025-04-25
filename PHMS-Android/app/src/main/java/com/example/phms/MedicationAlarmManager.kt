@@ -192,17 +192,21 @@ class MedicationAlarmManager(private val context: Context) {
     /**
      * Schedule reminders for all medications for a user
      */
-    suspend fun scheduleAllMedicationReminders(userId: String) {
+    fun scheduleAllMedicationReminders(userId: String) {
         try {
-            val medications = MedicationRepository.fetchAll(userId) ?: emptyList()
+            MedicationRepository.fetchAll(userId) { medications ->
+                if (medications != null) {
+                    Log.d(TAG, "Scheduling reminders for ${medications.size} medications")
 
-            Log.d(TAG, "Scheduling reminders for ${medications.size} medications")
+                    for (medication in medications) {
+                        scheduleMedicationReminders(medication)
+                    }
 
-            for (medication in medications) {
-                scheduleMedicationReminders(medication)
+                    Log.d(TAG, "Successfully scheduled all medication reminders")
+                } else {
+                    Log.e(TAG, "No medications found for user $userId")
+                }
             }
-
-            Log.d(TAG, "Successfully scheduled all medication reminders")
         } catch (e: Exception) {
             Log.e(TAG, "Error scheduling all medication reminders", e)
         }
