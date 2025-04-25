@@ -1,6 +1,5 @@
-package com.example.phms
+package com.example.phms.Screens
 
-import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,13 +17,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
-import com.example.phms.NotesRepository
-import com.example.phms.NotesRepositoryBackend
-import com.example.phms.VitalRepository
 import com.example.phms.Appointment
-import com.example.phms.AppointmentRepository
-import kotlinx.coroutines.launch
+import com.example.phms.VitalRepository
+import com.example.phms.repository.NotesRepository
+import com.example.phms.repository.NotesRepositoryBackend
+import com.example.phms.repository.AppointmentRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

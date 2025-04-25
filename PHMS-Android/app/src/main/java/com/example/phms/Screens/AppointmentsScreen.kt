@@ -1,4 +1,4 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,6 +21,12 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import androidx.compose.material.icons.filled.Settings
+import com.example.phms.Appointment
+import com.example.phms.AppointmentAlarmManager
+import com.example.phms.Doctor
+import com.example.phms.R
+import com.example.phms.repository.AppointmentRepository
+import com.example.phms.repository.DoctorRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -386,7 +391,9 @@ fun AppointmentCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = if (appointment.reminders) stringResource(R.string.reminders_on) else stringResource(R.string.reminders_off),
+                        text = if (appointment.reminders) stringResource(R.string.reminders_on) else stringResource(
+                            R.string.reminders_off
+                        ),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

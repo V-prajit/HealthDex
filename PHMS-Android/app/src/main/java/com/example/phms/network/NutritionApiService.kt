@@ -4,8 +4,8 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import com.example.phms.BuildConfig
-import com.example.phms.model.nutrition.SearchResponse
-import com.example.phms.model.nutrition.FoodItem
+import com.example.phms.SearchResponse
+import com.example.phms.FoodItem
 
 interface NutritionApiService {
 

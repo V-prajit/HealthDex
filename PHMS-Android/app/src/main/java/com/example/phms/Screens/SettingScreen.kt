@@ -1,6 +1,5 @@
-package com.example.phms
+package com.example.phms.Screens
 
-import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -27,9 +26,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import androidx.compose.material.icons.filled.Notifications
 import android.widget.Toast
 import androidx.compose.material.icons.filled.Alarm
+import com.example.phms.Appointment
+import com.example.phms.AppointmentAlarmManager
+import com.example.phms.AppointmentNotificationManager
+import com.example.phms.LocaleHelper
+import com.example.phms.MainActivity
+import com.example.phms.R
+import com.example.phms.RetrofitClient
+import com.example.phms.ThresholdValues
+import com.example.phms.VitalAlertRequest
+import com.example.phms.VitalSignsViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -257,7 +265,10 @@ fun SettingScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            LocaleHelper.applyLanguageWithoutRecreation(context, language.code)
+                                            LocaleHelper.applyLanguageWithoutRecreation(
+                                                context,
+                                                language.code
+                                            )
                                             showLanguageDialog = false
                                             onBackClick()
                                         }

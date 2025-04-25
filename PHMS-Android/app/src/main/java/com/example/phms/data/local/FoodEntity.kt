@@ -2,7 +2,7 @@ package com.example.phms.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.phms.model.nutrition.NutritionInfo
+import com.example.phms.NutritionInfo
 
 @Entity(tableName = "foods")
 data class FoodEntity(

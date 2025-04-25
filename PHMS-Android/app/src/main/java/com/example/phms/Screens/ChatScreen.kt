@@ -1,4 +1,4 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,16 +22,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.filled.Settings
+import com.example.phms.ChatApiService
+import com.example.phms.ChatMessage
+import com.example.phms.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

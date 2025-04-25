@@ -29,18 +29,18 @@ import androidx.compose.runtime.mutableIntStateOf
 import android.os.Build
 import androidx.core.content.ContextCompat
 import android.Manifest
-import android.content.Context.CONTEXT_INCLUDE_CODE
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.lifecycleScope
+import com.example.phms.Screens.DashboardScreen
+import com.example.phms.Screens.ForgotPasswordScreen
+import com.example.phms.Screens.SettingScreen
 import com.example.phms.network.NutritionRetrofit
 import com.example.phms.repository.NutritionRepository
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -160,7 +160,7 @@ class MainActivity : FragmentActivity() {
                 when {
                     showSettings -> {
                         Log.d("MainActivity", "Showing Settings Screen")
-                        SettingScreen( 
+                        SettingScreen(
                             onBackClick = {
                                 Log.d("MainActivity", "Settings Back clicked")
                                 showSettings = false

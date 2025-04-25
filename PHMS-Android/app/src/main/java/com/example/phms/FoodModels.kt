@@ -1,5 +1,5 @@
 // model/nutrition/FoodModels.kt
-package com.example.phms.model.nutrition
+package com.example.phms
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

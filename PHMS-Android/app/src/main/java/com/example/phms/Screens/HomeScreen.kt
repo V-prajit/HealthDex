@@ -1,4 +1,4 @@
-package com.example.phms
+package com.example.phms.Screens
 
 import android.util.Log
 import android.content.Context
@@ -31,8 +31,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import coil.compose.rememberAsyncImagePainter
 import com.example.phms.Appointment
-import com.example.phms.AppointmentRepository
-import com.example.phms.formatDate
+import com.example.phms.R
+import com.example.phms.repository.AppointmentRepository
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
