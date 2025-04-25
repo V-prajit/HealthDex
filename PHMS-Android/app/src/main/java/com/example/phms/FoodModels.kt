@@ -11,24 +11,19 @@ data class SearchResponse(val foods: List<FoodHit> = emptyList())
 @JsonClass(generateAdapter = true)
 data class FoodHit(val fdcId: Long, val description: String)
 
-/** Handles *both* nutrient shapes.  */
 @JsonClass(generateAdapter = true)
 data class Nutrient(
-    // flat variant fields ---------------
     @Json(name = "nutrientName")
     val flatName: String? = null,
     val unitName: String? = null,
     val value: Double? = null,
 
-    // nested variant fields -------------
     val amount: Double? = null,
     val nutrient: NestedMeta? = null
 ) {
-    /** Unified accessor for the name. */
     val name: String?
         get() = flatName ?: nutrient?.name
 
-    /** Unified accessor for the numeric value (kcal / g). */
     val quantity: Double
         get() = value ?: amount ?: 0.0
 }

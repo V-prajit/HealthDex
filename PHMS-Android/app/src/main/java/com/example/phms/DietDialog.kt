@@ -99,6 +99,7 @@ fun DietDialog(
     }
 
     fun performSearch() {
+
         if (description.isBlank()) {
             descriptionError = true
             return
@@ -114,9 +115,18 @@ fun DietDialog(
                 searchResults = hits
                 entryMode = DietEntryMode.RESULTS
             } else {
-                apiError = "No food found matching '$description'. Try a different name or enter manually."
+                // If no results, switch directly to manual mode and show a message
+                apiError = "No food found matching '$description'. Please enter details manually."
+                entryMode = DietEntryMode.MANUAL
+                // Clear potential old values from a previous search/manual entry
+                calories = ""
+                protein = ""
+                fats = ""
+                carbs = ""
+                weight = ""
             }
         }
+
     }
 
     fun selectFood(hit: FoodHit) {
@@ -222,6 +232,15 @@ fun DietDialog(
                     }
                 }
 
+                AnimatedVisibility(visible = entryMode == DietEntryMode.SEARCH && !isEditing) {
+                    TextButton(
+                        onClick = { entryMode = DietEntryMode.MANUAL },
+                        modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
+                    ) {
+                        Text("Enter Manually")
+                    }
+                }
+
                 apiError?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 4.dp))
                 }
@@ -258,7 +277,7 @@ fun DietDialog(
                     }
                 }
 
-                AnimatedVisibility(visible = entryMode == DietEntryMode.MANUAL || (entryMode == DietEntryMode.SEARCH && apiError != null && !apiError!!.contains("matching"))) {
+                AnimatedVisibility(visible = entryMode == DietEntryMode.MANUAL) {
                     Column {
                         if (entryMode == DietEntryMode.SEARCH && apiError != null && !apiError!!.contains("matching")) {
                             Divider(modifier = Modifier.padding(vertical=8.dp))
