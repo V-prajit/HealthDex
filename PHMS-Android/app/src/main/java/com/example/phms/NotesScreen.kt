@@ -63,7 +63,7 @@ fun NoteTagSmall(tag: String) {
             "medication"-> Color(0xFF99D5FF) // Squirtle blue
             "health"    -> Color(0xFF94CC7B) // Bulbasaur green
             "misc"      -> Color(0xFFE44E58) // Charmander red
-            else        -> MaterialTheme.colorScheme.outline
+            else        -> Color(0xFF424242)
         }
 
         AssistChip(
@@ -82,7 +82,7 @@ fun NoteTagSmall(tag: String) {
                     Text(text = tag, style = MaterialTheme.typography.labelSmall)
                 }
             },
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 4.dp) ,
         )
     }
 }
@@ -319,11 +319,11 @@ fun NotesListScreen(
                     tagOptions.forEach { tag ->
                         //tag color next to text
                         val tagColor = when (tag.lowercase()) {
-                            "diet"      -> Color(0xFFFAB038) // Pikachu yellow
-                            "medication"-> Color(0xFF99D5FF) // Squirtle blue
-                            "health"    -> Color(0xFF94CC7B) // Bulbasaur green
-                            "misc"      -> Color(0xFFE44E58) // Charmander red
-                            else        -> MaterialTheme.colorScheme.outline
+                            "diet"      -> Color(0xFFFAB038)
+                            "medication"-> Color(0xFF99D5FF)
+                            "health"    -> Color(0xFF94CC7B)
+                            "misc"      -> Color(0xFFE44E58)
+                            else        -> Color(0xFF424242)
                         }
                         DropdownMenuItem(
                             text = {
@@ -360,10 +360,10 @@ fun NotesListScreen(
                         val parsedNote = parseNoteContent(note)
                         val tag = note.split("\n").getOrElse(2) { "" }
                         val bgColor = when (tag.lowercase()) {
-                            "diet" -> Color(0xFFFAB038) // Pikachu yellow
-                            "medication" -> Color(0xFF99D5FF) // Squirtle blue
-                            "health" -> Color(0xFF94CC7B) // Bulbasaur green
-                            "misc" -> Color(0xFFE44E58) // Charmander red
+                            "diet" -> Color(0xFFFAB038)
+                            "medication" -> Color(0xFF99D5FF)
+                            "health" -> Color(0xFF94CC7B)
+                            "misc" -> Color(0xFFE44E58)
                             else -> MaterialTheme.colorScheme.surfaceVariant
                         }
 
@@ -481,10 +481,10 @@ fun NotesListScreen(
                         val parsedNote = parseNoteContent(note)
                         val tag = note.split("\n").getOrElse(2) { "" }
                         val bgColor = when (tag.lowercase()) {
-                            "diet" -> Color(0xFFFAB038) // Pikachu yellow
-                            "medication" -> Color(0xFF99D5FF) // Squirtle blue
-                            "health" -> Color(0xFF94CC7B) // Bulbasaur green
-                            "misc" -> Color(0xFFE44E58) // Charmander red
+                            "diet" -> Color(0xFFFAB038)
+                            "medication" -> Color(0xFF99D5FF)
+                            "health" -> Color(0xFF94CC7B)
+                            "misc" -> Color(0xFFE44E58)
                             else -> MaterialTheme.colorScheme.surfaceVariant
                         }
 

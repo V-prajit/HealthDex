@@ -146,7 +146,7 @@
     <string name="all_appointments">All Appointments</string>
     <string name="medications">Medications</string>
     <string name="edit">Edit</string>
-
+    <string name="next">Next</string>
     <string name="emergency_contacts">Emergency Contacts</string>
     <string name="add_contact">Add Contact</string>
     <string name="relationship">Relationship</string>
