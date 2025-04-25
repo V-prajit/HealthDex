@@ -35,6 +35,12 @@ import androidx.core.app.ActivityCompat
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.lifecycle.lifecycleScope
+import com.example.phms.network.NutritionRetrofit
+import com.example.phms.repository.NutritionRepository
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -58,6 +64,19 @@ class MainActivity : FragmentActivity() {
                     arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                     100
                 )
+            }
+        }
+
+        NutritionRepository.init(this)
+        Log.d("FDC-KEY", BuildConfig.FDC_API_KEY)
+
+        lifecycleScope.launch {
+            try {
+                val foods = NutritionRetrofit.service.searchFoods("apple").foods
+                Log.d("FDC-TEST", "Hits = ${foods.size}")
+                foods.firstOrNull()?.let { Log.d("FDC-TEST", "First hit = ${it.description}") }
+            } catch (e: Exception) {
+                Log.e("FDC-TEST", "API call failed", e)
             }
         }
 
