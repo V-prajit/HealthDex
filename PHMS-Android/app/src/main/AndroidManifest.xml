@@ -27,7 +27,7 @@
         tools:targetApi="31"
         >
         <activity
-            android:name=".MainActivity"
+            android:name=".util.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.PHMS">
@@ -47,7 +47,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <receiver android:name=".AppointmentReminderReceiver"
+        <receiver android:name=".receiver.AppointmentReminderReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -55,7 +55,7 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".MedicationReminderReceiver"
+        <receiver android:name=".receiver.MedicationReminderReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
