@@ -1,46 +1,67 @@
 package com.example.phms
 
+import android.Manifest
+import android.content.Context.MODE_PRIVATE
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.core.os.LocaleListCompat
-import com.example.phms.ui.theme.PHMSTheme
-import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.ui.platform.LocalContext
-import android.content.Context.MODE_PRIVATE
-import androidx.compose.runtime.Composable as Composable1
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableIntStateOf
-import android.os.Build
-import androidx.core.content.ContextCompat
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.os.LocaleListCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.phms.Screens.DashboardScreen
 import com.example.phms.Screens.ForgotPasswordScreen
 import com.example.phms.Screens.SettingScreen
 import com.example.phms.network.NutritionRetrofit
 import com.example.phms.repository.NutritionRepository
+import com.example.phms.ui.theme.PHMSTheme
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.Composable as Composable1
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -342,8 +363,23 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Column(modifier = Modifier.padding(start = 16.dp).fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+            Text(
+                text = "Password requirements:",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "- At least 6 characters",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
-        // Security Question Dropdown
+
         ExposedDropdownMenuBox(
             expanded = expanded.value,
             onExpandedChange = { expanded.value = it }
