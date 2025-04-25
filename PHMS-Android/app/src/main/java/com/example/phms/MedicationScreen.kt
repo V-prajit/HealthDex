@@ -1,5 +1,6 @@
 package com.example.phms
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -125,8 +126,10 @@ fun MedicationsScreen(
                 userId = userToken ?: return@Scaffold,
                 onSave = { m ->
                     if (dialogInitial == null) {
+                        Log.d("MedicationScreen", "Adding medication: ${m.name}, time: ${m.time}")
                         MedicationRepository.add(m) { saved ->
                             saved?.let {
+                                Log.d("MedicationScreen", "Saved medication: ${it.name}, time: ${it.time}")
                                 meds = listOf(it) + meds
 
                                 // Add this code for notification scheduling
@@ -136,8 +139,10 @@ fun MedicationsScreen(
                             showDialog = false
                         }
                     } else {
+                        Log.d("MedicationScreen", "Updating medication: ${m.name}, time: ${m.time}")
                         MedicationRepository.update(m) { success ->
                             if (success) {
+                                Log.d("MedicationScreen", "Updated medication successfully")
                                 meds = meds.map { if (it.id == m.id) m else it }
 
                                 // Add this code for notification updating

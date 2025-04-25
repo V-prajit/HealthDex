@@ -21,7 +21,7 @@ class MedicationAlarmManager(private val context: Context) {
      * Schedules notifications for a medication based on its frequency and time settings
      */
     fun scheduleMedicationReminders(medication: Medication) {
-        Log.d(TAG, "Scheduling reminders for medication: ${medication.name}")
+        Log.d(TAG, "Scheduling reminders for medication: ${medication.name}, time: ${medication.time}")
 
         // First cancel any existing reminders for this medication
         cancelMedicationReminders(medication)
@@ -31,11 +31,11 @@ class MedicationAlarmManager(private val context: Context) {
         try {
             // Parse frequency (times per day)
             val frequency = medication.frequency.toIntOrNull() ?: 1
+            Log.d(TAG, "Medication frequency: $frequency")
 
             // We need to parse the times list from the medication
-            // In MedicationDialog.kt, timeList is used to store times
-            // Let's assume the times are stored in the format "HH:MM"
             val timeList = parseMedicationTimes(medication)
+            Log.d(TAG, "Parsed times: $timeList")
 
             if (timeList.isEmpty()) {
                 Log.w(TAG, "No valid times found for medication ${medication.name}")
@@ -54,6 +54,7 @@ class MedicationAlarmManager(private val context: Context) {
 
                 val hour = timeParts[0].toIntOrNull() ?: continue
                 val minute = timeParts[1].toIntOrNull() ?: continue
+                Log.d(TAG, "Scheduling for time: $hour:$minute")
 
                 // Schedule daily repeating notification at this time
                 scheduleRepeatingNotification(medication, hour, minute, index)
