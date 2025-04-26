@@ -1,18 +1,29 @@
 package com.example.phms.Screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Note
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.phms.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,109 +36,142 @@ fun DashboardScreen(
 ) {
     var selectedTab by remember { mutableStateOf(initialSelectedTab) }
     var newNoteRequested by remember { mutableStateOf(false) }
-    var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
+    var showSearchScreen by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ) {
+                // --- Home Item ---
                 NavigationBarItem(
                     selected = selectedTab == "home",
-                    onClick = {
-                        selectedTab = "home"
-                    },
+                    onClick = { selectedTab = "home" },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text(stringResource(R.string.home)) }
+                    label = {
+                        Text(
+                            stringResource(R.string.home),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1, // Prevent wrapping explicitly
+                            overflow = TextOverflow.Ellipsis // Add ellipsis if it still overflows
+                        )
+                    }
                 )
+                // --- Appointments Item ---
                 NavigationBarItem(
                     selected = selectedTab == "appointments",
                     onClick = { selectedTab = "appointments" },
                     icon = { Icon(Icons.Default.EventNote, contentDescription = "Appointments") },
-                    label = { Text(stringResource(R.string.appointments)) }
+                    label = {
+                        Text(
+                            stringResource(R.string.appointments),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Notes Item ---
                 NavigationBarItem(
                     selected = selectedTab == "notes",
-                    onClick  = {
-                        selectedTab = "notes"
-                        newNoteRequested = false
-                    },
+                    onClick = { selectedTab = "notes"; newNoteRequested = false },
                     icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
-                    label = { Text(stringResource(R.string.notes)) }
+                    label = {
+                        Text(
+                            stringResource(R.string.notes),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Chat Item ---
                 NavigationBarItem(
                     selected = selectedTab == "chat",
-                    onClick  = { selectedTab = "chat" },
-                    icon     = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
-                    label    = { Text(stringResource(R.string.chat)) }
+                    onClick = { selectedTab = "chat" },
+                    icon = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
+                    label = {
+                        Text(
+                            stringResource(R.string.chat),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Vitals Item ---
                 NavigationBarItem(
                     selected = selectedTab == "vitals",
-                    onClick  = { selectedTab = "vitals" },
-                    icon     = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
-                    label    = { Text(stringResource(R.string.vitals)) }
+                    onClick = { selectedTab = "vitals" },
+                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
+                    label = {
+                        Text(
+                            stringResource(R.string.vitals),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Medications Item ---
                 NavigationBarItem(
                     selected = selectedTab == "medications",
-                    onClick  = { selectedTab = "medications" },
-                    icon     = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
-                    label    = { Text("Meds") }
+                    onClick = { selectedTab = "medications" },
+                    icon = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
+                    label = {
+                        Text(
+                            "Meds", // Keep short label
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Diet Item ---
                 NavigationBarItem(
                     selected = selectedTab == "diet",
                     onClick = { selectedTab = "diet" },
                     icon = { Icon(Icons.Default.Restaurant, contentDescription = "Diet") },
-                    label = { Text("Diet") }
+                    label = {
+                        Text(
+                            "Diet", // Keep short label
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
             }
         }
     ) { innerPadding ->
+        // Existing when(selectedTab) block...
         when (selectedTab) {
             "home" -> {
-                Log.d("DashboardScreen", "Showing HomeScreen")
                 if (showSearchScreen) {
                     SearchScreen(
                         userToken   = userToken,
                         onClose     = { showSearchScreen = false },
-                        onBackClick = { showSearchScreen = false },
-                        onNavigateToNotes = {
-                            selectedTab = "notes"
-                            newNoteRequested = false
-                        },
-                        onNavigateToVitals = {
-                            selectedTab = "vitals"
-                        },
-                        onNavigateToAppointments = {
-                            selectedTab = "appointments"
-                        },
+                        onBackClick = { showSearchScreen = false }, // Added back click handler
+                        onNavigateToNotes = { selectedTab = "notes"; newNoteRequested = false },
+                        onNavigateToVitals = { selectedTab = "vitals" },
+                        onNavigateToAppointments = { selectedTab = "appointments" },
                         onNavigateToMedications = { selectedTab = "medications" }
                     )
-                }
-                else {
+                } else {
                     HomeScreen(
                         firstName          = firstName,
-                        onSettingsClick    = {
-                            Log.d("DashboardScreen", "HomeScreen settings clicked")
-                            onSettingsClick("home")
-                        },
-                        // when Add Note is tapped on Home, go to Notes *and* open editor
-                        onNavigateToNotes  = {
-                            selectedTab = "notes"
-                            newNoteRequested = true
-                        },
-                        onNavigateToVitals = {
-                            selectedTab = "vitals"
-                        },
-                        onNavigateToAppointments = {
-                          selectedTab = "appointments"
-                        },
+                        onSettingsClick    = { onSettingsClick("home") },
+                        onNavigateToNotes  = { selectedTab = "notes"; newNoteRequested = true },
+                        onNavigateToVitals = { selectedTab = "vitals" },
+                        onNavigateToAppointments = { selectedTab = "appointments" },
                         onNavigateToMedications = { selectedTab = "medications" },
                         onNavigateToSearch = { showSearchScreen = true }
                     )
                 }
             }
-
             "appointments" -> {
                 var showDoctorsScreen by remember { mutableStateOf(false) }
-
                 if (showDoctorsScreen) {
                     DoctorsScreen(
                         userId = userToken,
@@ -142,41 +186,31 @@ fun DashboardScreen(
                     )
                 }
             }
-
             "notes" -> {
-                Log.d("DashboardScreen", "Showing NotesScreen")
-                NotesScreen(
-                    userToken       = userToken,
+                NotesScreen( // Call NotesFullApp wrapper
+                    userToken        = userToken,
                     modifier        = Modifier.padding(innerPadding),
-                    onSettingsClick = {
-                        Log.d("DashboardScreen", "NotesScreen settings clicked")
-                        onSettingsClick("notes")
-                    },
+                    onSettingsClick  = { onSettingsClick("notes") },
                     onBackClick = { selectedTab = "home" },
-                    newNoteRequested= newNoteRequested
+                    newNoteRequested = newNoteRequested
                 )
             }
-
             "chat" -> {
-                Log.d("DashboardScreen", "Showing ChatScreen")
                 ChatScreen(
-                    onBackClick = {
-                        Log.d("DashboardScreen", "Chat back clicked")
-                        selectedTab = "home"
-                    },
+                    onBackClick = { selectedTab = "home" },
                     onSettingsClick = { onSettingsClick("chat") }
                 )
             }
-
             "vitals" -> VitalSignsScreen(
                 userId      = userToken,
                 onBackClick = { selectedTab = "home" },
                 onSettingsClick = { onSettingsClick("vitals") }
             )
-            "medications" -> MedicationsScreen(
+            "medications" -> PokemonMedicationsScreen( // Call the themed screen
                 userToken = userToken,
                 modifier = Modifier.padding(innerPadding),
-                onBack = { selectedTab = "home" }
+                onBack = { selectedTab = "home" },
+                onSettingsClick = { onSettingsClick("medications") }
             )
             "diet" -> DietScreen(
                 userId = userToken,
@@ -186,6 +220,7 @@ fun DashboardScreen(
         }
     }
 }
+
 
 @Composable
 fun NotesScreen(
