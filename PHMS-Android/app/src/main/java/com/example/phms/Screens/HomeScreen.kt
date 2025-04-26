@@ -92,6 +92,10 @@ fun HomeScreen(
         mutableStateOf(if (motivationalQuotes.isNotEmpty()) motivationalQuotes.random() else "")
     }
 
+    // Log the received firstName
+    Log.d("HomeScreen", "Composing HomeScreen with firstName: $firstName")
+
+
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         prefs.getString("LAST_USER_UID", null)?.let { uid ->
@@ -112,7 +116,10 @@ fun HomeScreen(
         in 12..16 -> stringResource(R.string.good_afternoon)
         else      -> stringResource(R.string.good_evening)
     }
-    val greetingText = greetingBaseText + (firstName?.let { ", $it" } ?: "")
+    val greetingText = greetingBaseText + (firstName?.takeIf { it.isNotBlank() }?.let { ", $it" } ?: "") // Added isNotBlank check
+
+    Log.d("HomeScreen", "Calculated greetingText: $greetingText")
+
 
     val imageUrl = when (hour) {
         in 6..11  -> "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80"
@@ -124,10 +131,12 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top
     ) {
+         Spacer(modifier = Modifier.height(16.dp))
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -185,7 +194,7 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(16f / 9f)
+                .height(160.dp)
                 .clip(RoundedCornerShape(12.dp))
         ) {
             Image(
@@ -199,17 +208,16 @@ fun HomeScreen(
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                            startY = 300f
+                            colors = listOf(Color.Black.copy(alpha = 0.5f), Color.Transparent)
                         )
                     )
                     .padding(16.dp),
                 contentAlignment = Alignment.BottomStart
             ) {
                 Text(
-                    text = greetingText,
+                    text = greetingText, // Uses calculated text
                     color = Color.White,
-                    style = MaterialTheme.typography.headlineMedium
+                    style = MaterialTheme.typography.headlineLarge
                 )
             }
         }
