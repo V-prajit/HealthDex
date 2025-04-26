@@ -161,7 +161,10 @@ fun DashboardScreen(
                         onNavigateToVitals = { selectedTab = "vitals" },
                         onNavigateToAppointments = { selectedTab = "appointments" },
                         onNavigateToMedications = { selectedTab = "medications" },
-                        onNavigateToSearch = { showSearchScreen = true }
+                        onNavigateToSearch = { showSearchScreen = true },
+                        onNavigateToChatbot = { selectedTab = "chat" },
+                        onNavigateToDiet = { selectedTab = "diet" },
+                        onNavigateToDoctors = { selectedTab = "doctors" }
                     )
                 }
             }
@@ -214,6 +217,12 @@ fun DashboardScreen(
                 onBackClick = { selectedTab = "home" },
                 onSettingsClick = { onSettingsClick("diet") }
             )
+            "doctors" -> {
+                 DoctorsScreen(
+                    userId = userToken,
+                    onBackClick = { selectedTab = "home" }
+                 )
+            }
         }
     }
 }
@@ -227,6 +236,7 @@ fun NotesScreen(
     onBackClick: () -> Unit = {},
     newNoteRequested: Boolean = false
 ) {
+
     Box(modifier = modifier){
         NotesFullApp(
             userToken        = userToken,
