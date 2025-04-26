@@ -16,72 +16,71 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Apply Pokémon Light Theme Colors
-private val LightColorScheme = lightColorScheme(
-    primary = pokeBlue,
-    onPrimary = pokeOnPrimary,
-    primaryContainer = pokeLightBlue, // Or another light variant
-    onPrimaryContainer = Color.Black,
+// Update your theme's color scheme
+private val RetroLightColorScheme = lightColorScheme(
+    primary = retroPrimary,
+    onPrimary = retroOnPrimary,
+    primaryContainer = retroPrimaryLight,
+    onPrimaryContainer = retroOnPrimary,
 
-    secondary = pokeYellow,
-    onSecondary = pokeOnSecondary,
-    secondaryContainer = pokeLightYellow,
-    onSecondaryContainer = Color.Black, // Or a dark yellow/brown
+    secondary = retroSecondary,
+    onSecondary = retroOnSecondary,
+    secondaryContainer = retroSecondaryLight,
+    onSecondaryContainer = retroOnSecondary,
 
-    tertiary = pokeRed,
-    onTertiary = pokeOnPrimary,
-    tertiaryContainer = Color(0xFFFFCDD2), // Light red variant
-    onTertiaryContainer = Color.Black,
+    tertiary = retroAccent,
+    onTertiary = retroOnPrimary,
+    tertiaryContainer = retroAccent.copy(alpha = 0.7f),
+    onTertiaryContainer = retroOnPrimary,
 
-    background = pokeBackgroundLight,
-    onBackground = Color.Black,
-    surface = pokeSurfaceLight,
-    onSurface = Color.Black,
-    surfaceVariant = Color(0xFFE0E0E0), // Slightly darker gray variant
-    onSurfaceVariant = Color.Black,
+    background = retroBgLight,
+    onBackground = retroOnBgLight,
+    surface = retroSurfaceLight,
+    onSurface = retroOnBgLight,
+    surfaceVariant = Color(0xFFEEEEEE),
+    onSurfaceVariant = retroOnBgLight,
 
-    error = pokeRed, // Use pokeRed for error
-    onError = pokeOnError,
-    errorContainer = Color(0xFFFFCDD2),
-    onErrorContainer = Color.Black
+    error = retroError,
+    onError = retroOnPrimary,
+    errorContainer = retroError.copy(alpha = 0.7f),
+    onErrorContainer = retroOnPrimary
 )
 
-// Apply Pokémon Dark Theme Colors
-private val DarkColorScheme = darkColorScheme(
-    primary = pokeBlue, // Keep blue primary, maybe slightly lighter?
-    onPrimary = pokeOnPrimary,
-    primaryContainer = pokeDarkBlue,
-    onPrimaryContainer = Color.White,
+// Define Retro Dark Theme Colors
+private val RetroDarkColorScheme = darkColorScheme(
+    primary = retroPrimaryLight,
+    onPrimary = retroOnBgDark,
+    primaryContainer = retroPrimaryDark,
+    onPrimaryContainer = retroOnPrimary,
 
-    secondary = pokeYellow, // Keep yellow secondary
-    onSecondary = pokeOnSecondary,
-    secondaryContainer = Color(0xFF4D4100), // Dark yellow/brown
-    onSecondaryContainer = pokeLightYellow,
+    secondary = retroSecondary,
+    onSecondary = retroOnBgDark,
+    secondaryContainer = retroSecondaryDark,
+    onSecondaryContainer = retroOnPrimary,
 
-    tertiary = pokeRed, // Keep red tertiary
-    onTertiary = pokeOnPrimary,
-    tertiaryContainer = Color(0xFF8B0000), // Dark red
-    onTertiaryContainer = Color(0xFFFFCDD2),
+    tertiary = retroAccent,
+    onTertiary = retroOnBgDark,
+    tertiaryContainer = retroAccent.copy(alpha = 0.5f),
+    onTertiaryContainer = retroOnPrimary,
 
-    background = pokeBackgroundDark,
-    onBackground = Color.White,
-    surface = pokeSurfaceDark,
-    onSurface = Color.White,
-    surfaceVariant = Color(0xFF424242), // Darker gray variant
-    onSurfaceVariant = Color(0xFFCACACA),
+    background = retroBgDark,
+    onBackground = retroOnBgDark,
+    surface = retroSurfaceDark,
+    onSurface = retroOnBgDark,
+    surfaceVariant = Color(0xFF3E3E60),
+    onSurfaceVariant = retroOnBgDark,
 
-    error = Color(0xFFFFB4AB), // Lighter red for dark theme errors
-    onError = Color(0xFF690005),
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFB4AB)
+    error = retroError,
+    onError = retroOnPrimary,
+    errorContainer = retroError.copy(alpha = 0.7f),
+    onErrorContainer = retroOnPrimary
 )
-
 
 @Composable
 fun PHMSTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false, // Keep dynamic color off to use Pokemon theme
+    dynamicColor: Boolean = false, // Keep dynamic color off to use Retro theme
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -89,19 +88,19 @@ fun PHMSTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        // Apply Pokemon themes based on darkTheme flag
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        // Apply Retro themes based on darkTheme flag
+        darkTheme -> RetroDarkColorScheme
+        else -> RetroLightColorScheme
     }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Set status bar to match the primary container or a specific theme color
-            window.statusBarColor = colorScheme.primaryContainer.toArgb() // Or pokeBlue.toArgb() etc.
+            // Set status bar to match the primary container or background
+            window.statusBarColor = colorScheme.primaryContainer.toArgb()
             // Set navigation bar to match background or surface variant
-            window.navigationBarColor = colorScheme.surfaceVariant.toArgb() // Match bottom bar suggestion
+            window.navigationBarColor = colorScheme.background.toArgb() // Match background
 
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
             // Set navigation bar icons light/dark based on theme
@@ -111,8 +110,8 @@ fun PHMSTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
+        typography = Typography, // Keep existing Typography or adjust if needed
+        shapes = Shapes,       // Keep existing Shapes (currently 0dp rounding)
         content = content
     )
 }

@@ -51,7 +51,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -66,11 +65,6 @@ import com.example.phms.ChatApiService
 import com.example.phms.ChatMessage
 import com.example.phms.R
 import com.example.phms.ui.theme.PokemonClassicFontFamily
-import com.example.phms.ui.theme.pokeChatAssistantBg
-import com.example.phms.ui.theme.pokeChatBorderColor
-import com.example.phms.ui.theme.pokeChatTextColor
-import com.example.phms.ui.theme.pokeChatUserBg
-import com.example.phms.ui.theme.pokeYellow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -216,9 +210,9 @@ fun ChatScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             shadowElevation = 0.dp,
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(0.dp),
             color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(2.dp, pokeChatBorderColor)
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
         ) {
             Row(
                 modifier = Modifier
@@ -249,14 +243,14 @@ fun ChatScreen(
                         }
                     }),
                     maxLines = 4,
-                    shape = RoundedCornerShape(6.dp),
+                    shape = RoundedCornerShape(0.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = pokeChatTextColor,
-                        unfocusedTextColor = pokeChatTextColor,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
-                        focusedBorderColor = pokeChatBorderColor,
-                        unfocusedBorderColor = pokeChatBorderColor.copy(alpha = 0.7f),
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface, // Use theme text color
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface, // Use theme surface
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary, // Use theme primary
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline, // Use theme outline
                         cursorColor = MaterialTheme.colorScheme.primary
                     ),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = PokemonClassicFontFamily)
@@ -281,9 +275,9 @@ fun ChatScreen(
                         }
                     },
                     modifier = Modifier.size(48.dp),
-                    containerColor = pokeYellow,
-                    contentColor = Color.Black,
-                    shape = RoundedCornerShape(6.dp),
+                    containerColor = MaterialTheme.colorScheme.secondary, // Use theme secondary
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                    shape = RoundedCornerShape(0.dp),
                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
                 ) {
                     Icon(
@@ -301,9 +295,11 @@ fun ChatScreen(
 @Composable
 fun PokemonChatMessageItem(message: ChatMessage) {
     val isUserMessage = message.role == "user"
-    val bubbleColor = if (isUserMessage) pokeChatUserBg else pokeChatAssistantBg
+    val bubbleColor = if (isUserMessage) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val textColor = if (isUserMessage) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+    val borderColor = MaterialTheme.colorScheme.primary
     val alignment = if (isUserMessage) Alignment.CenterEnd else Alignment.CenterStart
-    val bubbleShape = RoundedCornerShape(8.dp)
+    val bubbleShape = RoundedCornerShape(0.dp)
 
     Box(
         modifier = Modifier
@@ -317,7 +313,7 @@ fun PokemonChatMessageItem(message: ChatMessage) {
         Surface(
             shape = bubbleShape,
             color = bubbleColor,
-            border = BorderStroke(2.dp, pokeChatBorderColor),
+            border = BorderStroke(2.dp, borderColor),
             modifier = Modifier.padding(vertical = 4.dp)
         ) {
             Text(
@@ -325,7 +321,7 @@ fun PokemonChatMessageItem(message: ChatMessage) {
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 fontFamily = PokemonClassicFontFamily,
                 fontSize = 14.sp,
-                color = pokeChatTextColor
+                color = textColor
             )
             // Note: The speech bubble tail from the image requires a custom drawable background (9-patch).
             // This implementation uses simple rounded rectangles.
@@ -385,15 +381,12 @@ fun FormattedText(
 
             var currentIndex = 0
 
-            // Check for numbered list
             val isNumberedList = line.trim().matches("^\\d+\\.\\s+.*$".toRegex())
 
-            // Check for bullet list
             val isBulletList = line.trim().matches("^[•*-]\\s+.*$".toRegex())
 
             var workingLine = line
 
-            // Handle bold matches
             val boldMatches = boldPattern.findAll(workingLine)
             for (match in boldMatches) {
                 val startIndex = match.range.first
@@ -408,12 +401,10 @@ fun FormattedText(
                 currentIndex = endIndex
             }
 
-            // Append the rest of the line
             if (currentIndex < workingLine.length) {
                 append(workingLine.substring(currentIndex))
             }
 
-            // Add newline except for the last line
             if (line != lines.last()) {
                 append("\n")
             }

@@ -254,7 +254,7 @@ fun DietDialog(
                         LazyColumn(
                             modifier = Modifier
                                 .heightIn(max = 200.dp) // Limit height
-                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp))
                         ) {
                             items(searchResults) { hit ->
                                 Text(

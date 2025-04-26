@@ -29,6 +29,38 @@ val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFB8EAEF)
 val OnPrimaryContainerLight = Color(0xFF001F24)
 
+// Primary colors
+val retroPrimary = Color(0xFF3F51B5)        // Deeper blue, less harsh than current retroBlue
+val retroPrimaryLight = Color(0xFF757DE8)   // Lighter variant
+val retroPrimaryDark = Color(0xFF002984)    // Darker variant for contrast
+val retroOnPrimary = Color.White            // White text on primary colors
+
+// Secondary colors
+val retroSecondary = Color(0xFFFF9800)      // Warm orange - softer than current retroOrange
+val retroSecondaryLight = Color(0xFFFFCC80) // Light orange
+val retroSecondaryDark = Color(0xFFEF6C00)  // Dark orange
+val retroOnSecondary = Color.Black          // Black text on secondary colors
+
+// Accent colors (for highlights, buttons)
+val retroAccent = Color(0xFF4CAF50)         // Green - for success states/positive actions
+val retroError = Color(0xFFE53935)          // Soft red for errors - less harsh than current retroRed
+val retroWarning = Color(0xFFFFEB3B)        // Yellow for warnings/alerts
+
+// Background and surface colors
+val retroBgLight = Color(0xFFF8F8F8)        // Very light gray with slight warmth
+val retroBgDark = Color(0xFF1E1E32)         // Deep blue-gray, easier on eyes than pure black
+val retroSurfaceLight = Color(0xFFFFFFFF)   // White
+val retroSurfaceDark = Color(0xFF2D2D44)    // Deep gray-purple
+val retroOnBgLight = Color(0xFF212121)      // Very dark gray for text
+val retroOnBgDark = Color(0xFFE0E0E0)       // Light gray for text in dark mode
+
+// Accent colors for charts and different categories
+val retroChartBlue = Color(0xFF5C6BC0)      // Softer blue
+val retroChartRed = Color(0xFFEF5350)       // Softer red
+val retroChartGreen = Color(0xFF66BB6A)     // Softer green
+val retroChartYellow = Color(0xFFFFD54F)    // Softer yellow
+val retroChartPurple = Color(0xFFAB47BC)    // Softer purple
+
 val SecondaryLight = Color(0xFFF5A742)
 val OnSecondaryLight = Color(0xFF000000)
 val SecondaryContainerLight = Color(0xFFFFDDB3)
@@ -74,11 +106,11 @@ val OnSurfaceVariantDark = Color(0xFFC0C8CD)
 
 val ErrorDark = Color(0xFFF2B8B5)
 
-val ChartRed = Color(0xFFE57373)
-val ChartBlue = Color(0xFF64B5F6)
-val ChartOrange = Color(0xFFF5A742)
-val ChartPurple = Color(0xFF9256D9)
-val ChartGridColor = Color.Gray.copy(alpha = 0.3f)
+val ChartRed = retroChartRed
+val ChartBlue = retroChartBlue
+val ChartOrange = retroChartYellow
+val ChartPurple = retroChartPurple
+val ChartGridColor = Color.Gray.copy(alpha = 0.2f)
 
 // Note Tag Colors (refined)
 val TagDiet = Color(0xFFEF5350)

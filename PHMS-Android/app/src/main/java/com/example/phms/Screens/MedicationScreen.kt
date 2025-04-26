@@ -70,11 +70,6 @@ import com.example.phms.Medication
 import com.example.phms.MedicationAlarmManager
 import com.example.phms.repository.MedicationRepository
 import com.example.phms.ui.theme.PokemonClassicFontFamily
-import com.example.phms.ui.theme.pokeBlue
-import com.example.phms.ui.theme.pokeGreen
-import com.example.phms.ui.theme.pokePurple
-import com.example.phms.ui.theme.pokeRed
-import com.example.phms.ui.theme.pokeYellow
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -222,17 +217,18 @@ fun PokemonMedicationsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(meds) { med ->
-                        val medicationColor = when (med.category.lowercase()) {
-                            "cold & flu" -> pokeGreen // Example: Green for cold/flu
-                            "pain relief" -> pokeRed // Red for pain
-                            "allergy" -> pokeYellow // Yellow for allergy
-                            "digestive" -> pokeBlue // Blue for digestive
-                            else -> pokePurple // Purple for misc
+                        val medicationThemeColors = when (med.category.lowercase()) {
+                            "cold & flu" -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+                            "pain relief" -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+                            "allergy" -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+                            "digestive" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+                            else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant // Default
                         }
 
                         PokemonMedicationCard(
                             medication = med,
-                            cardColor = medicationColor,
+                            cardColor = medicationThemeColors.first,
+                            contentColor = medicationThemeColors.second,
                             onEdit = {
                                 dialogInitial = med
                                 showDialog = true
@@ -285,15 +281,16 @@ fun PokemonMedicationsScreen(
 @Composable
 fun PokemonMedicationCard(
     medication: Medication,
-    cardColor: Color, // Keep specific card color based on category
+    cardColor: Color, // Use the determined theme color
+    contentColor: Color, // Use the determined theme content color
     onEdit: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp)) // Use theme border color
+            .clip(RoundedCornerShape(0.dp))
+            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp)) // Use theme border color
             .background(cardColor) // Use the category-specific color
             .clickable { onEdit() }
             .padding(2.dp)
@@ -307,15 +304,14 @@ fun PokemonMedicationCard(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    // Use a lighter version of the card color or a fixed light color
-                    .background(Color.White.copy(alpha = 0.6f)),
+                    .clip(RoundedCornerShape(0.dp))
+                    .background(MaterialTheme.colorScheme.surface),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.LocalPharmacy,
                     contentDescription = null,
-                    tint = Color.Black.copy(alpha = 0.8f), // Keep icon tint for visibility
+                    tint = contentColor, // Keep icon tint for visibility
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -329,7 +325,7 @@ fun PokemonMedicationCard(
                     text = medication.name.uppercase(),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black, // Ensure text is readable on cardColor
+                        color = contentColor, // Ensure text is readable on cardColor
                         fontSize = 20.sp
                     ),
                     maxLines = 1,
@@ -339,7 +335,7 @@ fun PokemonMedicationCard(
                     text = medication.category,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Normal,
-                        color = Color.Black.copy(alpha = 0.8f),
+                        color = contentColor.copy(alpha = 0.8f),
                         fontSize = 13.sp
                     ),
                     maxLines = 1,
@@ -355,14 +351,14 @@ fun PokemonMedicationCard(
                     text = medication.dosage.replace(Regex("[0-9]"), "").trim(),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black, // Ensure text is readable
+                        color = contentColor, // Ensure text is readable
                         fontSize = 20.sp
                     )
                 )
                 Text(
                     text = "x${medication.frequency}",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Black, // Ensure text is readable
+                        color = contentColor, // Ensure text is readable
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
