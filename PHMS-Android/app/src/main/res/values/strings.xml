@@ -23,10 +23,10 @@
 
     <string name="welcome">Welcome!</string>
     <string name="hello_user">Hello, %1$s!</string>
-    <string name="good_morning">Good Morning </string>
+    <string name="good_morning">Good Morning</string>
     <string name="good_afternoon">Good Afternoon</string>
     <string name="good_evening">Good Evening</string>
-    <string name="search">Search</string>
+    <string name="search">Search…</string>
 
     <string name="settings">Settings</string>
     <string name="language">Language</string>
@@ -104,7 +104,8 @@
     <string name="specify_type">Specify Vital Type</string>
     <string name="select_unit">Select Unit</string>
     <string name="specify_unit">Specify Unit</string>
-    <string name="real_time_vitals_header">Real-time Vital Signs</string> <string name="home">Home</string>
+    <string name="real_time_vitals_header">Real-time Vital Signs</string>
+    <string name="home">Home</string>
 
     <string name="forgot_password">Forgot Password</string>
     <string name="forgot_password_description">Enter your email address, and we\'ll send you a link to reset your password.</string>
@@ -152,6 +153,11 @@
     <string name="relationship">Relationship</string>
     <string name="notify_on_emergency">Notify on emergency</string>
     <string name="notify_on_vital_emergencies">Notify on vital sign emergencies</string>
+
+    <string name="chatbot">Chatbot</string>
+    <string name="health_dashboard">Health Dashboard</string>
+    <string name="diet">Diet</string>
+    <string name="quick_access">Quick Access</string>
 
     <string-array name="motivational_quotes">
         <item>Believe you can and you\'re halfway there.</item>

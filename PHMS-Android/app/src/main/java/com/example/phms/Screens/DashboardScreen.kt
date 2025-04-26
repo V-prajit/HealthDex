@@ -25,7 +25,7 @@ fun DashboardScreen(
 ) {
     var selectedTab by remember { mutableStateOf(initialSelectedTab) }
     var newNoteRequested by remember { mutableStateOf(false) }
-    var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
+    var showSearchScreen by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -35,14 +35,8 @@ fun DashboardScreen(
                     onClick = {
                         selectedTab = "home"
                     },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home)) },
                     label = { Text(stringResource(R.string.home)) }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == "appointments",
-                    onClick = { selectedTab = "appointments" },
-                    icon = { Icon(Icons.Default.EventNote, contentDescription = "Appointments") },
-                    label = { Text(stringResource(R.string.appointments)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "notes",
@@ -50,32 +44,20 @@ fun DashboardScreen(
                         selectedTab = "notes"
                         newNoteRequested = false
                     },
-                    icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
+                    icon = { Icon(Icons.Default.Note, contentDescription = stringResource(R.string.notes)) },
                     label = { Text(stringResource(R.string.notes)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "chat",
                     onClick  = { selectedTab = "chat" },
-                    icon     = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
-                    label    = { Text(stringResource(R.string.chat)) }
+                    icon     = { Icon(Icons.Default.Chat, contentDescription = stringResource(R.string.chatbot)) },
+                    label    = { Text(stringResource(R.string.chatbot)) }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "vitals",
                     onClick  = { selectedTab = "vitals" },
-                    icon     = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
+                    icon     = { Icon(Icons.Default.Favorite, contentDescription = stringResource(R.string.vitals)) },
                     label    = { Text(stringResource(R.string.vitals)) }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == "medications",
-                    onClick  = { selectedTab = "medications" },
-                    icon     = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
-                    label    = { Text("Meds") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == "diet",
-                    onClick = { selectedTab = "diet" },
-                    icon = { Icon(Icons.Default.Restaurant, contentDescription = "Diet") },
-                    label = { Text("Diet") }
                 )
             }
         }
@@ -108,7 +90,6 @@ fun DashboardScreen(
                             Log.d("DashboardScreen", "HomeScreen settings clicked")
                             onSettingsClick("home")
                         },
-                        // when Add Note is tapped on Home, go to Notes *and* open editor
                         onNavigateToNotes  = {
                             selectedTab = "notes"
                             newNoteRequested = true
@@ -117,30 +98,24 @@ fun DashboardScreen(
                             selectedTab = "vitals"
                         },
                         onNavigateToAppointments = {
-                          selectedTab = "appointments"
+                            selectedTab = "appointments"
                         },
                         onNavigateToMedications = { selectedTab = "medications" },
-                        onNavigateToSearch = { showSearchScreen = true }
+                        onNavigateToSearch = { showSearchScreen = true },
+                        onNavigateToChatbot = { selectedTab = "chat" },
+                        onNavigateToDiet = { selectedTab = "diet" },
+                        onNavigateToDoctors = { selectedTab = "doctors" }
                     )
                 }
             }
 
             "appointments" -> {
-                var showDoctorsScreen by remember { mutableStateOf(false) }
-
-                if (showDoctorsScreen) {
-                    DoctorsScreen(
-                        userId = userToken,
-                        onBackClick = { showDoctorsScreen = false }
-                    )
-                } else {
-                    AppointmentsScreen(
-                        userId = userToken,
-                        onBackClick = { selectedTab = "home" },
-                        onViewDoctors = { showDoctorsScreen = true },
-                        onSettingsClick = { onSettingsClick("appointments") }
-                    )
-                }
+                AppointmentsScreen(
+                    userId = userToken,
+                    onBackClick = { selectedTab = "home" },
+                    onViewDoctors = { selectedTab = "doctors" },
+                    onSettingsClick = { onSettingsClick("appointments") }
+                )
             }
 
             "notes" -> {
@@ -183,6 +158,12 @@ fun DashboardScreen(
                 onBackClick = { selectedTab = "home" },
                 onSettingsClick = { onSettingsClick("diet") }
             )
+            "doctors" -> {
+                 DoctorsScreen(
+                    userId = userToken,
+                    onBackClick = { selectedTab = "home" }
+                 )
+            }
         }
     }
 }
