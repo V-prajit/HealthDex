@@ -61,14 +61,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phms.Medication
 import com.example.phms.MedicationAlarmManager
 import com.example.phms.repository.MedicationRepository
+import com.example.phms.ui.theme.PokemonClassicFontFamily
 import com.example.phms.ui.theme.pokeBlue
 import com.example.phms.ui.theme.pokeGreen
 import com.example.phms.ui.theme.pokePurple
@@ -141,11 +142,10 @@ fun PokemonMedicationsScreen(
                     ) {
                         Text(
                             "Medicine Pouch",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontFamily = FontFamily.Default,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            ),
+                            fontFamily = PokemonClassicFontFamily,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 24.sp,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -174,7 +174,7 @@ fun PokemonMedicationsScreen(
                     dialogInitial = null
                     showDialog = true
                 },
-                containerColor = MaterialTheme.colorScheme.primary, // Use theme color
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .padding(bottom = 72.dp, end = 16.dp) // Adjusted padding
@@ -203,14 +203,14 @@ fun PokemonMedicationsScreen(
                         "Your medicine pouch is empty!",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground // Use theme color
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "Tap the + button to add your first medicine",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant // Use theme color
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
@@ -291,7 +291,7 @@ fun PokemonMedicationCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
+            .height(100.dp)
             .clip(RoundedCornerShape(8.dp))
             .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp)) // Use theme border color
             .background(cardColor) // Use the category-specific color
@@ -331,15 +331,19 @@ fun PokemonMedicationCard(
                         fontWeight = FontWeight.Bold,
                         color = Color.Black, // Ensure text is readable on cardColor
                         fontSize = 20.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = medication.category,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black.copy(alpha = 0.8f), // Ensure text is readable
-                        fontSize = 16.sp
-                    )
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Black.copy(alpha = 0.8f),
+                        fontSize = 13.sp
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
