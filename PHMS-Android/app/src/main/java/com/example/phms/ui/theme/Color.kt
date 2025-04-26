@@ -19,7 +19,11 @@ val pokeOnPrimary = Color.White // White text on Blue/Red
 val pokeOnSecondary = Color.Black // Black text on Yellow
 val pokeOnError = Color.White
 val pokeBorder = Color(0xFF2A5A80)
-
+val pokeChatUserBg = Color(0xFFFEF33F) // Yellow for User Bubble (from image)
+val pokeChatAssistantBg = Color(0xFFFFFEE8) // Off-white/Cream for Assistant Bubble (from image)
+val pokeChatBorderColor = Color(0xFF2A5A80) // Dark blue border (similar to image frame)
+val pokeChatScreenBg = Color(0xFFADD8E6) // Light blue background for the screen (similar to image frame)
+val pokeChatTextColor = Color.Black
 val PrimaryLight = Color(0xFF06A3B7)
 val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFB8EAEF)

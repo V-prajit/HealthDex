@@ -1,7 +1,22 @@
 package com.example.phms.Screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -12,11 +27,31 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -26,13 +61,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.unit.sp
 import com.example.phms.ChatApiService
 import com.example.phms.ChatMessage
 import com.example.phms.R
+import com.example.phms.ui.theme.PokemonClassicFontFamily
+import com.example.phms.ui.theme.pokeChatAssistantBg
+import com.example.phms.ui.theme.pokeChatBorderColor
+import com.example.phms.ui.theme.pokeChatTextColor
+import com.example.phms.ui.theme.pokeChatUserBg
+import com.example.phms.ui.theme.pokeYellow
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,11 +90,10 @@ fun ChatScreen(
 
     // Get the height of the bottom navigation bar
     val density = LocalDensity.current
-    val bottomNavHeight = with(density) { 72.dp.toPx() }
+    val bottomNavHeight = with(density) { 80.dp.toPx() }
     val bottomNavHeightDp = with(density) { bottomNavHeight.toDp() }
     val settingsLabel = stringResource(R.string.settings)
 
-    // Automatically scroll to the bottom when messages change
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
@@ -65,12 +103,20 @@ fun ChatScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .navigationBarsPadding()
             .imePadding()
     ) {
         // Top app bar
         TopAppBar(
-            title = { Text(stringResource(R.string.health_chat)) },
+            title = {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(stringResource(R.string.health_chat))
+                }
+                    },
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
                     Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -83,7 +129,14 @@ fun ChatScreen(
                         contentDescription = settingsLabel
                     )
                 }
-            }
+
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary, // e.g., pokeBlue
+                titleContentColor = MaterialTheme.colorScheme.onPrimary, // e.g., Color.White
+                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+            )
         )
 
         // Messages area
@@ -93,7 +146,6 @@ fun ChatScreen(
                 .fillMaxWidth()
         ) {
             if (messages.isEmpty()) {
-                // Welcome message when there are no messages
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -103,7 +155,8 @@ fun ChatScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.chat_welcome_title),
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -114,17 +167,16 @@ fun ChatScreen(
                     )
                 }
             } else {
-                // Chat messages
                 LazyColumn(
                     state = listState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 8.dp),
                     contentPadding = PaddingValues(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(messages) { message ->
-                        ChatMessageItem(message = message)
+                        PokemonChatMessageItem(message = message)
                     }
 
                     if (isLoading) {
@@ -159,22 +211,21 @@ fun ChatScreen(
             }
         }
 
-        // Input area
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 8.dp),
-            shadowElevation = 4.dp,
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface
+            shadowElevation = 0.dp,
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(2.dp, pokeChatBorderColor)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Text input field
                 OutlinedTextField(
                     value = messageText,
                     onValueChange = { messageText = it },
@@ -198,10 +249,17 @@ fun ChatScreen(
                         }
                     }),
                     maxLines = 4,
+                    shape = RoundedCornerShape(6.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
+                        focusedTextColor = pokeChatTextColor,
+                        unfocusedTextColor = pokeChatTextColor,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        focusedBorderColor = pokeChatBorderColor,
+                        unfocusedBorderColor = pokeChatBorderColor.copy(alpha = 0.7f),
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    ),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = PokemonClassicFontFamily)
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -223,9 +281,10 @@ fun ChatScreen(
                         }
                     },
                     modifier = Modifier.size(48.dp),
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = CircleShape
+                    containerColor = pokeYellow,
+                    contentColor = Color.Black,
+                    shape = RoundedCornerShape(6.dp),
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
                 ) {
                     Icon(
                         Icons.Default.Send,
@@ -235,8 +294,42 @@ fun ChatScreen(
             }
         }
 
-        // Space for the bottom navigation
         Spacer(modifier = Modifier.height(bottomNavHeightDp))
+    }
+}
+
+@Composable
+fun PokemonChatMessageItem(message: ChatMessage) {
+    val isUserMessage = message.role == "user"
+    val bubbleColor = if (isUserMessage) pokeChatUserBg else pokeChatAssistantBg
+    val alignment = if (isUserMessage) Alignment.CenterEnd else Alignment.CenterStart
+    val bubbleShape = RoundedCornerShape(8.dp)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = if (isUserMessage) 48.dp else 8.dp,
+                end = if (isUserMessage) 8.dp else 48.dp
+            ),
+        contentAlignment = alignment
+    ) {
+        Surface(
+            shape = bubbleShape,
+            color = bubbleColor,
+            border = BorderStroke(2.dp, pokeChatBorderColor),
+            modifier = Modifier.padding(vertical = 4.dp)
+        ) {
+            Text(
+                text = message.content,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                fontFamily = PokemonClassicFontFamily,
+                fontSize = 14.sp,
+                color = pokeChatTextColor
+            )
+            // Note: The speech bubble tail from the image requires a custom drawable background (9-patch).
+            // This implementation uses simple rounded rectangles.
+        }
     }
 }
 
@@ -272,84 +365,6 @@ private fun sendMessage(
                 updateIsLoading(false)
             }
         )
-    }
-}
-
-@Composable
-fun ChatMessageItem(message: ChatMessage) {
-    val isUserMessage = message.role == "user"
-    val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = if (isUserMessage) Arrangement.End else Arrangement.Start
-    ) {
-        if (!isUserMessage) {
-            // AI avatar for assistant messages
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "AI",
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-
-        Column(
-            horizontalAlignment = if (isUserMessage) Alignment.End else Alignment.Start
-        ) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = if (isUserMessage) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                if (isUserMessage) {
-                    // For user messages, just display the text
-                    Text(
-                        text = message.content,
-                        modifier = Modifier.padding(12.dp),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                } else {
-                    // For assistant messages, apply some basic formatting
-                    FormattedText(
-                        text = message.content,
-                        modifier = Modifier.padding(12.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Text(
-                text = dateFormat.format(Date(message.timestamp)),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
-            )
-        }
-
-        if (isUserMessage) {
-            Spacer(modifier = Modifier.width(8.dp))
-            // User avatar for user messages
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "You",
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        }
     }
 }
 
