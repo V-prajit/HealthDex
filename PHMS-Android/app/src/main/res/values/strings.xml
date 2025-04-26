@@ -38,7 +38,7 @@
     <string name="registration_failed">Error: %1$s</string>
     <string name="empty_token">Empty token</string>
 
-    <string name="biometric_authentication">Biometric Authentication</string>
+    <string name="biometric_authentication">Use Biometrics</string>
     <string name="biometric_cancelled">Biometric Authentication Cancelled. Please check again!</string>
     <string name="no_biometrics_enrolled">No biometrics enrolled. Check settings.</string>
     <string name="device_no_biometrics">Device doesn\'t support biometrics.</string>

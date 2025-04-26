@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.phms.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,66 +44,108 @@ fun DashboardScreen(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             ) {
+                // --- Home Item ---
                 NavigationBarItem(
                     selected = selectedTab == "home",
                     onClick = { selectedTab = "home" },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text(stringResource(R.string.home)) }
-                    // Customize selected/unselected colors if needed
-                    /* colors = NavigationBarItemDefaults.colors(
-                         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                         selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                         indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                     ) */
+                    label = {
+                        Text(
+                            stringResource(R.string.home),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1, // Prevent wrapping explicitly
+                            overflow = TextOverflow.Ellipsis // Add ellipsis if it still overflows
+                        )
+                    }
                 )
+                // --- Appointments Item ---
                 NavigationBarItem(
                     selected = selectedTab == "appointments",
                     onClick = { selectedTab = "appointments" },
                     icon = { Icon(Icons.Default.EventNote, contentDescription = "Appointments") },
-                    label = { Text(stringResource(R.string.appointments)) }
+                    label = {
+                        Text(
+                            stringResource(R.string.appointments),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Notes Item ---
                 NavigationBarItem(
                     selected = selectedTab == "notes",
-                    onClick  = {
-                        selectedTab = "notes"
-                        newNoteRequested = false
-                    },
+                    onClick = { selectedTab = "notes"; newNoteRequested = false },
                     icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
-                    label = { Text(stringResource(R.string.notes)) }
+                    label = {
+                        Text(
+                            stringResource(R.string.notes),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Chat Item ---
                 NavigationBarItem(
                     selected = selectedTab == "chat",
-                    onClick  = { selectedTab = "chat" },
-                    icon     = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
-                    label    = { Text(stringResource(R.string.chat)) }
+                    onClick = { selectedTab = "chat" },
+                    icon = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
+                    label = {
+                        Text(
+                            stringResource(R.string.chat),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Vitals Item ---
                 NavigationBarItem(
                     selected = selectedTab == "vitals",
-                    onClick  = { selectedTab = "vitals" },
-                    icon     = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
-                    label    = { Text(stringResource(R.string.vitals)) }
+                    onClick = { selectedTab = "vitals" },
+                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
+                    label = {
+                        Text(
+                            stringResource(R.string.vitals),
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Medications Item ---
                 NavigationBarItem(
                     selected = selectedTab == "medications",
-                    onClick = {
-                        selectedTab = "medications"
-                        // Make sure to pass onSettingsClick here if needed from Dashboard
-                        // onSettingsClick("medications") // Example if needed
-                    },
+                    onClick = { selectedTab = "medications" },
                     icon = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
-                    label = { Text("Meds") }
+                    label = {
+                        Text(
+                            "Meds", // Keep short label
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
+                // --- Diet Item ---
                 NavigationBarItem(
                     selected = selectedTab == "diet",
                     onClick = { selectedTab = "diet" },
                     icon = { Icon(Icons.Default.Restaurant, contentDescription = "Diet") },
-                    label = { Text("Diet") }
+                    label = {
+                        Text(
+                            "Diet", // Keep short label
+                            style = MaterialTheme.typography.labelSmall, // Use small label style
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 )
             }
         }
     ) { innerPadding ->
+        // Existing when(selectedTab) block...
         when (selectedTab) {
             "home" -> {
                 if (showSearchScreen) {
@@ -163,7 +206,7 @@ fun DashboardScreen(
                 onBackClick = { selectedTab = "home" },
                 onSettingsClick = { onSettingsClick("vitals") }
             )
-            "medications" -> PokemonMedicationsScreen(
+            "medications" -> PokemonMedicationsScreen( // Call the themed screen
                 userToken = userToken,
                 modifier = Modifier.padding(innerPadding),
                 onBack = { selectedTab = "home" },
@@ -177,6 +220,7 @@ fun DashboardScreen(
         }
     }
 }
+
 
 @Composable
 fun NotesScreen(

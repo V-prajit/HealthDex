@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,6 +63,8 @@ import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable as Composable1
+import androidx.compose.ui.unit.sp
+
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -595,10 +598,16 @@ fun LoginScreen(
             onClick = {
                 biometricAuth.authenticate() 
             },
-            modifier = Modifier.fillMaxWidth(0.6f) 
+            modifier = Modifier.fillMaxWidth(0.6f),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
         ) {
-            // Assuming R.string.biometric_authentication
-            Text(stringResource(R.string.biometric_authentication))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.biometric_authentication),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontSize = 13.sp
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
