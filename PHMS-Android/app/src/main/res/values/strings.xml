@@ -153,4 +153,17 @@
     <string name="notify_on_emergency">Notify on emergency</string>
     <string name="notify_on_vital_emergencies">Notify on vital sign emergencies</string>
 
+    <string-array name="motivational_quotes">
+        <item>Believe you can and you\'re halfway there.</item>
+        <item>The only bad workout is the one that didn\'t happen.</item>
+        <item>Your health is an investment, not an expense.</item>
+        <item>Small steps every day lead to big results.</item>
+        <item>Be stronger than your excuses.</item>
+        <item>Progress, not perfection.</item>
+        <item>Take care of your body. It’s the only place you have to live.</item>
+        <item>Consistency is key to achieving your health goals.</item>
+        <item>Every healthy choice counts.</item>
+        <item>Don\'t wait for tomorrow, start today.</item>
+    </string-array>
+
 </resources>
