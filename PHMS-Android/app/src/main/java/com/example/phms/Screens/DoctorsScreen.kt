@@ -240,7 +240,7 @@ fun DoctorCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEdit() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(0.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
