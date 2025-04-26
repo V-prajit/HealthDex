@@ -21,7 +21,7 @@
     <string name="submit">提交</string>
     <string name="details_saved">用户细节已成功保存 !</string>
     <string name="welcome">欢迎光临!</string>
-    <string name="hello_user">哈啰,PLACHOLDER0!</string>
+    <string name="hello_user">哈罗, ~PHMSPH0~~!</string>
     <string name="good_morning">早,早,早,早,早,早,早,早,早,早</string>
     <string name="good_afternoon">再见</string>
     <string name="good_evening">边</string>
@@ -31,8 +31,8 @@
     <string name="select_language">选择语言</string>
     <string name="cancel">取消</string>
     <string name="back">回来</string>
-    <string name="login_failed">登录失败: PLACEHOLDER_ 0</string>
-    <string name="registration_failed">错误: %1$s</string>
+    <string name="login_failed">登录失败 : (菲律宾语)</string>
+    <string name="registration_failed">错误: _PHMSPH0__</string>
     <string name="empty_token">空符号</string>
     <string name="biometric_authentication">生物计量验证</string>
     <string name="biometric_cancelled">生物测量认证已取消 。 请再次检查!</string>
@@ -59,8 +59,8 @@
     <string name="add_note">添加注释</string>
     <string name="biometric_login">生物计量登录</string>
     <string name="biometric_subtitle">使用面部识别、指纹或其他支持的生物鉴别登录</string>
-    <string name="welcome_user">欢迎: %1$s</string>
-    <string name="auth_error">认证错误: PLACEHOLDER_ 0</string>
+    <string name="welcome_user">欢迎:</string>
+    <string name="auth_error">认证错误: _PHMSH0__</string>
     <string name="logout">注销</string>
     <string name="sign_out_description">签出你的账户</string>
     <string name="health_chat">健康对话</string>
@@ -116,7 +116,7 @@
     <string name="no_doctors_yet">还没有增加医生</string>
     <string name="tap_to_add_doctor">磁带 + 添加医生</string>
     <string name="confirm_delete">确认删除</string>
-    <string name="delete_doctor_confirmation">您确定要删除 PLACEHOLDER_ 0 博士吗 ?</string>
+    <string name="delete_doctor_confirmation">您确定要删除 {PHMSH0} 博士吗 ?</string>
     <string name="ok">还好</string>
     <string name="add_appointment">添加任命</string>
     <string name="edit_appointment">编辑约会</string>
@@ -131,14 +131,27 @@
     <string name="reminders_off">提醒关闭</string>
     <string name="no_appointments">未安排任命</string>
     <string name="tap_to_add_appointment">Tap + 添加约会</string>
-    <string name="delete_appointment_confirmation">您确定要删除 %1$s 与 %3$s 的预约吗 ?</string>
+    <string name="delete_appointment_confirmation">您确定要删除在 __ PHMSPH0__ 与 __ PHMSPH2__ 上的预约吗 ?</string>
     <string name="upcoming_appointments">即将作出的任命</string>
     <string name="all_appointments">所有任用</string>
     <string name="medications">药品</string>
     <string name="edit">编辑</string>
+    <string name="next">Ưμ㼯A</string>
     <string name="emergency_contacts">紧急联系人</string>
     <string name="add_contact">添加联系人</string>
     <string name="relationship">关系</string>
     <string name="notify_on_emergency">紧急情况通知</string>
     <string name="notify_on_vital_emergencies">关于重要标志紧急情况的通知</string>
+    <string-array name="motivational_quotes">
+        <item>相信你可以,而且你已经到了一半了.</item>
+        <item>唯一不好的锻炼是没有发生.</item>
+        <item>你的健康是投资 不是开支.</item>
+        <item>每天都有小步骤导致大结果.</item>
+        <item>比你的借口更坚强.</item>
+        <item>进步,不是完美.</item>
+        <item>照顾好你的身体 这是你唯一必须住的地方.</item>
+        <item>一致性是实现健康目标的关键.</item>
+        <item>每一个健康的选择都是重要的.</item>
+        <item>别等到明天,今天开始.</item>
+    </string-array>
 </resources>

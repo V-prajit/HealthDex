@@ -21,7 +21,7 @@
     <string name="submit">Submit</string>
     <string name="details_saved">تفاصيل المستعمل نجحت!</string>
     <string name="welcome">مرحباً!</string>
-    <string name="hello_user">مرحبا، PLACEHOLDER 0!</string>
+    <string name="hello_user">مرحباً!</string>
     <string name="good_morning">صباح الخير</string>
     <string name="good_afternoon">مساء الخير</string>
     <string name="good_evening">مساء الخير</string>
@@ -31,8 +31,8 @@
     <string name="select_language">اللغة المختارة</string>
     <string name="cancel">إلغاء</string>
     <string name="back">العودة</string>
-    <string name="login_failed">Login Failed: %1$s</string>
-    <string name="registration_failed">Error: PLACEHOLDER</string>
+    <string name="login_failed">لوجين فايلد: _</string>
+    <string name="registration_failed">Error: __PHMSPH0 _</string>
     <string name="empty_token">فارغة</string>
     <string name="biometric_authentication">التوثيق البيولوجي</string>
     <string name="biometric_cancelled">تم إلغاء التوثيق البيولوجي من فضلك تحقق مرة أخرى!</string>
@@ -59,8 +59,8 @@
     <string name="add_note">ملاحظة</string>
     <string name="biometric_login">النسيج البيولوجي</string>
     <string name="biometric_subtitle">التعرف على الوجه أو البصمات أو غير ذلك من السجلات البيولوجية المدعومة</string>
-    <string name="welcome_user">مرحبا: PLACEHOLDER</string>
-    <string name="auth_error">Authentication Error: %1$s</string>
+    <string name="welcome_user">مرحباً بك</string>
+    <string name="auth_error">Authentication Error: __PHMSPH0 _</string>
     <string name="logout">Logout</string>
     <string name="sign_out_description">توقيع خارج حسابك</string>
     <string name="health_chat">سلسلة الصحة</string>
@@ -116,7 +116,7 @@
     <string name="no_doctors_yet">لم يضاف أطباء بعد</string>
     <string name="tap_to_add_doctor">Tap + لإضافة طبيب</string>
     <string name="confirm_delete">الحاشية</string>
-    <string name="delete_doctor_confirmation">هل أنت متأكد من أنك تريد حذف الدكتور PLACEHOLDER 0؟?</string>
+    <string name="delete_doctor_confirmation">هل أنت متأكد من أنك تريد حذف الدكتور __PHMSPH0 ____؟?</string>
     <string name="ok">حسناً</string>
     <string name="add_appointment">التعيين</string>
     <string name="edit_appointment">التعيين</string>
@@ -131,14 +131,27 @@
     <string name="reminders_off">الأسماء</string>
     <string name="no_appointments">No appointments scheduled</string>
     <string name="tap_to_add_appointment">Tap + to add an appointment</string>
-    <string name="delete_appointment_confirmation">هل أنت متأكد من أنك تريد حذف التعيين على PLACEHOLDER -0 في PLACEHOLDER -1 مع PLACEHOLDER -2؟?</string>
+    <string name="delete_appointment_confirmation">هل أنت متأكد من أنك تريد حذف التعيين في __PHMSPH0 _ في __PHMSPH1 _?</string>
     <string name="upcoming_appointments">التعيينات المقبلة</string>
     <string name="all_appointments">جميع التعيينات</string>
     <string name="medications">المؤشرات</string>
     <string name="edit">Edit</string>
+    <string name="next">التالي</string>
     <string name="emergency_contacts">الاتصالات في حالات الطوارئ</string>
     <string name="add_contact">الاتصال</string>
     <string name="relationship">العلاقة</string>
     <string name="notify_on_emergency">الإخطار في حالات الطوارئ</string>
     <string name="notify_on_vital_emergencies">الإخطار في حالات الطوارئ الحيوية</string>
+    <string-array name="motivational_quotes">
+        <item>صدّقْ بأنّك يُمْكِنُ أَنْ وأنت في منتصف الطريق هناك.</item>
+        <item>التمارين السيئة الوحيدة هي التي لم تحدث.</item>
+        <item>صحتك استثمار وليس نفقة.</item>
+        <item>خطوات صغيرة كل يوم تؤدي إلى نتائج كبيرة.</item>
+        <item>كن أقوى من أعذارك.</item>
+        <item>التقدم، وليس الكمال.</item>
+        <item>اعتني بجسدك إنه المكان الوحيد الذي يجب أن تعيش فيه.</item>
+        <item>الاتساق هو مفتاح تحقيق أهدافك الصحية.</item>
+        <item>كل خيار صحي يحسب.</item>
+        <item>لا تنتظري غداً، ابدأي اليوم.</item>
+    </string-array>
 </resources>

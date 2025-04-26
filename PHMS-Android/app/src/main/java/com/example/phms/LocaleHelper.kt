@@ -2,14 +2,12 @@ package com.example.phms
 
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import java.util.Locale
-import android.content.res.Resources
-import android.util.Log
-import java.lang.reflect.Field
-import android.view.View
 
 object LocaleHelper {
     val supportedLanguages = listOf(
@@ -27,7 +25,6 @@ object LocaleHelper {
         SupportedLanguage("ko", "한국어"), // Korean
         SupportedLanguage("pt", "Português"), // Portuguese
         SupportedLanguage("ru", "Русский"), // Russian
-        SupportedLanguage("sw", "Kiswahili"), // Swahili
         SupportedLanguage("ur", "اردو") // Urdu
     )
 

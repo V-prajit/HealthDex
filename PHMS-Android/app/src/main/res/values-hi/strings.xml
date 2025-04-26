@@ -31,8 +31,8 @@
     <string name="select_language">भाषा चुनें</string>
     <string name="cancel">रद्द करना</string>
     <string name="back">वापस</string>
-    <string name="login_failed">लॉग इन करें: %1$s</string>
-    <string name="registration_failed">त्रुटि: %1$s</string>
+    <string name="login_failed">लॉग इन करें العربية 中文(简体) हिन्दी Indonesia</string>
+    <string name="registration_failed">त्रुटि: %1$s_</string>
     <string name="empty_token">खाली टोकन</string>
     <string name="biometric_authentication">बॉयोमीट्रिक प्रमाणीकरण</string>
     <string name="biometric_cancelled">बॉयोमीट्रिक प्रमाणीकरण रद्द कर दिया। फिर से जाँच करें!</string>
@@ -59,8 +59,8 @@
     <string name="add_note">नोट जोड़ें</string>
     <string name="biometric_login">बॉयोमीट्रिक लॉगिन</string>
     <string name="biometric_subtitle">चेहरे की पहचान, फिंगरप्रिंट या अन्य समर्थित बॉयोमीट्रिक लॉगिन का उपयोग करें</string>
-    <string name="welcome_user">आपका स्वागत है: %1$s</string>
-    <string name="auth_error">प्रमाणीकरण त्रुटि: %1$s</string>
+    <string name="welcome_user">आपका स्वागत है:</string>
+    <string name="auth_error">प्रमाणीकरण त्रुटि:</string>
     <string name="logout">लॉग इन</string>
     <string name="sign_out_description">अपने खाते से साइन आउट करें</string>
     <string name="health_chat">स्वास्थ्य चैट</string>
@@ -116,7 +116,7 @@
     <string name="no_doctors_yet">अभी तक कोई डॉक्टर नहीं मिला</string>
     <string name="tap_to_add_doctor">एक डॉक्टर को जोड़ने के लिए + टैप करें</string>
     <string name="confirm_delete">डिलीट</string>
-    <string name="delete_doctor_confirmation">क्या आप डॉ. %1$s को हटाना चाहते हैं?</string>
+    <string name="delete_doctor_confirmation">क्या आपको यकीन है कि आप डॉ. %1$s को हटाना चाहते हैं?</string>
     <string name="ok">ठीक</string>
     <string name="add_appointment">नियुक्ति जोड़ें</string>
     <string name="edit_appointment">नियुक्ति संपादित करें</string>
@@ -131,14 +131,27 @@
     <string name="reminders_off">अनुस्मारक बंद</string>
     <string name="no_appointments">निर्धारित कोई नियुक्ति नहीं</string>
     <string name="tap_to_add_appointment">नियुक्ति करने के लिए + टैप करें</string>
-    <string name="delete_appointment_confirmation">क्या आपको यकीन है कि आप %2$s पर %3$s के साथ नियुक्ति को हटाना चाहते हैं?</string>
+    <string name="delete_appointment_confirmation">क्या आपको यकीन है कि आप %2$s_____________________________________________________________________?</string>
     <string name="upcoming_appointments">आगामी नियुक्ति</string>
     <string name="all_appointments">सभी नियुक्ति</string>
     <string name="medications">दवा</string>
     <string name="edit">संपादित करें</string>
+    <string name="next">अगला</string>
     <string name="emergency_contacts">आपातकालीन संपर्क</string>
     <string name="add_contact">संपर्क जोड़ें</string>
     <string name="relationship">संबंध</string>
     <string name="notify_on_emergency">आपातकालीन सूचना</string>
     <string name="notify_on_vital_emergencies">महत्वपूर्ण संकेत आपात स्थिति पर सूचित करें</string>
+    <string-array name="motivational_quotes">
+        <item>आप मान सकते हैं और आप यहाँ आधे रास्ते हैं।.</item>
+        <item>केवल बुरा कसरत वह है जो नहीं हुआ था।.</item>
+        <item>आपका स्वास्थ्य एक निवेश है, खर्च नहीं है।.</item>
+        <item>हर दिन छोटे कदम बड़े परिणाम के लिए नेतृत्व करते हैं।.</item>
+        <item>अपने बहाने से अधिक मजबूत रहें।.</item>
+        <item>प्रगति, पूर्णता नहीं।.</item>
+        <item>अपने शरीर की देखभाल करें। यह एकमात्र ऐसा स्थान है जिसे आप जीना चाहते हैं।.</item>
+        <item>संगतता अपने स्वास्थ्य लक्ष्यों को प्राप्त करने के लिए महत्वपूर्ण है।.</item>
+        <item>प्रत्येक स्वस्थ विकल्प गिनती।.</item>
+        <item>आज के लिए इंतजार नहीं करना चाहिए।.</item>
+    </string-array>
 </resources>

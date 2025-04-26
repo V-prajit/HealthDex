@@ -21,7 +21,7 @@
     <string name="submit">Soumettre</string>
     <string name="details_saved">Détails utilisateur sauvegardés avec succès !</string>
     <string name="welcome">Bienvenue !</string>
-    <string name="hello_user">Bonjour, %1$s!</string>
+    <string name="hello_user">Bonjour!</string>
     <string name="good_morning">Bonjour</string>
     <string name="good_afternoon">Bonjour</string>
     <string name="good_evening">Bonne soirée</string>
@@ -32,7 +32,7 @@
     <string name="cancel">Annuler</string>
     <string name="back">Précédent</string>
     <string name="login_failed">La connexion a échoué : %1$s</string>
-    <string name="registration_failed">Erreur : %1$s</string>
+    <string name="registration_failed">Erreur : _PHMSPH0__</string>
     <string name="empty_token">Jeton vide</string>
     <string name="biometric_authentication">Authentification biométrique</string>
     <string name="biometric_cancelled">Authentification biométrique annulée. Vérifiez encore !</string>
@@ -59,7 +59,7 @@
     <string name="add_note">Ajouter une note</string>
     <string name="biometric_login">Connexion biométrique</string>
     <string name="biometric_subtitle">Utiliser la reconnaissance faciale, les empreintes digitales ou toute autre connexion biométrique prise en charge</string>
-    <string name="welcome_user">Bienvenue : %1$s</string>
+    <string name="welcome_user">Bienvenue : _PHMSPH0__</string>
     <string name="auth_error">Erreur d\'authentification : %1$s</string>
     <string name="logout">Déconnexion</string>
     <string name="sign_out_description">Déconnexion de votre compte</string>
@@ -116,7 +116,7 @@
     <string name="no_doctors_yet">Pas encore de médecins</string>
     <string name="tap_to_add_doctor">Appuyez sur + pour ajouter un médecin</string>
     <string name="confirm_delete">Confirmer Supprimer</string>
-    <string name="delete_doctor_confirmation">Voulez-vous vraiment supprimer le Dr %1$s ?</string>
+    <string name="delete_doctor_confirmation">Voulez-vous vraiment supprimer Dr. %1$s?</string>
     <string name="ok">TRÈS BIEN</string>
     <string name="add_appointment">Ajouter un rendez-vous</string>
     <string name="edit_appointment">Modifier le rendez-vous</string>
@@ -131,14 +131,27 @@
     <string name="reminders_off">Rappels éteints</string>
     <string name="no_appointments">Aucun rendez-vous prévu</string>
     <string name="tap_to_add_appointment">Appuyez sur + pour ajouter un rendez-vous</string>
-    <string name="delete_appointment_confirmation">Voulez-vous vraiment supprimer le rendez-vous sur %1$s à %2$s avec %3$s ?</string>
+    <string name="delete_appointment_confirmation">Voulez-vous vraiment supprimer le rendez-vous sur %1$s à %2$s avec %3$s?</string>
     <string name="upcoming_appointments">Nominations à venir</string>
     <string name="all_appointments">Toutes les nominations</string>
     <string name="medications">Médicaments</string>
     <string name="edit">Modifier</string>
+    <string name="next">Suivant</string>
     <string name="emergency_contacts">Contacts d\'urgence</string>
     <string name="add_contact">Ajouter un contact</string>
     <string name="relationship">Relation</string>
     <string name="notify_on_emergency">Avis d\'urgence</string>
     <string name="notify_on_vital_emergencies">Avis d\'urgence en matière de signes vitaux</string>
+    <string-array name="motivational_quotes">
+        <item>Croyez que vous pouvez et que vous êtes à mi-chemin.</item>
+        <item>Le seul mauvais entraînement est celui qui n\'est pas arrivé.</item>
+        <item>Votre santé est un investissement, pas une dépense.</item>
+        <item>De petites étapes chaque jour mènent à de grands résultats.</item>
+        <item>Sois plus fort que tes excuses.</item>
+        <item>Progrès, pas perfection.</item>
+        <item>Prends soin de ton corps. C\'est le seul endroit où vous devez vivre.</item>
+        <item>La cohérence est essentielle pour atteindre vos objectifs en matière de santé.</item>
+        <item>Chaque choix sain compte.</item>
+        <item>N\'attendez pas demain, commencez aujourd\'hui.</item>
+    </string-array>
 </resources>

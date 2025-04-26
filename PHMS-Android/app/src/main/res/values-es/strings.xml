@@ -21,7 +21,7 @@
     <string name="submit">Submit</string>
     <string name="details_saved">Detalles de usuario guardados con éxito!</string>
     <string name="welcome">¡Bienvenido!</string>
-    <string name="hello_user">¡Hola, %1$s!</string>
+    <string name="hello_user">Hola!</string>
     <string name="good_morning">Buenos días</string>
     <string name="good_afternoon">Buenas tardes</string>
     <string name="good_evening">Buenas noches</string>
@@ -31,7 +31,7 @@
     <string name="select_language">Seleccionar idioma</string>
     <string name="cancel">Cancelar</string>
     <string name="back">Atrás</string>
-    <string name="login_failed">Login Failed: %1$s</string>
+    <string name="login_failed">Login Failed: ¿Por qué</string>
     <string name="registration_failed">Error: %1$s</string>
     <string name="empty_token">Token vacía</string>
     <string name="biometric_authentication">Autenticación biométrica</string>
@@ -59,7 +59,7 @@
     <string name="add_note">Nota</string>
     <string name="biometric_login">Biometric Login</string>
     <string name="biometric_subtitle">Use reconocimiento facial, huella dactilar u otro acceso biométrico compatible</string>
-    <string name="welcome_user">Bienvenido: %1$s</string>
+    <string name="welcome_user">Bienvenido</string>
     <string name="auth_error">Error de autenticación: %1$s</string>
     <string name="logout">Cerrar sesión</string>
     <string name="sign_out_description">Suscríbase a su cuenta</string>
@@ -131,14 +131,27 @@
     <string name="reminders_off">Reminders Off</string>
     <string name="no_appointments">No hay nombramientos programados</string>
     <string name="tap_to_add_appointment">Pulsa + para agregar una cita</string>
-    <string name="delete_appointment_confirmation">¿Estás seguro de que quieres eliminar la cita en %1$s en %2$s con %3$s?</string>
+    <string name="delete_appointment_confirmation">¿Estás seguro de que quieres eliminar la cita en %1$s %2$s con %3$s?</string>
     <string name="upcoming_appointments">Próximas Nombramientos</string>
     <string name="all_appointments">Todas las citas</string>
     <string name="medications">Medicamentos</string>
     <string name="edit">Editar</string>
+    <string name="next">Siguiente</string>
     <string name="emergency_contacts">Contactos de emergencia</string>
     <string name="add_contact">Agregar contacto</string>
     <string name="relationship">Relación</string>
     <string name="notify_on_emergency">Notificar sobre emergencia</string>
     <string name="notify_on_vital_emergencies">Notificar sobre emergencias de signos vitales</string>
+    <string-array name="motivational_quotes">
+        <item>Crees que puedes y estás a mitad de camino.</item>
+        <item>El único mal entrenamiento es el que no sucedió.</item>
+        <item>Su salud es una inversión, no un gasto.</item>
+        <item>Pequeños pasos cada día conducen a grandes resultados.</item>
+        <item>Sé más fuerte que tus excusas.</item>
+        <item>Progreso, no perfección.</item>
+        <item>Cuida tu cuerpo. Es el único lugar donde tienes que vivir.</item>
+        <item>La coherencia es clave para lograr sus objetivos de salud.</item>
+        <item>Cada elección saludable cuenta.</item>
+        <item>No esperes mañana, empieza hoy.</item>
+    </string-array>
 </resources>

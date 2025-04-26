@@ -1,16 +1,32 @@
 package com.example.phms.Screens
 
-import android.util.Log
 import android.content.Context
-import androidx.compose.foundation.background
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocalPharmacy
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Note
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -19,16 +35,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.phms.Appointment
 import com.example.phms.R
@@ -48,9 +71,13 @@ fun HomeScreen(
 ) {
 
     val context = LocalContext.current
-
-    // for upcoming appointments
     var upcomingAppointments by remember { mutableStateOf<List<Appointment>>(emptyList()) }
+
+    val motivationalQuotes = stringArrayResource(id = R.array.motivational_quotes)
+
+    var currentQuote by remember {
+        mutableStateOf(if (motivationalQuotes.isNotEmpty()) motivationalQuotes.random() else "")
+    }
 
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -61,15 +88,18 @@ fun HomeScreen(
                 }
             }
         }
+        if (motivationalQuotes.isNotEmpty()) {
+            currentQuote = motivationalQuotes.random()
+        }
     }
-    //greeting pane (it uses time to change message acc)
+
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greetingText = when (hour) {
         in 6..11  -> stringResource(R.string.good_morning)
         in 12..16 -> stringResource(R.string.good_afternoon)
         else      -> stringResource(R.string.good_evening)
     } + (firstName?.let { ", $it" } ?: "")
-    //greeting pane background photo- again, changes acc to the time
+
     val imageUrl = when (hour) {
         in 6..11  -> "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
         in 12..16 -> "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
@@ -80,13 +110,27 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp, top = 40.dp, end = 16.dp, bottom = 16.dp),
+            .padding(16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.Top
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top=10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = currentQuote,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
             IconButton(onClick = {
                 Log.d("HomeScreen", "Settings icon clicked")
                 onSettingsClick()
@@ -100,7 +144,6 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // search bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -156,7 +199,7 @@ fun HomeScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        //quick action buttons
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -196,7 +239,6 @@ fun HomeScreen(
             )
         }
 
-        // show upcoming appointment
         if (upcomingAppointments.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(

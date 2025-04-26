@@ -31,7 +31,7 @@
     <string name="select_language">Sprache auswählen</string>
     <string name="cancel">Abbrechen</string>
     <string name="back">Zurück</string>
-    <string name="login_failed">Login Fehler: %1$s</string>
+    <string name="login_failed">Login Failed: %1$s</string>
     <string name="registration_failed">Fehler: %1$s</string>
     <string name="empty_token">Leere Token</string>
     <string name="biometric_authentication">Biometrische Authentifizierung</string>
@@ -80,7 +80,7 @@
     <string name="edit_vital">Edit Vital</string>
     <string name="add_vital">Vital hinzufügen</string>
     <string name="value_label">Wert</string>
-    <string name="vital_input_error">Geben Sie Typ, Zahlenwert &amp; Einheit ein.</string>
+    <string name="vital_input_error">Geben Sie Typ, Zahlenwert &amp;amp; Einheit ein.</string>
     <string name="no_entries_yet">Noch keine Einträge. Tippen Sie auf + um hinzuzufügen.</string>
     <string name="vitals">Vitale</string>
     <string name="filter_by_type_label">Filter nach</string>
@@ -116,7 +116,7 @@
     <string name="no_doctors_yet">Noch keine Ärzte hinzugefügt</string>
     <string name="tap_to_add_doctor">Tippen Sie +, um einen Arzt hinzuzufügen</string>
     <string name="confirm_delete">Bestätigen Löschen</string>
-    <string name="delete_doctor_confirmation">Sind Sie sicher, dass Sie Dr. %1$s löschen möchten?</string>
+    <string name="delete_doctor_confirmation">Möchten Sie Dr. %1$s löschen?</string>
     <string name="ok">OKAY</string>
     <string name="add_appointment">Ernennung hinzufügen</string>
     <string name="edit_appointment">Ernennung bearbeiten</string>
@@ -136,9 +136,22 @@
     <string name="all_appointments">Alle Termine</string>
     <string name="medications">Medikamente</string>
     <string name="edit">Bearbeiten</string>
+    <string name="next">Nächste</string>
     <string name="emergency_contacts">Notfallkontakte</string>
     <string name="add_contact">Kontakt aufnehmen</string>
     <string name="relationship">Beziehung</string>
     <string name="notify_on_emergency">Benachrichtigen Sie den Notfall</string>
     <string name="notify_on_vital_emergencies">Benachrichtigen Sie über wichtige Zeichennotfälle</string>
+    <string-array name="motivational_quotes">
+        <item>Glauben Sie, Sie können und Sie sind auf halbem Weg.</item>
+        <item>Das einzige schlechte Training ist das, was nicht passiert ist.</item>
+        <item>Ihre Gesundheit ist eine Investition, keine Kosten.</item>
+        <item>Kleine Schritte jeden Tag führen zu großen Ergebnissen.</item>
+        <item>Sei stärker als deine Ausreden.</item>
+        <item>Fortschritt, nicht Perfektion.</item>
+        <item>Pass auf deinen Körper auf. Es ist der einzige Ort, den Sie leben müssen.</item>
+        <item>Konsistenz ist der Schlüssel, um Ihre Gesundheitsziele zu erreichen.</item>
+        <item>Jede gesunde Wahl zählt.</item>
+        <item>Warte nicht auf morgen, fange heute an.</item>
+    </string-array>
 </resources>
