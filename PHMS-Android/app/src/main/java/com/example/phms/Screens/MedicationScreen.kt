@@ -177,7 +177,7 @@ fun PokemonMedicationsScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
-                    .padding(bottom = 72.dp, end = 16.dp) // Adjusted padding
+                    .padding(bottom = 0.dp, end = 16.dp)
                     .size(56.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Medication")
