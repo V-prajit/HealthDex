@@ -1,7 +1,6 @@
 package com.example.phms.Screens
 
 import android.app.TimePickerDialog
-import android.util.Log
 import android.widget.TimePicker
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -28,6 +27,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocalPharmacy
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,37 +63,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phms.Medication
 import com.example.phms.MedicationAlarmManager
 import com.example.phms.repository.MedicationRepository
+import com.example.phms.ui.theme.pokeBlue
+import com.example.phms.ui.theme.pokeGreen
+import com.example.phms.ui.theme.pokePurple
+import com.example.phms.ui.theme.pokeRed
+import com.example.phms.ui.theme.pokeYellow
 import java.util.Calendar
-
-// Define Pokemon-themed colors
-val pokeBlue = Color(0xFF5DB1DF)
-val pokeYellow = Color(0xFFFAD37A)
-val pokeRed = Color(0xFFE36776)
-val pokeGreen = Color(0xFF85D6AD)
-val pokePurple = Color(0xFFAD85D6)
-val pokeBorder = Color(0xFF2A5A80)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MedicationScreen(
-    userToken: String?,
-    modifier: Modifier = Modifier,
-    onBack: () -> Unit
-) {
-    PokemonMedicationsScreen(userToken, modifier, onBack)
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonMedicationsScreen(
     userToken: String?,
     modifier: Modifier = Modifier,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     var meds by remember { mutableStateOf<List<Medication>>(emptyList()) }
     var showDialog by remember { mutableStateOf(false) }
@@ -102,7 +91,6 @@ fun PokemonMedicationsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Load medications
     LaunchedEffect(userToken) {
         userToken?.let { uid ->
             MedicationRepository.fetchAll(uid) { fetched ->
@@ -111,7 +99,6 @@ fun PokemonMedicationsScreen(
         }
     }
 
-    // Delete confirmation dialog
     showDeleteConfirmation?.let { medication ->
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = null },
@@ -125,7 +112,6 @@ fun PokemonMedicationsScreen(
                                 if (success) {
                                     meds = meds.filterNot { it.id == id }
 
-                                    // Cancel notifications
                                     val alarmManager = MedicationAlarmManager(context)
                                     alarmManager.cancelMedicationReminders(medication)
                                 }
@@ -150,28 +136,34 @@ fun PokemonMedicationsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
+                    Box(
+                        modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                     ) {
                         Text(
                             "Medicine Pouch",
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 fontFamily = FontFamily.Default,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                                color = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            textAlign = TextAlign.Center
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = pokeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
                 }
             )
@@ -182,26 +174,24 @@ fun PokemonMedicationsScreen(
                     dialogInitial = null
                     showDialog = true
                 },
-                containerColor = pokeBlue,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary, // Use theme color
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
-                    .padding(bottom = 60.dp)  // Add padding for the navigation bar
+                    .padding(bottom = 72.dp, end = 16.dp) // Adjusted padding
                     .size(56.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Medication")
             }
         },
         floatingActionButtonPosition = FabPosition.End,
-        containerColor = Color(0xFFFEFEF0) // Light cream background color similar to Pokemon games
-    ) { innerPadding ->
+        containerColor = MaterialTheme.colorScheme.background
+    ) {  innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Pokemon-style header
             if (meds.isEmpty()) {
-                // Empty state
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -213,19 +203,18 @@ fun PokemonMedicationsScreen(
                         "Your medicine pouch is empty!",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.onBackground // Use theme color
                         )
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "Tap the + button to add your first medicine",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant // Use theme color
                         )
                     )
                 }
             } else {
-                // Medications list
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -234,11 +223,11 @@ fun PokemonMedicationsScreen(
                 ) {
                     items(meds) { med ->
                         val medicationColor = when (med.category.lowercase()) {
-                            "cold & flu" -> pokeBlue
-                            "pain relief" -> pokeRed
-                            "allergy" -> pokeGreen
-                            "digestive" -> pokeYellow
-                            else -> pokePurple
+                            "cold & flu" -> pokeGreen // Example: Green for cold/flu
+                            "pain relief" -> pokeRed // Red for pain
+                            "allergy" -> pokeYellow // Yellow for allergy
+                            "digestive" -> pokeBlue // Blue for digestive
+                            else -> pokePurple // Purple for misc
                         }
 
                         PokemonMedicationCard(
@@ -250,38 +239,30 @@ fun PokemonMedicationsScreen(
                             }
                         )
                     }
-                    // Add some padding at the bottom to avoid FAB overlap
                     item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
         }
 
         if (showDialog) {
+            // Use your existing ExtendedMedicationDialog, it should pick up theme colors
             ExtendedMedicationDialog(
                 initial = dialogInitial,
                 userId = userToken ?: return@Scaffold,
                 onSave = { m ->
                     if (dialogInitial == null) {
-                        Log.d("MedicationScreen", "Adding medication: ${m.name}, time: ${m.time}")
                         MedicationRepository.add(m) { saved ->
                             saved?.let {
-                                Log.d("MedicationScreen", "Saved medication: ${it.name}, time: ${it.time}")
                                 meds = listOf(it) + meds
-
-                                // Schedule notifications
                                 val alarmManager = MedicationAlarmManager(context)
                                 alarmManager.scheduleMedicationReminders(it)
                             }
                             showDialog = false
                         }
                     } else {
-                        Log.d("MedicationScreen", "Updating medication: ${m.name}, time: ${m.time}")
                         MedicationRepository.update(m) { success ->
                             if (success) {
-                                Log.d("MedicationScreen", "Updated medication successfully")
                                 meds = meds.map { if (it.id == m.id) m else it }
-
-                                // Update notifications
                                 val alarmManager = MedicationAlarmManager(context)
                                 alarmManager.scheduleMedicationReminders(m)
                             }
@@ -304,45 +285,43 @@ fun PokemonMedicationsScreen(
 @Composable
 fun PokemonMedicationCard(
     medication: Medication,
-    cardColor: Color,
+    cardColor: Color, // Keep specific card color based on category
     onEdit: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)  // Make card taller
+            .height(80.dp)
             .clip(RoundedCornerShape(8.dp))
-            .border(2.dp, pokeBorder, RoundedCornerShape(8.dp))
-            .background(cardColor)
+            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp)) // Use theme border color
+            .background(cardColor) // Use the category-specific color
             .clickable { onEdit() }
             .padding(2.dp)
     ) {
-        // Main content row
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left side - Medication icon (placeholder) and name
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color.White.copy(alpha = 0.5f)),
+                    // Use a lighter version of the card color or a fixed light color
+                    .background(Color.White.copy(alpha = 0.6f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.LocalPharmacy,
                     contentDescription = null,
-                    tint = Color.Black.copy(alpha = 0.7f),
+                    tint = Color.Black.copy(alpha = 0.8f), // Keep icon tint for visibility
                     modifier = Modifier.size(24.dp)
                 )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Medication name and category
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -350,7 +329,7 @@ fun PokemonMedicationCard(
                     text = medication.name.uppercase(),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = Color.Black, // Ensure text is readable on cardColor
                         fontSize = 20.sp
                     )
                 )
@@ -358,32 +337,28 @@ fun PokemonMedicationCard(
                     text = medication.category,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Medium,
-                        color = Color.Black.copy(alpha = 0.7f),
+                        color = Color.Black.copy(alpha = 0.8f), // Ensure text is readable
                         fontSize = 16.sp
                     )
                 )
             }
 
-            // Right side - Frequency and dosage
             Column(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.padding(end = 8.dp)
             ) {
-                // Dosage unit (ml, tsp, tbsp)
                 Text(
                     text = medication.dosage.replace(Regex("[0-9]"), "").trim(),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = Color.Black, // Ensure text is readable
                         fontSize = 20.sp
                     )
                 )
-
-                // Frequency (x1, x3, etc.)
                 Text(
                     text = "x${medication.frequency}",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Black,
+                        color = Color.Black, // Ensure text is readable
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )

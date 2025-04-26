@@ -1,6 +1,5 @@
 package com.example.phms.Screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
@@ -12,6 +11,7 @@ import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -35,18 +35,27 @@ fun DashboardScreen(
 ) {
     var selectedTab by remember { mutableStateOf(initialSelectedTab) }
     var newNoteRequested by remember { mutableStateOf(false) }
-    var showSearchScreen by remember { mutableStateOf(false) }  // +assistant: added search screen state
+    var showSearchScreen by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ) {
                 NavigationBarItem(
                     selected = selectedTab == "home",
-                    onClick = {
-                        selectedTab = "home"
-                    },
+                    onClick = { selectedTab = "home" },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text(stringResource(R.string.home)) }
+                    // Customize selected/unselected colors if needed
+                    /* colors = NavigationBarItemDefaults.colors(
+                         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                         selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                         indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                     ) */
                 )
                 NavigationBarItem(
                     selected = selectedTab == "appointments",
@@ -77,9 +86,13 @@ fun DashboardScreen(
                 )
                 NavigationBarItem(
                     selected = selectedTab == "medications",
-                    onClick  = { selectedTab = "medications" },
-                    icon     = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
-                    label    = { Text("Meds") }
+                    onClick = {
+                        selectedTab = "medications"
+                        // Make sure to pass onSettingsClick here if needed from Dashboard
+                        // onSettingsClick("medications") // Example if needed
+                    },
+                    icon = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
+                    label = { Text("Meds") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "diet",
@@ -92,52 +105,30 @@ fun DashboardScreen(
     ) { innerPadding ->
         when (selectedTab) {
             "home" -> {
-                Log.d("DashboardScreen", "Showing HomeScreen")
                 if (showSearchScreen) {
                     SearchScreen(
                         userToken   = userToken,
                         onClose     = { showSearchScreen = false },
-                        onBackClick = { showSearchScreen = false },
-                        onNavigateToNotes = {
-                            selectedTab = "notes"
-                            newNoteRequested = false
-                        },
-                        onNavigateToVitals = {
-                            selectedTab = "vitals"
-                        },
-                        onNavigateToAppointments = {
-                            selectedTab = "appointments"
-                        },
+                        onBackClick = { showSearchScreen = false }, // Added back click handler
+                        onNavigateToNotes = { selectedTab = "notes"; newNoteRequested = false },
+                        onNavigateToVitals = { selectedTab = "vitals" },
+                        onNavigateToAppointments = { selectedTab = "appointments" },
                         onNavigateToMedications = { selectedTab = "medications" }
                     )
-                }
-                else {
+                } else {
                     HomeScreen(
                         firstName          = firstName,
-                        onSettingsClick    = {
-                            Log.d("DashboardScreen", "HomeScreen settings clicked")
-                            onSettingsClick("home")
-                        },
-                        // when Add Note is tapped on Home, go to Notes *and* open editor
-                        onNavigateToNotes  = {
-                            selectedTab = "notes"
-                            newNoteRequested = true
-                        },
-                        onNavigateToVitals = {
-                            selectedTab = "vitals"
-                        },
-                        onNavigateToAppointments = {
-                          selectedTab = "appointments"
-                        },
+                        onSettingsClick    = { onSettingsClick("home") },
+                        onNavigateToNotes  = { selectedTab = "notes"; newNoteRequested = true },
+                        onNavigateToVitals = { selectedTab = "vitals" },
+                        onNavigateToAppointments = { selectedTab = "appointments" },
                         onNavigateToMedications = { selectedTab = "medications" },
                         onNavigateToSearch = { showSearchScreen = true }
                     )
                 }
             }
-
             "appointments" -> {
                 var showDoctorsScreen by remember { mutableStateOf(false) }
-
                 if (showDoctorsScreen) {
                     DoctorsScreen(
                         userId = userToken,
@@ -152,32 +143,21 @@ fun DashboardScreen(
                     )
                 }
             }
-
             "notes" -> {
-                Log.d("DashboardScreen", "Showing NotesScreen")
-                NotesScreen(
-                    userToken       = userToken,
+                NotesScreen( // Call NotesFullApp wrapper
+                    userToken        = userToken,
                     modifier        = Modifier.padding(innerPadding),
-                    onSettingsClick = {
-                        Log.d("DashboardScreen", "NotesScreen settings clicked")
-                        onSettingsClick("notes")
-                    },
+                    onSettingsClick  = { onSettingsClick("notes") },
                     onBackClick = { selectedTab = "home" },
-                    newNoteRequested= newNoteRequested
+                    newNoteRequested = newNoteRequested
                 )
             }
-
             "chat" -> {
-                Log.d("DashboardScreen", "Showing ChatScreen")
                 ChatScreen(
-                    onBackClick = {
-                        Log.d("DashboardScreen", "Chat back clicked")
-                        selectedTab = "home"
-                    },
+                    onBackClick = { selectedTab = "home" },
                     onSettingsClick = { onSettingsClick("chat") }
                 )
             }
-
             "vitals" -> VitalSignsScreen(
                 userId      = userToken,
                 onBackClick = { selectedTab = "home" },
@@ -186,7 +166,8 @@ fun DashboardScreen(
             "medications" -> PokemonMedicationsScreen(
                 userToken = userToken,
                 modifier = Modifier.padding(innerPadding),
-                onBack = { selectedTab = "home" }
+                onBack = { selectedTab = "home" },
+                onSettingsClick = { onSettingsClick("medications") }
             )
             "diet" -> DietScreen(
                 userId = userToken,
