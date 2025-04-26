@@ -422,7 +422,7 @@ fun DietItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable { onEdit() },
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(0.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(

@@ -195,7 +195,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(0.dp))
         ) {
             Image(
                 painter = rememberAsyncImagePainter(model = imageUrl),

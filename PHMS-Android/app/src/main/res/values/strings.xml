@@ -38,7 +38,7 @@
     <string name="registration_failed">Error: %1$s</string>
     <string name="empty_token">Empty token</string>
 
-    <string name="biometric_authentication">Biometric Authentication</string>
+    <string name="biometric_authentication">Use Biometrics</string>
     <string name="biometric_cancelled">Biometric Authentication Cancelled. Please check again!</string>
     <string name="no_biometrics_enrolled">No biometrics enrolled. Check settings.</string>
     <string name="device_no_biometrics">Device doesn\'t support biometrics.</string>
@@ -69,7 +69,7 @@
     <string name="logout">Logout</string>
     <string name="sign_out_description">Sign out of your account</string>
 
-    <string name="health_chat">Health Chat</string>
+    <string name="health_chat">Nurse Joy</string>
     <string name="send_message">Send message</string>
     <string name="type_health_question">Type your health question...</string>
     <string name="chat_welcome_title">Welcome to Health Chat</string>
@@ -106,6 +106,8 @@
     <string name="specify_unit">Specify Unit</string>
     <string name="real_time_vitals_header">Real-time Vital Signs</string>
     <string name="home">Home</string>
+
+    <string name="no_results_found">No results found</string>
 
     <string name="forgot_password">Forgot Password</string>
     <string name="forgot_password_description">Enter your email address, and we\'ll send you a link to reset your password.</string>

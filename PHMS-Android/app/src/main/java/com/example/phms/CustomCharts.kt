@@ -2,7 +2,16 @@ package com.example.phms
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,12 +43,10 @@ val ChartOrange = Color(0xFFFFB74D)
 val ChartPurple = Color(0xFFBA68C8)
 val ChartGridColor = Color.Gray.copy(alpha = 0.3f)
 
-
 data class ChartDataPoint(val timestampMs: Long, val value: Float)
 data class BPChartDataPoint(val timestampMs: Long, val systolic: Float, val diastolic: Float)
 
 
-// Function to calculate optimal Y-axis range, prioritizing thresholds
 private fun calculateYAxisRange(
     dataMin: Float?, dataMax: Float?, // Min/max from the actual data points
     lowThreshold: Float?, highThreshold: Float?, // User-set thresholds

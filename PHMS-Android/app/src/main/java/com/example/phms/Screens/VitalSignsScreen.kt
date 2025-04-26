@@ -260,7 +260,7 @@ fun VitalSignsScreen(
                      latestByType?.let { v ->
                          ElevatedCard(
                              modifier = Modifier.fillMaxWidth(),
-                             shape = RoundedCornerShape(12.dp),
+                             shape = RoundedCornerShape(0.dp),
                              elevation = CardDefaults.elevatedCardElevation(4.dp)
                          ) {
                              Column(Modifier.padding(16.dp)) {
@@ -290,7 +290,7 @@ fun VitalSignsScreen(
                  items(filteredVitals, key = { it.id ?: UUID.randomUUID() }) { v -> // Use a key for stability
                      ElevatedCard(
                          modifier = Modifier.fillMaxWidth(),
-                         shape = RoundedCornerShape(8.dp),
+                         shape = RoundedCornerShape(0.dp),
                          elevation = CardDefaults.elevatedCardElevation(2.dp)
                      ) {
                          ListItem(
