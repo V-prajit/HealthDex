@@ -16,66 +16,65 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Define Retro Light Theme Colors
+// Update your theme's color scheme
 private val RetroLightColorScheme = lightColorScheme(
-    primary = retroBlue,
+    primary = retroPrimary,
     onPrimary = retroOnPrimary,
-    primaryContainer = retroBlue.copy(alpha = 0.8f), // Lighter variant
+    primaryContainer = retroPrimaryLight,
     onPrimaryContainer = retroOnPrimary,
 
-    secondary = retroOrange,
+    secondary = retroSecondary,
     onSecondary = retroOnSecondary,
-    secondaryContainer = retroOrange.copy(alpha = 0.7f),
+    secondaryContainer = retroSecondaryLight,
     onSecondaryContainer = retroOnSecondary,
 
-    tertiary = retroRed,
-    onTertiary = retroOnTertiary,
-    tertiaryContainer = retroRed.copy(alpha = 0.7f),
-    onTertiaryContainer = retroOnTertiary,
+    tertiary = retroAccent,
+    onTertiary = retroOnPrimary,
+    tertiaryContainer = retroAccent.copy(alpha = 0.7f),
+    onTertiaryContainer = retroOnPrimary,
 
-    background = retroLightCream,
-    onBackground = retroOnBackgroundLight,
-    surface = retroLightCream, // Can be same as background or slightly different
-    onSurface = retroOnSurfaceLight,
-    surfaceVariant = Color(0xFFE0E0E0), // A light grey variant
-    onSurfaceVariant = retroOnSurfaceLight,
+    background = retroBgLight,
+    onBackground = retroOnBgLight,
+    surface = retroSurfaceLight,
+    onSurface = retroOnBgLight,
+    surfaceVariant = Color(0xFFEEEEEE),
+    onSurfaceVariant = retroOnBgLight,
 
-    error = retroDeepRed,
-    onError = retroOnError,
-    errorContainer = retroDeepRed.copy(alpha = 0.7f),
-    onErrorContainer = retroOnError
+    error = retroError,
+    onError = retroOnPrimary,
+    errorContainer = retroError.copy(alpha = 0.7f),
+    onErrorContainer = retroOnPrimary
 )
 
 // Define Retro Dark Theme Colors
 private val RetroDarkColorScheme = darkColorScheme(
-    primary = retroBlue, // Keep the bright blue
-    onPrimary = retroOnPrimary,
-    primaryContainer = retroDarkBlue, // Use the deep blue for containers
+    primary = retroPrimaryLight,
+    onPrimary = retroOnBgDark,
+    primaryContainer = retroPrimaryDark,
     onPrimaryContainer = retroOnPrimary,
 
-    secondary = retroOrange, // Keep the bright orange
-    onSecondary = retroOnSecondary,
-    secondaryContainer = retroOrange.copy(alpha = 0.3f), // Darker orange container
-    onSecondaryContainer = retroOnSecondary,
+    secondary = retroSecondary,
+    onSecondary = retroOnBgDark,
+    secondaryContainer = retroSecondaryDark,
+    onSecondaryContainer = retroOnPrimary,
 
-    tertiary = retroRed, // Keep the bright red
-    onTertiary = retroOnTertiary,
-    tertiaryContainer = retroDeepRed, // Use the deep red for containers
-    onTertiaryContainer = retroOnError,
+    tertiary = retroAccent,
+    onTertiary = retroOnBgDark,
+    tertiaryContainer = retroAccent.copy(alpha = 0.5f),
+    onTertiaryContainer = retroOnPrimary,
 
-    background = retroDarkBlue, // Use the deep blue as background
-    onBackground = retroOnBackgroundDark,
-    surface = retroDarkSurface, // Use a slightly different dark surface
-    onSurface = retroOnSurfaceDark,
-    surfaceVariant = Color(0xFF303148), // Darker variant
-    onSurfaceVariant = retroOnSurfaceDark,
+    background = retroBgDark,
+    onBackground = retroOnBgDark,
+    surface = retroSurfaceDark,
+    onSurface = retroOnBgDark,
+    surfaceVariant = Color(0xFF3E3E60),
+    onSurfaceVariant = retroOnBgDark,
 
-    error = retroRed, // Use bright red for error state
-    onError = retroOnTertiary,
-    errorContainer = retroDeepRed,
-    onErrorContainer = retroOnError
+    error = retroError,
+    onError = retroOnPrimary,
+    errorContainer = retroError.copy(alpha = 0.7f),
+    onErrorContainer = retroOnPrimary
 )
-
 
 @Composable
 fun PHMSTheme(
