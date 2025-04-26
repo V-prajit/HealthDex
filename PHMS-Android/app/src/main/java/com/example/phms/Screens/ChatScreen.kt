@@ -216,7 +216,7 @@ fun ChatScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             shadowElevation = 0.dp,
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(0.dp),
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(2.dp, pokeChatBorderColor)
         ) {
@@ -249,7 +249,7 @@ fun ChatScreen(
                         }
                     }),
                     maxLines = 4,
-                    shape = RoundedCornerShape(6.dp),
+                    shape = RoundedCornerShape(0.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = pokeChatTextColor,
                         unfocusedTextColor = pokeChatTextColor,
@@ -283,7 +283,7 @@ fun ChatScreen(
                     modifier = Modifier.size(48.dp),
                     containerColor = pokeYellow,
                     contentColor = Color.Black,
-                    shape = RoundedCornerShape(6.dp),
+                    shape = RoundedCornerShape(0.dp),
                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
                 ) {
                     Icon(
@@ -303,7 +303,7 @@ fun PokemonChatMessageItem(message: ChatMessage) {
     val isUserMessage = message.role == "user"
     val bubbleColor = if (isUserMessage) pokeChatUserBg else pokeChatAssistantBg
     val alignment = if (isUserMessage) Alignment.CenterEnd else Alignment.CenterStart
-    val bubbleShape = RoundedCornerShape(8.dp)
+    val bubbleShape = RoundedCornerShape(0.dp)
 
     Box(
         modifier = Modifier
@@ -385,15 +385,12 @@ fun FormattedText(
 
             var currentIndex = 0
 
-            // Check for numbered list
             val isNumberedList = line.trim().matches("^\\d+\\.\\s+.*$".toRegex())
 
-            // Check for bullet list
             val isBulletList = line.trim().matches("^[•*-]\\s+.*$".toRegex())
 
             var workingLine = line
 
-            // Handle bold matches
             val boldMatches = boldPattern.findAll(workingLine)
             for (match in boldMatches) {
                 val startIndex = match.range.first
@@ -408,12 +405,10 @@ fun FormattedText(
                 currentIndex = endIndex
             }
 
-            // Append the rest of the line
             if (currentIndex < workingLine.length) {
                 append(workingLine.substring(currentIndex))
             }
 
-            // Add newline except for the last line
             if (line != lines.last()) {
                 append("\n")
             }

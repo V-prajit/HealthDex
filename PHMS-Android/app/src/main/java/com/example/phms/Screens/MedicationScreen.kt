@@ -292,8 +292,8 @@ fun PokemonMedicationCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp)) // Use theme border color
+            .clip(RoundedCornerShape(0.dp))
+            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp)) // Use theme border color
             .background(cardColor) // Use the category-specific color
             .clickable { onEdit() }
             .padding(2.dp)
@@ -307,7 +307,7 @@ fun PokemonMedicationCard(
             Box(
                 modifier = Modifier
                     .size(36.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(0.dp))
                     // Use a lighter version of the card color or a fixed light color
                     .background(Color.White.copy(alpha = 0.6f)),
                 contentAlignment = Alignment.Center
