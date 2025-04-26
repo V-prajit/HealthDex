@@ -72,8 +72,8 @@ fun ImageThumbnail(
     Box(
         modifier = Modifier
             .size(120.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(0.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp))
             .clickable { onClick() }
     ) {
         Image(
