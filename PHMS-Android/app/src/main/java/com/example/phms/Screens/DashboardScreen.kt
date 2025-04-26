@@ -60,19 +60,6 @@ fun DashboardScreen(
                     }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == "appointments",
-                    onClick = { selectedTab = "appointments" },
-                    icon = { Icon(Icons.Default.EventNote, contentDescription = "Appointments") },
-                    label = {
-                        Text(
-                            stringResource(R.string.appointments),
-                            style = MaterialTheme.typography.labelSmall, // Using small label style
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                )
-                NavigationBarItem(
                     selected = selectedTab == "notes",
                     onClick = { selectedTab = "notes"; newNoteRequested = false },
                     icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
@@ -105,32 +92,6 @@ fun DashboardScreen(
                     label = {
                         Text(
                             stringResource(R.string.vitals),
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == "medications",
-                    onClick = { selectedTab = "medications" },
-                    icon = { Icon(Icons.Default.MedicalServices, contentDescription = "Meds") },
-                    label = {
-                        Text(
-                            "Meds", // keeping short label
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == "diet",
-                    onClick = { selectedTab = "diet" },
-                    icon = { Icon(Icons.Default.Restaurant, contentDescription = "Diet") },
-                    label = {
-                        Text(
-                            "Diet",
                             style = MaterialTheme.typography.labelSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
