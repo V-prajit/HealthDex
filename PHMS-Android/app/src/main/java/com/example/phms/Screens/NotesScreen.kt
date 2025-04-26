@@ -54,7 +54,6 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -73,7 +72,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -91,7 +89,6 @@ import com.example.phms.updateNoteContent
 import com.example.phms.useNotesCamera
 import kotlinx.coroutines.launch
 
-// NoteTag remains unused in the list/grid views now, but kept for potential future use
 @Composable
 fun NoteTag(tag: String) {
     if (tag.isNotEmpty()) {
@@ -104,61 +101,44 @@ fun NoteTag(tag: String) {
     }
 }
 
-// NoteTagSmall is used in Grid view and List view
 @Composable
 fun NoteTagSmall(tag: String) {
     if (tag.isNotEmpty()) {
-        // Color for the small dot inside the chip
-        val dotColor = when (tag.lowercase()) {
-            "diet"      -> Color(0xFFFAB038) // Pikachu yellow
-            "medication"-> Color(0xFF99D5FF) // Squirtle blue
-            "health"    -> Color(0xFF94CC7B) // Bulbasaur green
-            "misc"      -> Color(0xFFE44E58) // Charmander red
-            // Use Light Pink for the "Images" tag dot
-            "images"    -> Color(0xFFF48FB1) // Light Pink
-            else        -> Color(0xFF424242) // Default dot color
+        val tagThemeColors = when (tag.lowercase()) {
+            "diet"       -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+            "medication" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+            "health"     -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+            "misc"       -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+            "images"     -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha=0.5f) to MaterialTheme.colorScheme.onTertiaryContainer
+            else         -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
         }
-
-        // Define chip colors: black background, white text
-        val chipColors = AssistChipDefaults.assistChipColors(
-            containerColor = Color.Black,
-            labelColor = Color.White
-        )
-        // Define chip border (optional, can make it subtle)
-        val chipBorder = BorderStroke(
-            width = 1.dp,
-            color = Color.DarkGray // Subtle border
-        )
-
+        val dotColor = tagThemeColors.first
+        val labelColor = tagThemeColors.second
 
         AssistChip(
-            onClick = { /* No action needed for display tag */ },
-            // Apply the custom colors and border
-            colors = chipColors,
-            border = chipBorder,
+            onClick = { /* No action */ },
+            colors = AssistChipDefaults.assistChipColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                labelColor = labelColor
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             label = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Use dotColor for the background of this Box
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(color = dotColor) // Keep the colored dot
+                            .background(color = dotColor)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    // Text color is handled by chipColors.labelColor now
                     Text(text = tag, style = MaterialTheme.typography.labelSmall)
                 }
             },
-            modifier = Modifier, // Removed top padding
+            modifier = Modifier,
             shape = RoundedCornerShape(0.dp)
         )
     }
 }
-
-
 
 @Composable
 fun NotesFullApp(
@@ -171,12 +151,10 @@ fun NotesFullApp(
     var notes by remember { mutableStateOf(listOf<String>()) }
     val scope = rememberCoroutineScope()
 
-    // Image viewer state variables
     var showImageViewer by remember { mutableStateOf(false) }
     var selectedImageUris by remember { mutableStateOf<List<String>>(emptyList()) }
     var initialImageIndex by remember { mutableStateOf(0) }
 
-    // loads notes only once composable composed
     LaunchedEffect(Unit) {
         notes = if (!userToken.isNullOrEmpty()) {
             NotesRepositoryBackend.getNotes(userToken)
@@ -191,16 +169,13 @@ fun NotesFullApp(
     var selectedNoteIndex by remember { mutableStateOf<Int?>(null) }
     var noteContent by remember { mutableStateOf("") }
 
-    // Decide which screen to show
     if (showImageViewer) {
-        // Show image viewer
         NoteImageViewer(
             imageUris = selectedImageUris,
             initialImageIndex = initialImageIndex,
             onClose = { showImageViewer = false }
         )
     } else {
-        // Show normal screens
         when (currentScreen) {
             "list" -> {
                 NotesListScreen(
@@ -209,13 +184,11 @@ fun NotesFullApp(
                         selectedNoteIndex = index
                         noteContent = note
                         currentScreen = "edit"
-                        // notes index is saved and it moves to edit screen
                     },
                     onNewNoteClick = {
                         selectedNoteIndex = null
                         noteContent = ""
                         currentScreen = "edit"
-                        //for new note, since it doesn't already have an index, idx is null
                     },
                     onNoteDelete = { index ->
                         if (!userToken.isNullOrEmpty()) {
@@ -223,7 +196,7 @@ fun NotesFullApp(
                                 val noteId = notes[index].split("\n").firstOrNull()
                                     ?.split("|")?.getOrElse(0) { "" }?.toIntOrNull() ?: (index + 1)
                                 NotesRepositoryBackend.deleteNote(noteId)
-                                notes = NotesRepositoryBackend.getNotes(userToken) // Refresh
+                                notes = NotesRepositoryBackend.getNotes(userToken)
                             }
                         } else {
                             val mutableNotes = notes.toMutableList()
@@ -246,7 +219,6 @@ fun NotesFullApp(
                     noteContent = noteContent,
                     onContentChange = { noteContent = it },
                     onSave = { updatedContent ->
-                        // function to save updates to the existing note or add as new.
                         if (selectedNoteIndex != null) {
                             val mutableNotes = notes.toMutableList()
                             mutableNotes[selectedNoteIndex!!] = updatedContent
@@ -266,7 +238,6 @@ fun NotesFullApp(
                         scope.launch {
                             if (!userToken.isNullOrEmpty()) {
                                 NotesRepositoryBackend.saveNote(userToken, updatedContent)
-                                // reloads notes from backend after saving
                                 notes = NotesRepositoryBackend.getNotes(userToken)
                             }
                             else {
@@ -276,14 +247,12 @@ fun NotesFullApp(
                         }
                     },
                     onSaveAs = { updatedContent ->
-                        // save as creates a new note and updates repository
                         val mutableNotes = notes.toMutableList()
                         mutableNotes.add(updatedContent)
                         notes = mutableNotes
                         scope.launch {
                             if (!userToken.isNullOrEmpty()) {
                                 NotesRepositoryBackend.saveNote(userToken, updatedContent)
-                                // Reload notes from backend after saving
                                 notes = NotesRepositoryBackend.getNotes(userToken)
                             }
                             else {
@@ -293,10 +262,8 @@ fun NotesFullApp(
                         }
                     },
                     onCancel = {
-                        // goes back to the list screen
                         currentScreen = "list"
                     },
-                    // passed original file name and list of existing note names for duplicate check.
                     originalFileName = noteContent.split("\n").firstOrNull()?.trim() ?: "",
                     existingNoteNames = notes.map { it.split("\n").firstOrNull()?.trim() ?: "" },
                     onImageClick = { uris, index ->
@@ -325,13 +292,12 @@ fun NotesListScreen(
     var isListLayout by remember { mutableStateOf(true) }
     var selectedSortTag by remember { mutableStateOf("All") }
 
-    // Filter notes using parseNoteContent for accuracy
-    val displayedNotes = remember(notes, selectedSortTag) { // Recompute when notes or filter changes
+    val displayedNotes = remember(notes, selectedSortTag) {
         if (selectedSortTag == "All") {
             notes
         } else {
             notes.filter { noteString ->
-                parseNoteContent(noteString).tag.equals(selectedSortTag, ignoreCase = true) // Case-insensitive comparison
+                parseNoteContent(noteString).tag.equals(selectedSortTag, ignoreCase = true)
             }
         }
     }
@@ -339,7 +305,6 @@ fun NotesListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                // Title changed from "Notes" resource to "Field Notes"
                 title = { Text("Field Notes") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -374,9 +339,6 @@ fun NotesListScreen(
             .fillMaxSize()
             .padding(padding)) {
 
-
-
-// Tag filter dropdown
             val tagOptions = listOf("All", "diet", "medication", "health", "misc")
             var expandedSortMenu by remember { mutableStateOf(false) }
             Row(
@@ -395,21 +357,22 @@ fun NotesListScreen(
                     onDismissRequest = { expandedSortMenu = false }
                 ) {
                     tagOptions.forEach { tag ->
-                        //tag color next to text
-                        val tagColor = when (tag.lowercase()) {
-                            "diet"      -> Color(0xFFFAB038)
-                            "medication"-> Color(0xFF99D5FF)
-                            "health"    -> Color(0xFF94CC7B)
-                            "misc"      -> Color(0xFFE44E58)
-                            else        -> Color(0xFF424242)
+                        val tagThemeColors = when (tag.lowercase()) {
+                            "diet"       -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+                            "medication" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+                            "health"     -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+                            "misc"       -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+                            else         -> MaterialTheme.colorScheme.surface to MaterialTheme.colorScheme.onSurface
                         }
+                        val dotColor = tagThemeColors.first
+
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(
                                         modifier = Modifier
                                             .size(10.dp)
-                                            .background(tagColor, shape = CircleShape)
+                                            .background(dotColor, shape = CircleShape)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(tag)
@@ -424,10 +387,9 @@ fun NotesListScreen(
                 }
             }
 
-            // Note list/grid
             val modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
 
             if (isListLayout) {
                 LazyColumn(
@@ -436,30 +398,23 @@ fun NotesListScreen(
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
                         val parsedNote = parseNoteContent(note)
-                        val tag = parsedNote.tag // Use parsed tag
-                        // Determming background color based on tag, use surfaceContainerLow as default
-                        val bgColor = when (tag.lowercase()) {
-                            "diet" -> Color(0xFFFAB038) // Pikachu yellow
-                            "medication" -> Color(0xFF99D5FF) // Squirtle blue
-                            "health" -> Color(0xFF94CC7B) // Bulbasaur green
-                            "misc" -> Color(0xFFE44E58) // Charmander red
-                            // +fix Use surfaceContainerLow as the default color
-                            else -> MaterialTheme.colorScheme.surfaceContainerLow
+                        val tag = parsedNote.tag
+                        val themeColors = when (tag.lowercase()) {
+                            "diet"       -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+                            "medication" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+                            "health"     -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+                            "misc"       -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
+                            else         -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
                         }
-                        // Determine content color based on background for contrast
-                        val contentColor = when (tag.lowercase()) {
-                            "diet", "medication", "health", "misc" -> Color.Black // Explicit black for colored backgrounds
-                            else -> LocalContentColor.current // Default for surfaceContainerLow
-                        }
-
+                        val bgColor = themeColors.first
+                        val contentColor = themeColors.second
 
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onNoteClick(index, note) },
                             shape = RoundedCornerShape(0.dp),
-                            elevation = CardDefaults.cardElevation(4.dp),
-                            // Set background and determined content color
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                             colors = CardDefaults.cardColors(containerColor = bgColor).copy(contentColor = contentColor)
                         ) {
                             Column(
@@ -467,70 +422,109 @@ fun NotesListScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp)
                             ) {
-                                // Top Row: Title and Icons
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Title Column
-                                    Column {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = parsedNote.title,
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                     }
-
-                                    // Spacer to push icons right
-                                    Spacer(Modifier.weight(1f))
-
-                                    // Placeholder icon based on tag
-                                    if (parsedNote.tag.isNotEmpty()) {
-                                        Icon(
-                                            imageVector = Icons.Filled.CatchingPokemon, // Placeholder
-                                            contentDescription = "Note Icon",
-                                            modifier = Modifier.padding(end = 8.dp)
-                                        )
-                                    }
-
-                                    // More options menu
-                                    var expanded by remember { mutableStateOf(false) }
-                                    IconButton(onClick = { expanded = true }) {
-                                        Icon(Icons.Default.MoreVert, contentDescription = null)
-                                    }
-                                    DropdownMenu(
-                                        expanded = expanded,
-                                        onDismissRequest = { expanded = false }
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.rename)) },
-                                            onClick = {
-                                                onNoteClick(index, note)
-                                                expanded = false
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.delete)) },
-                                            onClick = {
-                                                onNoteDelete(index)
-                                                expanded = false
-                                            }
-                                        )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (parsedNote.tag.isNotEmpty()) {
+                                            Icon(
+                                                imageVector = Icons.Filled.CatchingPokemon,
+                                                contentDescription = "Note Icon",
+                                                modifier = Modifier
+                                                    .size(20.dp)
+                                                    .padding(end = 8.dp)
+                                            )
+                                        }
+                                        var expanded by remember { mutableStateOf(false) }
+                                        IconButton(onClick = { expanded = true }, modifier = Modifier.size(32.dp)) {
+                                            Icon(Icons.Default.MoreVert, contentDescription = "More options", modifier = Modifier.size(18.dp))
+                                        }
+                                        DropdownMenu(
+                                            expanded = expanded,
+                                            onDismissRequest = { expanded = false }
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.rename)) },
+                                                onClick = {
+                                                    onNoteClick(index, note)
+                                                    expanded = false
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text(stringResource(R.string.delete)) },
+                                                onClick = {
+                                                    onNoteDelete(index)
+                                                    expanded = false
+                                                }
+                                            )
+                                        }
                                     }
                                 }
-
-                                // Row for tags (original and "Images")
+                                if (parsedNote.imageUris.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        items(parsedNote.imageUris.take(3)) { uri ->
+                                            Image(
+                                                painter = rememberAsyncImagePainter(uri),
+                                                contentDescription = "Note image preview",
+                                                modifier = Modifier
+                                                    .size(50.dp)
+                                                    .clip(RoundedCornerShape(0.dp))
+                                                    .clickable {
+                                                        onImageClick(
+                                                            parsedNote.imageUris,
+                                                            parsedNote.imageUris.indexOf(uri)
+                                                        )
+                                                    },
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        item {
+                                            if (parsedNote.imageUris.size > 3) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(50.dp)
+                                                        .clip(RoundedCornerShape(0.dp))
+                                                        .background(
+                                                            MaterialTheme.colorScheme.onSurface.copy(
+                                                                alpha = 0.3f
+                                                            )
+                                                        )
+                                                        .clickable {
+                                                            onImageClick(
+                                                                parsedNote.imageUris,
+                                                                0
+                                                            )
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        "+${parsedNote.imageUris.size - 3}",
+                                                        color = MaterialTheme.colorScheme.surface,
+                                                        style = MaterialTheme.typography.labelMedium
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                                 Row(
-                                    modifier = Modifier.padding(top = 8.dp), // Add padding above the tag row
+                                    modifier = Modifier.padding(top = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (parsedNote.tag.isNotEmpty()) {
-                                        NoteTagSmall(parsedNote.tag) // Display original tag
-                                        // Add spacer only if both tags are present
-                                        if (parsedNote.imageUris.isNotEmpty()) {
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                        }
+                                        NoteTagSmall(parsedNote.tag)
+                                        if (parsedNote.imageUris.isNotEmpty()) Spacer(modifier = Modifier.width(4.dp))
                                     }
-                                    // +new Display "Images" tag if note has images
                                     if (parsedNote.imageUris.isNotEmpty()) {
                                         NoteTagSmall(tag = "Images")
                                     }
@@ -540,7 +534,6 @@ fun NotesListScreen(
                     }
                 }
             } else {
-                // Grid layout
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = modifier,
@@ -549,80 +542,71 @@ fun NotesListScreen(
                 ) {
                     itemsIndexed(displayedNotes) { index, note ->
                         val parsedNote = parseNoteContent(note)
-                        val tag = parsedNote.tag // Use parsed tag
-                        // +fix Determine background color based on tag, use surfaceContainerLow as default
-                        val bgColor = when (tag.lowercase()) {
-                            "diet" -> Color(0xFFFAB038) // Pikachu yellow
-                            "medication" -> Color(0xFF99D5FF) // Squirtle blue
-                            "health" -> Color(0xFF94CC7B) // Bulbasaur green
-                            "misc" -> Color(0xFFE44E58) // Charmander red
-                            // +fix Use surfaceContainerLow as the default color
-                            else -> MaterialTheme.colorScheme.surfaceContainerLow
-                        }
-                        // Determine content color based on background for contrast
-                        val contentColor = when (tag.lowercase()) {
-                            "diet", "medication", "health", "misc" -> Color.Black // Explicit black for colored backgrounds
-                            else -> LocalContentColor.current // Default for surfaceContainerLow
-                        }
+                        val tag = parsedNote.tag
 
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .aspectRatio(0.8f) // Adjust aspect ratio if needed
+                                .aspectRatio(0.8f)
                                 .clickable { onNoteClick(index, note) },
-                            shape = RoundedCornerShape(0.dp), // Slightly different rounding for grid?
+                            shape = RoundedCornerShape(0.dp),
                             elevation = CardDefaults.cardElevation(4.dp),
-                            // Set background and determined content color
-                            colors = CardDefaults.cardColors(containerColor = bgColor).copy(contentColor = contentColor)
+                            colors = CardDefaults.cardColors(
+                                containerColor = when (tag.lowercase()) {
+                                    "diet"       -> MaterialTheme.colorScheme.secondaryContainer
+                                    "medication" -> MaterialTheme.colorScheme.primaryContainer
+                                    "health"     -> MaterialTheme.colorScheme.tertiaryContainer
+                                    "misc"       -> MaterialTheme.colorScheme.surfaceVariant
+                                    else         -> MaterialTheme.colorScheme.surfaceVariant
+                                }
+                            ).copy(
+                                contentColor = when (tag.lowercase()) {
+                                    "diet"       -> MaterialTheme.colorScheme.onSecondaryContainer
+                                    "medication" -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    "health"     -> MaterialTheme.colorScheme.onTertiaryContainer
+                                    "misc"       -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    else         -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
                         ) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(12.dp) // Adjust padding for grid if needed
+                                    .padding(12.dp)
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.Top // Align items to the top
+                                    verticalAlignment = Alignment.Top
                                 ) {
-                                    // Title and Body text pushed to the left
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = parsedNote.title,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        if (parsedNote.body.isNotBlank()) {
-                                            Text(
-                                                text = parsedNote.body.take(40), // Shorter preview for grid
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    }
-
-
-                                    // Icons pushed to the right
+                                    Text(
+                                        text = parsedNote.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        maxLines = 2,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                        modifier = Modifier
+                                            .weight(1f, fill = false)
+                                            .padding(end = 4.dp)
+                                    )
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        // Added placeholder icon similar to list view
                                         if (parsedNote.tag.isNotEmpty()) {
                                             Icon(
-                                                imageVector = Icons.Filled.CatchingPokemon, // Placeholder
+                                                imageVector = Icons.Filled.CatchingPokemon,
                                                 contentDescription = "Note Icon",
-                                                modifier = Modifier.size(20.dp) // Adjust size/padding for grid
+                                                modifier = Modifier.size(18.dp)
                                             )
                                         }
-                                        Spacer(modifier = Modifier.width(4.dp)) // Space between icons
-                                        // Edit/Delete menu
+                                        Spacer(modifier = Modifier.width(4.dp))
                                         var expanded by remember { mutableStateOf(false) }
-                                        Box { // Wrap IconButton to control its size/position better
+                                        Box {
                                             IconButton(
                                                 onClick = { expanded = true },
-                                                modifier = Modifier.size(32.dp) // Smaller touch target for grid
+                                                modifier = Modifier.size(32.dp)
                                             ) {
                                                 Icon(
                                                     Icons.Default.MoreVert,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(16.dp) // Smaller icon
+                                                    contentDescription = "More options",
+                                                    modifier = Modifier.size(16.dp)
                                                 )
                                             }
                                             DropdownMenu(
@@ -647,70 +631,70 @@ fun NotesListScreen(
                                         }
                                     }
                                 }
-
-                                // Spacer to push tag to the bottom
+                                Spacer(modifier = Modifier.height(4.dp))
+                                if (parsedNote.body.isNotBlank()) {
+                                    Text(
+                                        text = parsedNote.body,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 3,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    )
+                                }
                                 Spacer(modifier = Modifier.weight(1f))
-
-                                // Image preview (optional) - Keep if desired
                                 if (parsedNote.imageUris.isNotEmpty()) {
-                                    Spacer(modifier = Modifier.height(4.dp))
                                     val previewImageUri = parsedNote.imageUris.first()
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(80.dp) // Fixed height for image preview
+                                            .height(80.dp)
+                                            .clip(RoundedCornerShape(0.dp))
+                                            .clickable { onImageClick(parsedNote.imageUris, 0) }
                                     ) {
                                         Image(
                                             painter = rememberAsyncImagePainter(previewImageUri),
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(RoundedCornerShape(0.dp)),
+                                            contentDescription = "Image preview",
+                                            modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
-
-                                        // Image count badge
                                         if (parsedNote.imageUris.size > 1) {
                                             Box(
                                                 modifier = Modifier
                                                     .align(Alignment.BottomEnd)
                                                     .padding(4.dp)
-                                                    .size(24.dp) // Smaller badge
+                                                    .size(24.dp)
                                                     .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)),
+                                                    .background(
+                                                        MaterialTheme.colorScheme.primary.copy(
+                                                            alpha = 0.8f
+                                                        )
+                                                    ),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
                                                     "+${parsedNote.imageUris.size - 1}",
                                                     color = MaterialTheme.colorScheme.onPrimary,
-                                                    style = MaterialTheme.typography.labelSmall
+                                                    style = MaterialTheme.typography.labelMedium
                                                 )
                                             }
                                         }
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp)) // Space after image
+                                    Spacer(modifier = Modifier.height(4.dp))
                                 }
-
-
-                                // Tag chips (original and "Images") at the bottom left
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(top=4.dp), // Add padding above tags
-                                    verticalAlignment = Alignment.CenterVertically // Align tags vertically
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (parsedNote.tag.isNotEmpty()) {
-                                        NoteTagSmall(parsedNote.tag) // Using the NoteTagSmall (black background chip)
-                                        // Add spacer only if both tags are present
-                                        if (parsedNote.imageUris.isNotEmpty()) {
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                        }
+                                        NoteTagSmall(parsedNote.tag)
+                                        if (parsedNote.imageUris.isNotEmpty()) Spacer(modifier = Modifier.width(4.dp))
                                     }
-                                    // Display images tag if note has images
                                     if(parsedNote.imageUris.isNotEmpty()){
                                         NoteTagSmall(tag = "Images")
                                     }
-                                    Spacer(modifier = Modifier.weight(1f)) // Pushes tags left
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
-
                             }
                         }
                     }
@@ -719,7 +703,6 @@ fun NotesListScreen(
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -733,7 +716,6 @@ fun NotesEditScreen(
     existingNoteNames: List<String>,
     onImageClick: (List<String>, Int) -> Unit = { _, _ -> }
 ) {
-    //state
     var fileName by remember { mutableStateOf("") }
     var fileBody by remember { mutableStateOf("") }
     var fileTag  by remember { mutableStateOf("") }
@@ -748,7 +730,6 @@ fun NotesEditScreen(
 
     var imageUris by remember { mutableStateOf<List<String>>(emptyList()) }
 
-    // helpers
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -766,7 +747,6 @@ fun NotesEditScreen(
         updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
     }
 
-    // initialise from incoming note
     LaunchedEffect(noteContent) {
         val parts = parseNoteContent(noteContent)
         originalId = parts.id
@@ -803,8 +783,6 @@ fun NotesEditScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            // Edit Card - Color does NOT change when image is added
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -828,7 +806,6 @@ fun NotesEditScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Tag dropdown
                     ExposedDropdownMenuBox(
                         expanded = expandedTagMenu,
                         onExpandedChange = { expandedTagMenu = !expandedTagMenu }
@@ -906,7 +883,6 @@ fun NotesEditScreen(
                 }
             }
 
-            // insert image button
             Button(
                 onClick = { showImageSourceDialog = true },
                 modifier = Modifier.align(Alignment.End)
@@ -923,7 +899,6 @@ fun NotesEditScreen(
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Save
                 Button(
                     onClick = {
                         val noteToSave = formatNoteForSaving(originalId, fileName, fileBody, fileTag, imageUris)
@@ -943,7 +918,6 @@ fun NotesEditScreen(
                     Text(stringResource(R.string.save))
                 }
 
-                // Save As
                 Button(
                     onClick = {
                         val noteToSave = formatNoteForSaving(null, fileName, fileBody, fileTag, imageUris)
@@ -964,7 +938,7 @@ fun NotesEditScreen(
                 }
             }
 
-            Spacer(Modifier.height(72.dp))   // bottom padding for scroll
+            Spacer(Modifier.height(72.dp))
         }
 
         if (showImageSourceDialog) {

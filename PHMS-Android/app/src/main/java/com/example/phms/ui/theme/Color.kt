@@ -29,6 +29,23 @@ val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFB8EAEF)
 val OnPrimaryContainerLight = Color(0xFF001F24)
 
+val retroDarkBlue = Color(0xFF0e367c)    // Deep blue for backgrounds or dark theme accents
+val retroBlue = Color(0xFF4874bf)       // Bright blue - Primary candidate
+val retroOrange = Color(0xFFfba257)     // Bright orange - Secondary candidate
+val retroRed = Color(0xFFf44242)        // Bright red - Tertiary/Accent candidate
+val retroDeepRed = Color(0xFFab3434)    // Deeper red - Error color candidate
+val retroYellow = Color(0xFFFFE28A)     // Bright Yellow (from your first palette/Piktochart feel) - Accent
+val retroLightCream = Color(0xFFFFFBEF) // Off-white for light backgrounds
+val retroDarkSurface = Color(0xFF1A1C2B) // A darker surface for dark theme, complementing retroDarkBlue
+val retroOnPrimary = Color.White       // Text/Icons on retroBlue
+val retroOnSecondary = Color.Black     // Text/Icons on retroOrange/retroYellow
+val retroOnTertiary = Color.White      // Text/Icons on retroRed
+val retroOnError = Color.White         // Text/Icons on retroDeepRed
+val retroOnBackgroundLight = Color.Black
+val retroOnSurfaceLight = Color.Black
+val retroOnBackgroundDark = Color.White
+val retroOnSurfaceDark = Color.White
+
 val SecondaryLight = Color(0xFFF5A742)
 val OnSecondaryLight = Color(0xFF000000)
 val SecondaryContainerLight = Color(0xFFFFDDB3)
@@ -74,10 +91,10 @@ val OnSurfaceVariantDark = Color(0xFFC0C8CD)
 
 val ErrorDark = Color(0xFFF2B8B5)
 
-val ChartRed = Color(0xFFE57373)
-val ChartBlue = Color(0xFF64B5F6)
-val ChartOrange = Color(0xFFF5A742)
-val ChartPurple = Color(0xFF9256D9)
+val ChartRed = retroRed
+val ChartBlue = retroBlue
+val ChartOrange = retroOrange
+val ChartPurple = Color(0xFFBA68C8) // Keep purple or pick another retro color
 val ChartGridColor = Color.Gray.copy(alpha = 0.3f)
 
 // Note Tag Colors (refined)
