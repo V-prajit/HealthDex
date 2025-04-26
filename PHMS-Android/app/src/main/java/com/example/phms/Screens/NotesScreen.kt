@@ -44,7 +44,6 @@ import com.example.phms.ImageThumbnail
 import com.example.phms.NoteImageViewer
 import com.example.phms.R
 import com.example.phms.formatNoteForSaving
-// +new Import parseNoteContent here if not already implicitly available
 import com.example.phms.parseNoteContent
 import com.example.phms.repository.NotesRepository
 import com.example.phms.repository.NotesRepositoryBackend
@@ -286,7 +285,7 @@ fun NotesListScreen(
     var isListLayout by remember { mutableStateOf(true) }
     var selectedSortTag by remember { mutableStateOf("All") }
 
-    // +fix Filter notes using parseNoteContent for accuracy
+    // Filter notes using parseNoteContent for accuracy
     val displayedNotes = remember(notes, selectedSortTag) { // Recompute when notes or filter changes
         if (selectedSortTag == "All") {
             notes
@@ -398,7 +397,7 @@ fun NotesListScreen(
                     itemsIndexed(displayedNotes) { index, note ->
                         val parsedNote = parseNoteContent(note)
                         val tag = parsedNote.tag // Use parsed tag
-                        // +fix Determine background color based on tag, use surfaceContainerLow as default
+                        // Determming background color based on tag, use surfaceContainerLow as default
                         val bgColor = when (tag.lowercase()) {
                             "diet" -> Color(0xFFFAB038) // Pikachu yellow
                             "medication" -> Color(0xFF99D5FF) // Squirtle blue
@@ -659,13 +658,13 @@ fun NotesListScreen(
                                     verticalAlignment = Alignment.CenterVertically // Align tags vertically
                                 ) {
                                     if (parsedNote.tag.isNotEmpty()) {
-                                        NoteTagSmall(parsedNote.tag) // Use the NoteTagSmall (black background chip)
+                                        NoteTagSmall(parsedNote.tag) // Using the NoteTagSmall (black background chip)
                                         // Add spacer only if both tags are present
                                         if (parsedNote.imageUris.isNotEmpty()) {
                                             Spacer(modifier = Modifier.width(4.dp))
                                         }
                                     }
-                                    // +new Display "Images" tag if note has images
+                                    // Display images tag if note has images
                                     if(parsedNote.imageUris.isNotEmpty()){
                                         NoteTagSmall(tag = "Images")
                                     }
@@ -768,7 +767,6 @@ fun NotesEditScreen(
             // Edit Card - Color does NOT change when image is added
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                // +fix Card color is always surfaceContainerHigh now.
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                 ),
@@ -839,8 +837,6 @@ fun NotesEditScreen(
                 }
             }
 
-            // This is the *second* card for images, which only appears when images are present.
-            // Its color remains surfaceVariant.
             if (imageUris.isNotEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
