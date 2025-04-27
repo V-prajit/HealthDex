@@ -16,34 +16,36 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Update your theme's color scheme
-private val RetroLightColorScheme = lightColorScheme(
-    primary = retroPrimary,
-    onPrimary = retroOnPrimary,
-    primaryContainer = retroPrimaryLight,
-    onPrimaryContainer = retroOnPrimary,
+private val RetroLightColorScheme = lightColorScheme( // Changed name from RetroLightColorScheme
+    primary = healthdexPrimary,
+    onPrimary = healthdexOnPrimary,
+    primaryContainer = healthdexPrimaryContainer,
+    onPrimaryContainer = healthdexOnPrimaryContainer,
 
-    secondary = retroSecondary,
-    onSecondary = retroOnSecondary,
-    secondaryContainer = retroSecondaryLight,
-    onSecondaryContainer = retroOnSecondary,
+    secondary = healthdexSecondary,
+    onSecondary = healthdexOnSecondary,
+    secondaryContainer = healthdexSecondaryContainer,
+    onSecondaryContainer = healthdexOnSecondaryContainer,
 
-    tertiary = retroAccent,
-    onTertiary = retroOnPrimary,
-    tertiaryContainer = retroAccent.copy(alpha = 0.7f),
-    onTertiaryContainer = retroOnPrimary,
+    tertiary = healthdexTertiary,
+    onTertiary = healthdexOnTertiary,
+    tertiaryContainer = healthdexTertiaryContainer,
+    onTertiaryContainer = healthdexOnTertiaryContainer,
 
-    background = retroBgLight,
-    onBackground = retroOnBgLight,
-    surface = retroSurfaceLight,
-    onSurface = retroOnBgLight,
-    surfaceVariant = Color(0xFFEEEEEE),
-    onSurfaceVariant = retroOnBgLight,
+    error = healthdexError,
+    onError = healthdexOnError,
+    errorContainer = healthdexErrorContainer,
+    onErrorContainer = healthdexOnErrorContainer,
 
-    error = retroError,
-    onError = retroOnPrimary,
-    errorContainer = retroError.copy(alpha = 0.7f),
-    onErrorContainer = retroOnPrimary
+    background = healthdexBackground,
+    onBackground = healthdexOnBackground,
+    surface = healthdexSurface,
+    onSurface = healthdexOnSurface,
+    surfaceVariant = healthdexSurfaceVariant,
+    onSurfaceVariant = healthdexOnSurfaceVariant,
+
+    outline = healthdexOutline,
+
 )
 
 // Define Retro Dark Theme Colors
@@ -79,8 +81,7 @@ private val RetroDarkColorScheme = darkColorScheme(
 @Composable
 fun PHMSTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false, // Keep dynamic color off to use Retro theme
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -88,7 +89,6 @@ fun PHMSTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        // Apply Retro themes based on darkTheme flag
         darkTheme -> RetroDarkColorScheme
         else -> RetroLightColorScheme
     }
@@ -97,21 +97,18 @@ fun PHMSTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Set status bar to match the primary container or background
             window.statusBarColor = colorScheme.primaryContainer.toArgb()
-            // Set navigation bar to match background or surface variant
-            window.navigationBarColor = colorScheme.background.toArgb() // Match background
+            window.navigationBarColor = colorScheme.background.toArgb()
 
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-            // Set navigation bar icons light/dark based on theme
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Keep existing Typography or adjust if needed
-        shapes = Shapes,       // Keep existing Shapes (currently 0dp rounding)
+        typography = Typography,
+        shapes = Shapes,
         content = content
     )
 }
