@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.sp
 import com.example.phms.R
 
 val PokemonClassicFontFamily = FontFamily(
-    Font(R.font.fontwah, FontWeight.Normal)
+    Font(R.font.waher, FontWeight.Normal)
 )
 
 val DefaultFontFamily = FontFamily.Default
