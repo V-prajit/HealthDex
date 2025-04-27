@@ -117,3 +117,36 @@ val TagDiet = Color(0xFFEF5350)
 val TagMedication = Color(0xFF06A3B7)
 val TagHealth = Color(0xFF66BB6A)
 val TagMisc = Color(0xFFF5A742)
+
+val healthdexPrimary = Color(0xFF0B4F6C) // Dark Blue from palette
+val healthdexSecondary = Color(0xFF6CAE75) // Muted Green from palette
+val healthdexTertiary = Color(0xFFFD9A49) // Orange from palette
+val healthdexError = Color(0xFFEF476F) // Pink/Red from palette
+val healthdexNeutral = Color(0xFF885053) // Muted Mauve from palette
+
+// --- Define Light Theme Variants (you might need to adjust these) ---
+// For Light Theme 'On' Colors (text/icons on top of the main colors)
+val healthdexOnPrimary = Color.White // White text on dark blue
+val healthdexOnSecondary = Color.Black // Black text on muted green (check contrast)
+val healthdexOnTertiary = Color.Black // Black text on orange (check contrast)
+val healthdexOnError = Color.White // White text on pink/red
+
+// For Light Theme Container Colors (lighter backgrounds for components)
+// You can generate these using Material Theme Builder or pick lighter shades
+val healthdexPrimaryContainer = Color(0xFFB2DFDB) // Example: Light Teal/Blue
+val healthdexOnPrimaryContainer = Color(0xFF001F25) // Dark text for light container
+val healthdexSecondaryContainer = Color(0xFFC8E6C9) // Example: Light Green
+val healthdexOnSecondaryContainer = Color(0xFF1B1C1E) // Dark text for light container
+val healthdexTertiaryContainer = Color(0xFFFFE0B2) // Example: Light Orange
+val healthdexOnTertiaryContainer = Color(0xFF2A1800) // Dark text for light container
+val healthdexErrorContainer = Color(0xFFFFCDD2) // Example: Light Pink
+val healthdexOnErrorContainer = Color(0xFF410001) // Dark text for light container
+
+// For Light Theme Background/Surface
+val healthdexBackground = Color(0xFFFFFBFE) // Almost White
+val healthdexOnBackground = Color(0xFF191C1D) // Very Dark Gray
+val healthdexSurface = Color(0xFFFBFE) // Almost White
+val healthdexOnSurface = Color(0xFF191C1D) // Very Dark Gray
+val healthdexSurfaceVariant = Color(0xFFE0E0E0) // Light Gray
+val healthdexOnSurfaceVariant = Color(0xFF444748) // Dark Gray
+val healthdexOutline = Color(0xFF747779) // Medium Gray
