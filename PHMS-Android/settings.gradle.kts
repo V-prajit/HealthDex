@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PHMS"
+rootProject.name = "Healthdex"
 include(":app")
