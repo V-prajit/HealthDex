@@ -11,7 +11,9 @@ object Vitals : Table() {
     val id        = integer("id").autoIncrement()
     val userId    = varchar("user_id", 255)
     val type      = varchar("type", 100)
-    val value     = double("value")
+    val value         = double("value").nullable()
+    val manualSystolic = double("manual_systolic").nullable()
+    val manualDiastolic = double("manual_diastolic").nullable()
     val unit      = varchar("unit", 50)
     val timestamp = varchar("timestamp", 50)
     override val primaryKey = PrimaryKey(id)
@@ -23,9 +25,11 @@ data class VitalDTO(
     val id: Int?    = null,
     val userId: String,
     val type: String,
-    val value: Double,
+    val value: Double?,
     val unit: String,
-    val timestamp: String
+    val timestamp: String,
+    val manualSystolic: Double? = null,
+    val manualDiastolic: Double? = null
 )
 
 object VitalsDAO {
@@ -37,12 +41,14 @@ object VitalsDAO {
           .orderBy(Vitals.id, SortOrder.DESC)
           .map { row: ResultRow ->
             VitalDTO(
-              id        = row[Vitals.id],
-              userId    = row[Vitals.userId],
-              type      = row[Vitals.type],
-              value     = row[Vitals.value],
-              unit      = row[Vitals.unit],
-              timestamp = row[Vitals.timestamp]
+              id                = row[Vitals.id],
+              userId            = row[Vitals.userId],
+              type              = row[Vitals.type],
+              value             = row[Vitals.value],
+              unit              = row[Vitals.unit],
+              timestamp         = row[Vitals.timestamp],
+              manualSystolic    = row[Vitals.manualSystolic],
+              manualDiastolic   = row[Vitals.manualDiastolic]
             )
           }
     }
@@ -59,6 +65,8 @@ object VitalsDAO {
             it[value]     = v.value
             it[unit]      = v.unit
             it[timestamp] = v.timestamp
+            it[manualSystolic]  = v.manualSystolic
+            it[manualDiastolic] = v.manualDiastolic
         } get Vitals.id
         v.copy(id = newId)
     }
@@ -70,6 +78,8 @@ object VitalsDAO {
             it[value]     = v.value
             it[unit]      = v.unit
             it[timestamp] = v.timestamp
+            it[manualSystolic]  = v.manualSystolic
+            it[manualDiastolic] = v.manualDiastolic
         } > 0
     }
 
