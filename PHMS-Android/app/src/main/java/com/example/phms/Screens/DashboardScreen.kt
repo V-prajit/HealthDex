@@ -1,15 +1,11 @@
 package com.example.phms.Screens
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.EventNote
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Note
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -148,7 +144,6 @@ fun DashboardScreen(
             "notes" -> {
                 NotesScreen(
                     userToken        = userToken,
-                    modifier        = Modifier.padding(innerPadding),
                     onSettingsClick  = { onSettingsClick("notes") },
                     onBackClick = { selectedTab = "home" },
                     newNoteRequested = newNoteRequested
@@ -168,7 +163,6 @@ fun DashboardScreen(
             "medications" -> {
                 PokemonMedicationsScreen(
                     userToken = userToken,
-                    modifier = Modifier.padding(innerPadding),
                     onBack = { selectedTab = "home" },
                     onSettingsClick = { onSettingsClick("medications") } // Pass onSettingsClick
                 )
