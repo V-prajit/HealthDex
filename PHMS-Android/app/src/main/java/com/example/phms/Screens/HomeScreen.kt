@@ -37,6 +37,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -57,12 +58,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.phms.Appointment
 import com.example.phms.R
 import com.example.phms.repository.AppointmentRepository
+import com.example.phms.repository.DietGoalRepository
+import com.example.phms.repository.DietRepository
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Calendar
 
 @Composable
@@ -81,41 +88,81 @@ fun HomeScreen(
 
     val context = LocalContext.current
     var upcomingAppointments by remember { mutableStateOf<List<Appointment>>(emptyList()) }
+    var latestAppointment by remember { mutableStateOf<Appointment?>(null) } // State for the grid card
+
+    // States for Diet Summary Card
+    var todaysCalories by remember { mutableStateOf(0) }
+    var todaysProtein by remember { mutableStateOf(0) }
+    var todaysFat by remember { mutableStateOf(0) }
+    var todaysCarbs by remember { mutableStateOf(0) }
+    var calorieGoal by remember { mutableStateOf(2000) }
+    var proteinGoal by remember { mutableStateOf(75) }
+    var fatGoal by remember { mutableStateOf(65) }
+    var carbGoal by remember { mutableStateOf(300) }
+    var userId by remember { mutableStateOf<String?>(null) }
 
     val motivationalQuotes = stringArrayResource(id = R.array.motivational_quotes)
-
     var currentQuote by remember {
         mutableStateOf(if (motivationalQuotes.isNotEmpty()) motivationalQuotes.random() else "")
     }
 
-    // Log the received firstName
     Log.d("HomeScreen", "Composing HomeScreen with firstName: $firstName")
 
-
+    // Fetch User ID from SharedPreferences
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        prefs.getString("LAST_USER_UID", null)?.let { uid ->
-            if (uid.isNotEmpty()) {
-                launch {
-                    upcomingAppointments = AppointmentRepository.getUpcomingAppointments(uid)
-                }
-            }
-        }
+        userId = prefs.getString("LAST_USER_UID", null)
         if (motivationalQuotes.isNotEmpty()) {
             currentQuote = motivationalQuotes.random()
         }
     }
 
+    // Fetch Appointment and Diet data when userId is available
+    LaunchedEffect(userId) {
+        userId?.let { uid ->
+            if (uid.isNotEmpty()) {
+                launch {
+                    // Fetch appointments
+                    val upcoming = AppointmentRepository.getUpcomingAppointments(uid)
+                    upcomingAppointments = upcoming // For the bottom card
+                    latestAppointment = upcoming.firstOrNull() // For the grid card
+
+                    // Fetch diet goals
+                    val goals = DietGoalRepository.getDietGoals(uid)
+                    goals?.let {
+                        calorieGoal = it.calorieGoal
+                        proteinGoal = it.proteinGoal
+                        fatGoal = it.fatGoal
+                        carbGoal = it.carbGoal
+                    }
+
+                    val today = LocalDate.now()
+                    val allDiets = DietRepository.getDiets(uid)
+                    val todaysDiets = allDiets.filter {
+                        try {
+                            LocalDateTime.parse(it.timestamp).toLocalDate() == today
+                        } catch (e: Exception) {
+                            false
+                        }
+                    }
+                    todaysCalories = todaysDiets.sumOf { it.calories }
+                    todaysProtein = todaysDiets.sumOf { it.protein ?: 0 }
+                    todaysFat = todaysDiets.sumOf { it.fats ?: 0 }
+                    todaysCarbs = todaysDiets.sumOf { it.carbohydrates ?: 0 }
+                }
+            }
+        }
+    }
+
+
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greetingBaseText = when (hour) {
-        in 6..11  -> stringResource(R.string.good_morning)
+        in 6..11 -> stringResource(R.string.good_morning)
         in 12..16 -> stringResource(R.string.good_afternoon)
-        else      -> stringResource(R.string.good_evening)
+        else -> stringResource(R.string.good_evening)
     }
-    val greetingText = greetingBaseText + (firstName?.takeIf { it.isNotBlank() }?.let { ", $it" } ?: "") // Added isNotBlank check
-
+    val greetingText = greetingBaseText + (firstName?.takeIf { it.isNotBlank() }?.let { ", $it" } ?: "")
     Log.d("HomeScreen", "Calculated greetingText: $greetingText")
-
 
     val imageUrl = when (hour) {
         in 6..11  -> "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80"
@@ -131,8 +178,9 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top
     ) {
-         Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Quote and Settings Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -164,6 +212,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Search Bar Placeholder
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -187,6 +236,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Greeting Image Box
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -211,7 +261,7 @@ fun HomeScreen(
                 contentAlignment = Alignment.BottomStart
             ) {
                 Text(
-                    text = greetingText, // Uses calculated text
+                    text = greetingText,
                     color = Color.White,
                     style = MaterialTheme.typography.headlineLarge
                 )
@@ -220,12 +270,12 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Quick Access Section
         Text(
             text = stringResource(R.string.quick_access),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -249,8 +299,10 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f)
             )
         }
+
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Health Dashboard Grid
         Text(
             text = stringResource(R.string.health_dashboard),
             style = MaterialTheme.typography.titleMedium,
@@ -266,10 +318,22 @@ fun HomeScreen(
             userScrollEnabled = false
         ) {
             item {
-                DashboardCard(
-                    text = stringResource(R.string.diet),
-                    icon = Icons.Default.RestaurantMenu,
+                DietSummaryCard(
+                    calories = todaysCalories,
+                    calorieGoal = calorieGoal,
+                    protein = todaysProtein,
+                    proteinGoal = proteinGoal,
+                    fat = todaysFat,
+                    fatGoal = fatGoal,
+                    carbs = todaysCarbs,
+                    carbGoal = carbGoal,
                     onClick = onNavigateToDiet
+                )
+            }
+            item {
+                AppointmentSummaryCard(
+                    appointment = latestAppointment,
+                    onClick = onNavigateToAppointments
                 )
             }
             item {
@@ -286,14 +350,8 @@ fun HomeScreen(
                     onClick = onNavigateToDoctors
                 )
             }
-            item {
-                DashboardCard(
-                    text = stringResource(R.string.appointments),
-                    icon = Icons.Default.EventNote,
-                    onClick = onNavigateToAppointments
-                )
-            }
         }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         if (upcomingAppointments.isNotEmpty()) {
@@ -303,8 +361,10 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                upcomingAppointments.take(1).forEach { appt ->
-                     Card(
+                // Show only the first upcoming appointment here
+                val nextAppt = upcomingAppointments.firstOrNull()
+                nextAppt?.let { appt ->
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onNavigateToAppointments() },
@@ -331,18 +391,18 @@ fun HomeScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.MedicalServices, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(appt.doctorName ?: "", style = MaterialTheme.typography.bodyMedium)
+                                Text(appt.doctorName ?: "N/A", style = MaterialTheme.typography.bodyMedium)
                             }
-                            appt.reason.takeIf { it?.isNotBlank() == true }?.let {
+                            appt.reason.takeIf { it.isNotBlank() }?.let {
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(it, style = MaterialTheme.typography.bodySmall)
+                                Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
                 }
             }
         }
-         Spacer(modifier = Modifier.height(16.dp)) // Add padding at the bottom
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -375,7 +435,6 @@ fun QuickAccessCard(
     }
 }
 
-
 @Composable
 fun DashboardCard(
     text: String,
@@ -407,6 +466,125 @@ fun DashboardCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
+    val titleText = "Next Appointment:"
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp) // Match original DashboardCard height
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp), // Match original DashboardCard shape
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant // Match original
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Match original
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally, // Center content like original
+            verticalArrangement = Arrangement.Center // Center content like original
+        ) {
+            if (appointment != null) {
+                Text(
+                    text = titleText,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    fontSize = 10.sp,
+                )
+                Text(
+                    "${appointment.doctorName ?: "Dr. ?"}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    "${formatDate(appointment.date)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    "${appointment.time}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+            } else {
+                // Display default content if no appointment
+                Icon(
+                    Icons.Default.EventNote,
+                    contentDescription = titleText,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = titleText,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DietSummaryCard(
+    calories: Int,
+    calorieGoal: Int,
+    protein: Int,
+    proteinGoal: Int,
+    fat: Int,
+    fatGoal: Int,
+    carbs: Int,
+    carbGoal: Int,
+    onClick: () -> Unit
+) {
+    val titleText = stringResource(R.string.diet)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                "Cals: $calories/$calorieGoal",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            LinearProgressIndicator(
+                progress = { (calories.toFloat() / calorieGoal.toFloat()).coerceIn(0f, 1f) },
+                modifier = Modifier.width(60.dp).padding(top = 2.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("P: $protein/$proteinGoal", style = MaterialTheme.typography.labelSmall, maxLines=1)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("F: $fat/$fatGoal", style = MaterialTheme.typography.labelSmall, maxLines=1)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("C: $carbs/$carbGoal", style = MaterialTheme.typography.labelSmall, maxLines=1)
         }
     }
 }
