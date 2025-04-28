@@ -30,7 +30,18 @@ object VitalRepository {
         .getLatestVital(userId, type)
         .execute()
         .body()
-      dto?.let { VitalSign(it.id, it.userId, it.type, it.value, it.unit, it.timestamp) }
+      dto?.let {
+        VitalSign(
+            id              = it.id,
+            userId          = it.userId,
+            type            = it.type,
+            value           = it.value,
+            unit            = it.unit,
+            timestamp       = it.timestamp,
+            manualSystolic  = it.manualSystolic,
+            manualDiastolic = it.manualDiastolic
+        )
+    }
     } catch (t: Throwable) {
       Log.e("VitalRepo", "getLatest failed", t)
       null
