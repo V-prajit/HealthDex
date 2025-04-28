@@ -155,6 +155,9 @@
     <string name="relationship">Relationship</string>
     <string name="notify_on_emergency">Notify on emergency</string>
     <string name="notify_on_vital_emergencies">Notify on vital sign emergencies</string>
+    <string name="bp_input_error">Please enter valid Systolic and Diastolic values</string>
+    <string name="systolic_value">Systolic Value</string>
+    <string name="diastolic_value">Diastolic Value</string>
 
     <string name="chatbot">Chatbot</string>
     <string name="health_dashboard">Health Dashboard</string>
