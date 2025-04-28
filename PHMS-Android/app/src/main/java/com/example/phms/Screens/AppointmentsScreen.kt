@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -75,6 +76,7 @@ import com.example.phms.Doctor
 import com.example.phms.R
 import com.example.phms.repository.AppointmentRepository
 import com.example.phms.repository.DoctorRepository
+import com.example.phms.ui.theme.PokemonClassicFontFamily
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -98,7 +100,6 @@ fun AppointmentsScreen(
     var showAllAppointments by remember { mutableStateOf(false) }
     val settingsLabel = stringResource(R.string.settings)
 
-    // Load appointments and doctors when screen is shown
     LaunchedEffect(userId, showAllAppointments) {
         if (userId != null) {
             doctors = DoctorRepository.getDoctors(userId)
@@ -135,10 +136,9 @@ fun AppointmentsScreen(
             FloatingActionButton(
                 onClick = {
                     if (doctors.isEmpty()) {
-                        // If no doctors, redirect to doctor screen
                         onViewDoctors()
                     } else {
-                        currentAppointment = null // Ensure we're creating a new appointment
+                        currentAppointment = null
                         showAppointmentDialog = true
                     }
                 },
@@ -171,7 +171,6 @@ fun AppointmentsScreen(
         }
     }
 
-    // Edit/Add Appointment Dialog
     if (showAppointmentDialog) {
         AppointmentDialog(
             appointment = currentAppointment,
@@ -180,15 +179,15 @@ fun AppointmentsScreen(
             onSave = { appointment ->
                 scope.launch {
                     if (appointment.id == null) {
-                        Log.d("ApptScreenSave", "Attempting to add new appointment: $appointment") // Log data being sent
+                        Log.d("ApptScreenSave", "Attempting to add new appointment: $appointment")
                         val saved = AppointmentRepository.addAppointment(appointment)
-                        Log.d("ApptScreenSave", "AppointmentRepository returned: $saved") // Log the result
+                        Log.d("ApptScreenSave", "AppointmentRepository returned: $saved")
 
                         if (saved != null && saved.reminders) {
-                            Log.d("ApptScreenSave", "Scheduling reminders for ID: ${saved.id}") // Log before scheduling
+                            Log.d("ApptScreenSave", "Scheduling reminders for ID: ${saved.id}")
                             AppointmentAlarmManager(context).scheduleAppointmentReminders(saved)
                         } else{
-                            Log.w("ApptScreenSave", "NOT scheduling reminders. Saved is null? ${saved == null}. Reminders enabled? ${saved?.reminders}") // Log why not scheduling
+                            Log.w("ApptScreenSave", "NOT scheduling reminders. Saved is null? ${saved == null}. Reminders enabled? ${saved?.reminders}")
                         }
                     } else {
                         AppointmentRepository.updateAppointment(appointment)
@@ -201,7 +200,6 @@ fun AppointmentsScreen(
                         }
                     }
 
-                    // Refresh appointment list
                     if (userId != null) {
                         appointments = AppointmentRepository.getAppointments(userId)
                     }
@@ -214,7 +212,6 @@ fun AppointmentsScreen(
         )
     }
 
-    // Confirm Delete Dialog
     if (confirmDeleteDialog != null) {
         AlertDialog(
             onDismissRequest = { confirmDeleteDialog = null },
@@ -238,7 +235,6 @@ fun AppointmentsScreen(
                             val appointmentToDelete = confirmDeleteDialog
                             if (appointmentToDelete?.id != null) {
                                 AppointmentRepository.deleteAppointment(appointmentToDelete.id)
-                                // Refresh appointment list
                                 if (userId != null) {
                                     appointments = AppointmentRepository.getAppointments(userId)
                                 }
@@ -297,7 +293,6 @@ fun AppointmentCard(
                     )
                 }
 
-                // Status badge
                 AppointmentStatusBadge(status = appointment.status)
             }
 
@@ -344,7 +339,6 @@ fun AppointmentCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                // Reminders toggle
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         if (appointment.reminders) Icons.Default.Notifications else Icons.Default.NotificationsOff,
@@ -421,7 +415,6 @@ fun AppointmentDialog(
     onSave: (Appointment) -> Unit,
     onCancel: () -> Unit
 ) {
-    // Dialog state
     var selectedDoctorId by remember { mutableStateOf(appointment?.doctorId ?: (doctors.firstOrNull()?.id ?: 0)) }
     var date by remember { mutableStateOf(appointment?.date ?: LocalDate.now().toString()) }
     var time by remember { mutableStateOf(appointment?.time ?: "09:00") }
@@ -431,22 +424,22 @@ fun AppointmentDialog(
     var status by remember { mutableStateOf(appointment?.status ?: "scheduled") }
     var reminders by remember { mutableStateOf(appointment?.reminders ?: true) }
 
-    // Date picker state
     var showDatePicker by remember { mutableStateOf(false) }
     var datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = LocalDate.parse(date).toEpochDay() * 24 * 60 * 60 * 1000
     )
 
-    // Error states
     var reasonError by remember { mutableStateOf(false) }
     var durationError by remember { mutableStateOf(false) }
 
-    // Status options
     val statusOptions = listOf("scheduled", "completed", "cancelled")
     var statusExpanded by remember { mutableStateOf(false) }
 
-    // Doctor dropdown
     var doctorExpanded by remember { mutableStateOf(false) }
+
+    var showTimePicker by remember { mutableStateOf(false) }
+    var selectedHour by remember { mutableStateOf(time.split(":").getOrNull(0)?.toIntOrNull() ?: 9) }
+    var selectedMinute by remember { mutableStateOf(time.split(":").getOrNull(1)?.toIntOrNull() ?: 0) }
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -460,7 +453,6 @@ fun AppointmentDialog(
         },
         text = {
             Column {
-                // Doctor selection
                 Box {
                     OutlinedTextField(
                         value = doctors.find { it.id == selectedDoctorId }?.name ?: "",
@@ -496,7 +488,6 @@ fun AppointmentDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Date picker
                 OutlinedTextField(
                     value = formatDate(date),
                     onValueChange = { },
@@ -512,16 +503,13 @@ fun AppointmentDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                var showTimePicker by remember { mutableStateOf(false) }
-                var selectedHour by remember { mutableStateOf(time.split(":").getOrNull(0)?.toIntOrNull() ?: 9) }
-                var selectedMinute by remember { mutableStateOf(time.split(":").getOrNull(1)?.toIntOrNull() ?: 0) }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedTextField(
                         value = String.format("%02d:%02d", selectedHour, selectedMinute),
-                        onValueChange = { /* Read only, managed by picker */ },
+                        onValueChange = { },
                         label = { Text(stringResource(R.string.time)) },
                         readOnly = true,
                         trailingIcon = {
@@ -531,33 +519,6 @@ fun AppointmentDialog(
                         },
                         modifier = Modifier.weight(1f)
                     )
-                    if (showTimePicker) {
-                        TimePickerDialog(
-                            onDismissRequest = { showTimePicker = false },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    time = String.format("%02d:%02d", selectedHour, selectedMinute)
-                                    showTimePicker = false
-                                }) {
-                                    Text(stringResource(R.string.ok))
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showTimePicker = false }) {
-                                    Text(stringResource(R.string.cancel))
-                                }
-                            }
-                        ) {
-                            TimePicker(
-                                initialHour = selectedHour,
-                                initialMinute = selectedMinute,
-                                onTimeChange = { hour, minute ->
-                                    selectedHour = hour
-                                    selectedMinute = minute
-                                }
-                            )
-                        }
-                    }
 
                     Spacer(modifier = Modifier.width(8.dp))
 
@@ -580,7 +541,6 @@ fun AppointmentDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Reason
                 OutlinedTextField(
                     value = reason,
                     onValueChange = {
@@ -599,7 +559,6 @@ fun AppointmentDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Notes
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -610,7 +569,6 @@ fun AppointmentDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Status
                 Box {
                     OutlinedTextField(
                         value = status.replaceFirstChar {
@@ -652,7 +610,6 @@ fun AppointmentDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Reminders
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -679,7 +636,7 @@ fun AppointmentDialog(
                             doctorId = selectedDoctorId,
                             doctorName = doctors.find { it.id == selectedDoctorId }?.name,
                             date = date,
-                            time = time,
+                            time = String.format("%02d:%02d", selectedHour, selectedMinute), // Save the selected time
                             duration = duration.toIntOrNull() ?: 30,
                             reason = reason,
                             notes = notes,
@@ -700,7 +657,6 @@ fun AppointmentDialog(
         }
     )
 
-    // Date picker dialog
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -726,9 +682,42 @@ fun AppointmentDialog(
             DatePicker(state = datePickerState)
         }
     }
+
+    if (showTimePicker) {
+        ThemedTimePickerDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        time = String.format("%02d:%02d", selectedHour, selectedMinute)
+                        showTimePicker = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(stringResource(R.string.ok), fontFamily = PokemonClassicFontFamily)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showTimePicker = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(stringResource(R.string.cancel), fontFamily = PokemonClassicFontFamily)
+                }
+            }
+        ) {
+            ThemedTimePicker(
+                initialHour = selectedHour,
+                initialMinute = selectedMinute,
+                onTimeChange = { hour, minute ->
+                    selectedHour = hour
+                    selectedMinute = minute
+                }
+            )
+        }
+    }
 }
 
-// Helper function to format date
 fun formatDate(dateString: String): String {
     return try {
         val date = LocalDate.parse(dateString)
@@ -740,9 +729,9 @@ fun formatDate(dateString: String): String {
 }
 
 @Composable
-fun TimePicker(
-    initialHour: Int = 9,
-    initialMinute: Int = 0,
+fun ThemedTimePicker(
+    initialHour: Int,
+    initialMinute: Int,
     onTimeChange: (Int, Int) -> Unit
 ) {
     var hour by remember { mutableStateOf(initialHour) }
@@ -752,68 +741,102 @@ fun TimePicker(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(16.dp)
     ) {
-        // Hour picker
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            IconButton(
-                onClick = {
-                    hour = if (hour <= 0) 23 else hour - 1
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                IconButton(onClick = {
+                    hour = (hour - 1 + 24) % 24
                     onTimeChange(hour, minute)
+                }) {
+                    Icon(
+                        Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Increase hour",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
-            ) {
-                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Increase hour")
-            }
-
-            Text(
-                text = String.format("%02d", hour),
-                style = MaterialTheme.typography.headlineLarge
-            )
-
-            IconButton(
-                onClick = {
-                    hour = if (hour >= 23) 0 else hour + 1
+                Row {
+                    Text(
+                        text = String.format("%02d", hour).substring(0, 1), // First digit
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontFamily = PokemonClassicFontFamily,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                    Text(
+                        text = String.format("%02d", hour).substring(1, 2), // Second digit
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontFamily = PokemonClassicFontFamily,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+                IconButton(onClick = {
+                    hour = (hour + 1) % 24
                     onTimeChange(hour, minute)
+                }) {
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Decrease hour",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
-            ) {
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Decrease hour")
             }
 
             Text(
                 text = ":",
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontFamily = PokemonClassicFontFamily,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
 
-            IconButton(
-                onClick = {
-                    minute = if (minute <= 0) 55 else minute - 5
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                IconButton(onClick = {
+                    minute = (minute - 5 + 60) % 60
                     onTimeChange(hour, minute)
+                }) {
+                    Icon(
+                        Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Increase minute",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
-            ) {
-                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Increase minute")
-            }
-
-            Text(
-                text = String.format("%02d", minute),
-                style = MaterialTheme.typography.headlineLarge
-            )
-
-            IconButton(
-                onClick = {
-                    minute = if (minute >= 55) 0 else minute + 5
+                Row {
+                    Text(
+                        text = String.format("%02d", minute).substring(0, 1), // First digit
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontFamily = PokemonClassicFontFamily,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                    Text(
+                        text = String.format("%02d", minute).substring(1, 2), // Second digit
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontFamily = PokemonClassicFontFamily,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+                IconButton(onClick = {
+                    minute = (minute + 5) % 60
                     onTimeChange(hour, minute)
+                }) {
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Decrease minute",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
-            ) {
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Decrease minute")
             }
         }
     }
 }
 
 @Composable
-fun TimePickerDialog(
+fun ThemedTimePickerDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     dismissButton: @Composable () -> Unit,
@@ -821,12 +844,19 @@ fun TimePickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text("Select Time") },
+        title = { Text(
+            "Select Time",
+            fontFamily = PokemonClassicFontFamily,
+            color = MaterialTheme.colorScheme.onSurface
+        ) },
         text = { content() },
         confirmButton = confirmButton,
-        dismissButton = dismissButton
+        dismissButton = dismissButton,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = MaterialTheme.shapes.medium
     )
 }
+
 @Composable
 fun AppointmentCalendarWithScroll(
     appointments: List<Appointment>,
@@ -871,7 +901,7 @@ fun AppointmentCalendarWithScroll(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.5f) // +update: slightly taller to include top row properly
+                    .fillMaxHeight(0.5f)
             ) {
                 DatePicker(
                     state = calendarState,

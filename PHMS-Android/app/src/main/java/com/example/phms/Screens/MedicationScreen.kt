@@ -1,7 +1,6 @@
 package com.example.phms.Screens
 
-import android.app.TimePickerDialog
-import android.widget.TimePicker
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -61,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -68,9 +68,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phms.Medication
 import com.example.phms.MedicationAlarmManager
+import com.example.phms.R
 import com.example.phms.repository.MedicationRepository
 import com.example.phms.ui.theme.PokemonClassicFontFamily
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,7 +107,6 @@ fun PokemonMedicationsScreen(
                             MedicationRepository.delete(id) { success ->
                                 if (success) {
                                     meds = meds.filterNot { it.id == id }
-
                                     val alarmManager = MedicationAlarmManager(context)
                                     alarmManager.cancelMedicationReminders(medication)
                                 }
@@ -172,7 +171,7 @@ fun PokemonMedicationsScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
-                    .padding(bottom = 0.dp, end = 16.dp)
+                    .padding(bottom = 72.dp, end = 16.dp)
                     .size(56.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Medication")
@@ -222,7 +221,7 @@ fun PokemonMedicationsScreen(
                             "pain relief" -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
                             "allergy" -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
                             "digestive" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
-                            else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant // Default
+                            else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
                         }
 
                         PokemonMedicationCard(
@@ -241,7 +240,6 @@ fun PokemonMedicationsScreen(
         }
 
         if (showDialog) {
-            // Use your existing ExtendedMedicationDialog, it should pick up theme colors
             ExtendedMedicationDialog(
                 initial = dialogInitial,
                 userId = userToken ?: return@Scaffold,
@@ -281,8 +279,8 @@ fun PokemonMedicationsScreen(
 @Composable
 fun PokemonMedicationCard(
     medication: Medication,
-    cardColor: Color, // Use the determined theme color
-    contentColor: Color, // Use the determined theme content color
+    cardColor: Color,
+    contentColor: Color,
     onEdit: () -> Unit
 ) {
     Box(
@@ -290,8 +288,8 @@ fun PokemonMedicationCard(
             .fillMaxWidth()
             .height(100.dp)
             .clip(RoundedCornerShape(0.dp))
-            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp)) // Use theme border color
-            .background(cardColor) // Use the category-specific color
+            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp))
+            .background(cardColor)
             .clickable { onEdit() }
             .padding(2.dp)
     ) {
@@ -311,7 +309,7 @@ fun PokemonMedicationCard(
                 Icon(
                     Icons.Default.LocalPharmacy,
                     contentDescription = null,
-                    tint = contentColor, // Keep icon tint for visibility
+                    tint = contentColor,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -325,7 +323,7 @@ fun PokemonMedicationCard(
                     text = medication.name.uppercase(),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = contentColor, // Ensure text is readable on cardColor
+                        color = contentColor,
                         fontSize = 20.sp
                     ),
                     maxLines = 1,
@@ -351,14 +349,14 @@ fun PokemonMedicationCard(
                     text = medication.dosage.replace(Regex("[0-9]"), "").trim(),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = contentColor, // Ensure text is readable
+                        color = contentColor,
                         fontSize = 20.sp
                     )
                 )
                 Text(
                     text = "x${medication.frequency}",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = contentColor, // Ensure text is readable
+                        color = contentColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
@@ -379,9 +377,6 @@ fun ExtendedMedicationDialog(
     onDelete: (Medication) -> Unit,
     onCancel: () -> Unit
 ) {
-    val context = LocalContext.current
-    val now = remember { Calendar.getInstance() }
-
     var name by remember { mutableStateOf(initial?.name ?: "") }
     var category by remember { mutableStateOf(initial?.category ?: "") }
     var dosage by remember { mutableStateOf(initial?.dosage ?: "") }
@@ -400,30 +395,26 @@ fun ExtendedMedicationDialog(
     val weekdays = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     val selectedDays = remember { mutableStateListOf<String>() }
 
-    val initialTimes = initial?.time?.split(",") ?: listOf("09:00")
     val freqInt = frequency.toIntOrNull() ?: 1
-
     val timeList = remember {
         mutableStateListOf<String>().apply {
             if (initial != null && initial.time.isNotEmpty()) {
-                // Handle both single time and comma-separated times
                 if (initial.time.contains(",")) {
-                    // Multiple times
                     addAll(initial.time.split(","))
                 } else {
-                    // Single time
                     add(initial.time)
                 }
-
-                // Adjust list size if needed based on frequency
                 while (size < freqInt) add("09:00")
                 while (size > freqInt) removeAt(lastIndex)
             } else {
-                // No saved times, use defaults
                 repeat(freqInt) { add("09:00") }
             }
         }
     }
+
+    var showTimePickerForIndex by remember { mutableStateOf<Int?>(null) }
+    var tempHour by remember { mutableStateOf(9) }
+    var tempMinute by remember { mutableStateOf(0) }
 
     AlertDialog(
         onDismissRequest = onCancel,
@@ -520,24 +511,23 @@ fun ExtendedMedicationDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 timeList.forEachIndexed { i, time ->
-                    val cal = Calendar.getInstance()
-                    val hour = time.substringBefore(":").toIntOrNull() ?: 9
-                    val minute = time.substringAfter(":").toIntOrNull() ?: 0
+                    val currentHour = remember(time) { time.substringBefore(":").toIntOrNull() ?: 9 }
+                    val currentMinute = remember(time) { time.substringAfter(":").toIntOrNull() ?: 0 }
 
-                    OutlinedButton(onClick = {
-                        TimePickerDialog(
-                            context,
-                            { _: TimePicker, h: Int, m: Int ->
-                                timeList[i] = String.format("%02d:%02d", h, m)
-                            },
-                            hour,
-                            minute,
-                            true
-                        ).apply {
-                            setTitle("Select Time for Dose ${i + 1}")
-                        }.show()
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Time ${i + 1}: $time")
+                    OutlinedButton(
+                        onClick = {
+                            tempHour = currentHour
+                            tempMinute = currentMinute
+                            showTimePickerForIndex = i
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            "Time ${i + 1}: $time",
+                            fontFamily = PokemonClassicFontFamily
+                        )
                     }
                 }
 
@@ -586,7 +576,6 @@ fun ExtendedMedicationDialog(
                     Text("Save")
                 }
 
-                // Only show delete button if we're editing an existing medication
                 if (initial != null) {
                     Button(
                         onClick = { onDelete(initial) },
@@ -611,4 +600,38 @@ fun ExtendedMedicationDialog(
             }
         }
     )
+
+    showTimePickerForIndex?.let { index ->
+        ThemedTimePickerDialog(
+            onDismissRequest = { showTimePickerForIndex = null },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        timeList[index] = String.format("%02d:%02d", tempHour, tempMinute)
+                        showTimePickerForIndex = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(stringResource(R.string.ok), fontFamily = PokemonClassicFontFamily)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showTimePickerForIndex = null },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text(stringResource(R.string.cancel), fontFamily = PokemonClassicFontFamily)
+                }
+            }
+        ) {
+            ThemedTimePicker(
+                initialHour = tempHour,
+                initialMinute = tempMinute,
+                onTimeChange = { hour, minute ->
+                    tempHour = hour
+                    tempMinute = minute
+                }
+            )
+        }
+    }
 }

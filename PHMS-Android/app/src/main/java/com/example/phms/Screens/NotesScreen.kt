@@ -329,6 +329,7 @@ fun NotesListScreen(
                 text = { Text(stringResource(R.string.add_note)) },
                 modifier = Modifier
                     .navigationBarsPadding()
+                    .padding(bottom = 72.dp)
             )
         },
         floatingActionButtonPosition = FabPosition.End
