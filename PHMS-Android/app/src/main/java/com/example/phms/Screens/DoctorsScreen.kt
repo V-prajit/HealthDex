@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MedicalServices
@@ -249,11 +248,12 @@ fun DoctorCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = doctor.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = doctor.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
+                )
                 Row {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit))
-                    }
                     IconButton(onClick = onDelete) {
                         Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
                     }

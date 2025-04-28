@@ -10,17 +10,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -28,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.EventNote
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocalPharmacy
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.MonitorHeart
@@ -131,7 +127,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top
     ) {

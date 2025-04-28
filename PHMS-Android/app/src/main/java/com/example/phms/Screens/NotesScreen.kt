@@ -60,7 +60,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -305,18 +304,18 @@ fun NotesListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Field Notes") },
+                title = { Text("Notes") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = backLabel)
                     }
                 },
                 actions = {
-                    TextButton(onClick = { isListLayout = !isListLayout }) {
+/*                    TextButton(onClick = { isListLayout = !isListLayout }) {
                         Text(text = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(
                             R.string.switch_to_list
                         ))
-                    }
+                    }*/
                     IconButton(onClick = onSettingsClick) {
                         Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
@@ -329,7 +328,6 @@ fun NotesListScreen(
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.add_note)) },
                 modifier = Modifier
-                    .padding(bottom = 72.dp, end = 16.dp)
                     .navigationBarsPadding()
             )
         },
@@ -344,7 +342,7 @@ fun NotesListScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -389,7 +387,7 @@ fun NotesListScreen(
 
             val modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp)
 
             if (isListLayout) {
                 LazyColumn(
