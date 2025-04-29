@@ -9,11 +9,8 @@ import requests
 from urllib.parse import urljoin
 from xml.dom import minidom
 import copy # Needed for deep copying attributes
-import time # For rate limiting requests
 
 LIBRETRANSLATE_URL = "http://localhost:5003"
-# Add a small delay between translation requests to avoid overloading the server
-REQUEST_DELAY = 0.5  # seconds
 
 SUPPORTED_LANGUAGES = {
     "en": "English",
@@ -41,56 +38,16 @@ SPECIAL_FORMAT_KEYS_SLASH = {
     "fat_progress_short",
     "carb_progress_short",
     "bp_value_display", # e.g., %1$d/%2$d mmHg
-    "note_image_viewer_title", # e.g., Image %1$d/%2$d
-    "macro_progress_g",  # Added these additional keys that might contain slashes
-    "appointment_time_duration",
-    "calories_progress",
-    "vital_value_display",
-    "time_dose_display"
+    "note_image_viewer_title" # e.g., Image %1$d/%2$d
 }
 
-# Add keys that should not be translated at all (brand names, technical terms, etc.)
-UNTRANSLATED_KEYS = {
-    "app_name",  # Keep app name consistent
-    "doctor_prefix",  # Medical prefix
-    "health_chat",  # Character name
-    "test_dr_name"  # Test doctor name
-}
-
-# Android format specifier regex - more robust version
+# Regex to find Android format specifiers
 # Handles %s, %d, %f, %% and positional variants like %1$s, %2$d
-ANDROID_PLACEHOLDER_REGEX = re.compile(r'(%(?:\d+\$)?[sdfe%])')
-
+ANDROID_PLACEHOLDER_REGEX = re.compile(r'%(\d+\$)?[sdfe%]')
 # Regex to find our temporary internal placeholders
 INTERNAL_PLACEHOLDER_REGEX = re.compile(r'__PHMSPH(\d+)__')
-
 # Regex to detect potentially problematic placeholder text like "key_name"
 PLACEHOLDER_TEXT_REGEX = re.compile(r'^(\s*)"([a-zA-Z0-9_]+)"')
-
-# Map certain terms to their preferred translations to ensure consistency
-TERM_TRANSLATIONS = {
-    "de": {  # German
-        "Login": "Anmelden",
-        "Biometric": "Biometrisch",
-        "Doctor": "Arzt",
-        "Error": "Fehler",
-        "Heart Rate": "Herzfrequenz",
-        "Blood Pressure": "Blutdruck",
-        "Password": "Passwort",
-        "Email": "E-Mail"
-    },
-    "es": {  # Spanish
-        "Login": "Iniciar sesión",
-        "Biometric": "Biométrico",
-        "Doctor": "Médico",
-        "Error": "Error",
-        "Heart Rate": "Frecuencia cardíaca",
-        "Blood Pressure": "Presión arterial",
-        "Password": "Contraseña",
-        "Email": "Correo electrónico"
-    }
-    # Add more languages as needed
-}
 
 def extract_resources(xml_file):
     """Extracts both <string> and <string-array> resources with attributes."""
@@ -162,293 +119,129 @@ def escape_android_string(text):
         text = '\\' + text
     return text
 
-def extract_placeholders(text):
-    """Extract all Android placeholders from text, maintaining order."""
-    if not isinstance(text, str) or not text:
-        return []
-    
-    # Find all placeholder matches
-    matches = ANDROID_PLACEHOLDER_REGEX.finditer(text)
-    placeholders = []
-    
-    for match in matches:
-        placeholders.append({
-            'original': match.group(0),
-            'position': match.start(),
-            'length': len(match.group(0))
-        })
-    
-    return placeholders
-
-def apply_term_translations(text, target_lang):
-    """Applies known term translations to ensure consistency."""
-    if target_lang not in TERM_TRANSLATIONS:
-        return text
-    
-    result = text
-    for source_term, target_term in TERM_TRANSLATIONS[target_lang].items():
-        # Case-insensitive replacement
-        pattern = re.compile(re.escape(source_term), re.IGNORECASE)
-        result = pattern.sub(target_term, result)
-    
-    return result
-
-def translate_text(original_text, target_lang, source_lang="en", key=None):
-    """Translates a single string, handling placeholders and ensuring correct format."""
-    # Skip translation for untranslated keys or empty strings
-    if key in UNTRANSLATED_KEYS:
-        return original_text
-        
+def translate_text(original_text, target_lang, source_lang="en"):
+    """Translates a single string, handling placeholders and attempting error correction."""
     if not original_text or original_text.strip() == "":
         return ""
-    
-    # Extract placeholders before translation
-    placeholders = extract_placeholders(original_text)
-    
+
+    original_placeholders = ANDROID_PLACEHOLDER_REGEX.findall(original_text)
+    original_placeholder_count = len(original_placeholders)
+
     # If no placeholders, translate directly
-    if not placeholders:
+    if original_placeholder_count == 0:
+        data = {"q": original_text, "source": source_lang, "target": target_lang, "format": "text"}
         try:
-            # Small delay to avoid overloading server
-            time.sleep(REQUEST_DELAY)
-            
-            data = {"q": original_text, "source": source_lang, "target": target_lang, "format": "text"}
             response = requests.post(urljoin(LIBRETRANSLATE_URL, "/translate"), json=data, timeout=20)
             response.raise_for_status()
             translated = response.json().get("translatedText", "")
-            
-            # Apply known term translations for consistency
-            translated = apply_term_translations(translated, target_lang)
-            
-            # Check for placeholder-like text in non-placeholder strings
+            # Basic check for placeholder-like text in non-placeholder strings
             if PLACEHOLDER_TEXT_REGEX.match(translated):
-                print(f"    Warning: Translation for '{key}' resulted in suspicious text: '{translated[:30]}...'. May need manual review.")
-            
+                 print(f"    Warning: Translation for non-placeholder string '{original_text[:30]}...' resulted in suspicious text: '{translated[:30]}...'. May need manual review.")
             return escape_android_string(translated)
         except requests.exceptions.RequestException as e:
             print(f"    Error translating simple text: '{original_text[:30]}...' ({e})")
-            return escape_android_string(original_text)  # Fallback to original
+            return escape_android_string(original_text) # Fallback to original
         except Exception as e:
             print(f"    Unexpected error during simple translation: {e}")
             return escape_android_string(original_text)
 
-    # ----- Handling text with placeholders -----
-    
-    # Replace placeholders with unique markers
+    # --- Placeholder Handling ---
+    internal_placeholder_template = "__PHMSPH{}__"
     modified_text = original_text
-    placeholder_map = {}
-    
-    # Sort placeholders by position in reverse order to avoid position shifts
-    sorted_placeholders = sorted(placeholders, key=lambda p: p['position'], reverse=True)
-    
-    for i, ph in enumerate(sorted_placeholders):
-        marker = f"__PHMSPH{i}__"
-        start_pos = ph['position']
-        end_pos = start_pos + ph['length']
-        
-        modified_text = modified_text[:start_pos] + marker + modified_text[end_pos:]
-        placeholder_map[marker] = ph['original']
-    
-    # Translate the text with markers
+    placeholders_map = {}
+    original_specifiers_list = [match[0] for match in original_placeholders]
+
+    # Replace standard placeholders with internal ones
+    temp_marker_template = "__TEMP_MARKER_{}__"
+    current_modified_text = modified_text
+    for i in reversed(range(original_placeholder_count)):
+        spec = original_specifiers_list[i]
+        temp_marker = temp_marker_template.format(i)
+        last_occurrence_index = current_modified_text.rfind(spec)
+        if last_occurrence_index != -1:
+            internal_placeholder = internal_placeholder_template.format(i)
+            current_modified_text = current_modified_text[:last_occurrence_index] + temp_marker + current_modified_text[last_occurrence_index + len(spec):]
+            placeholders_map[internal_placeholder] = spec
+        else:
+             print(f"    Warning: Specifier '{spec}' not found for replacement in '{original_text[:50]}...'")
+
+    text_to_translate = current_modified_text
+    for i in reversed(range(original_placeholder_count)):
+         internal_placeholder = internal_placeholder_template.format(i)
+         temp_marker = temp_marker_template.format(i)
+         text_to_translate = text_to_translate.replace(temp_marker, internal_placeholder)
+
+    # Translate text containing internal placeholders
+    data = {"q": text_to_translate, "source": source_lang, "target": target_lang, "format": "text"}
     try:
-        # Small delay to avoid overloading server
-        time.sleep(REQUEST_DELAY)
-        
-        data = {"q": modified_text, "source": source_lang, "target": target_lang, "format": "text"}
         response = requests.post(urljoin(LIBRETRANSLATE_URL, "/translate"), json=data, timeout=20)
         response.raise_for_status()
-        translated_with_markers = response.json().get("translatedText", "")
-        
-        # Apply known term translations for consistency
-        translated_with_markers = apply_term_translations(translated_with_markers, target_lang)
-        
-        # Restore placeholders
-        restored_translation = translated_with_markers
-        for marker, original_ph in placeholder_map.items():
-            if marker in restored_translation:
-                restored_translation = restored_translation.replace(marker, original_ph)
-            else:
-                print(f"    Warning: Marker {marker} not found in translated text for key '{key}'. Adding placeholder at the end.")
-                restored_translation += f" {original_ph}"
-        
-        # Special handling for specific format types (e.g., with slashes)
-        if key in SPECIAL_FORMAT_KEYS_SLASH:
-            restored_translation = correct_special_format(key, restored_translation, original_text, placeholders)
-        
-        # Final validation - count placeholders
-        final_placeholders = extract_placeholders(restored_translation)
-        if len(final_placeholders) != len(placeholders):
-            print(f"    Warning: Placeholder count mismatch for key '{key}' (Expected {len(placeholders)}, Got {len(final_placeholders)})")
-            print(f"    Original: '{original_text}'")
-            print(f"    Translation: '{restored_translation}'")
-            print(f"    Falling back to more conservative translation approach...")
-            return conservative_placeholder_translation(original_text, target_lang, key, placeholders)
-        
+        translated_with_internal = response.json().get("translatedText", "")
+
+        # Restore original Android placeholders
+        restored_translation = translated_with_internal
+        found_internal_placeholders = INTERNAL_PLACEHOLDER_REGEX.findall(restored_translation)
+        mapped_placeholders_sorted = sorted(placeholders_map.keys(), key=lambda x: int(re.search(r'\d+', x).group()), reverse=True)
+
+        for internal_placeholder in mapped_placeholders_sorted:
+            original_spec = placeholders_map[internal_placeholder]
+            # Use regex for precise replacement
+            restored_translation = re.sub(re.escape(internal_placeholder), lambda _: original_spec, restored_translation, count=1)
+
+        # --- Validation and Fallback ---
+        final_placeholders = ANDROID_PLACEHOLDER_REGEX.findall(restored_translation)
+        if len(final_placeholders) != original_placeholder_count:
+            print(f"    Warning: Placeholder count mismatch for '{original_text[:30]}...' (Expected {original_placeholder_count}, Got {len(final_placeholders)} in '{restored_translation[:50]}...'). Falling back to original English.")
+            return escape_android_string(original_text) # Fallback to original
+
         return escape_android_string(restored_translation)
-        
+
     except requests.exceptions.RequestException as e:
         print(f"    Error translating placeholder text: '{original_text[:30]}...' ({e})")
-        return escape_android_string(original_text)  # Fallback to original
+        return escape_android_string(original_text) # Fallback to original
     except Exception as e:
         print(f"    Unexpected error during placeholder translation: {e}")
-        return escape_android_string(original_text)  # Fallback to original
+        return escape_android_string(original_text) # Fallback to original
 
-def conservative_placeholder_translation(original_text, target_lang, key, placeholders):
-    """
-    A more conservative approach for translating text with placeholders
-    when the normal translation fails to preserve them correctly.
-    """
-    try:
-        # Find text segments between placeholders
-        segments = []
-        last_end = 0
-        
-        sorted_placeholders = sorted(placeholders, key=lambda p: p['position'])
-        
-        for ph in sorted_placeholders:
-            start_pos = ph['position']
-            # Add text before placeholder if any
-            if start_pos > last_end:
-                segments.append({
-                    'type': 'text',
-                    'content': original_text[last_end:start_pos]
-                })
-            
-            # Add placeholder
-            segments.append({
-                'type': 'placeholder',
-                'content': ph['original']
-            })
-            
-            last_end = start_pos + ph['length']
-        
-        # Add any remaining text after the last placeholder
-        if last_end < len(original_text):
-            segments.append({
-                'type': 'text',
-                'content': original_text[last_end:]
-            })
-        
-        # Translate only the text segments
-        for i, segment in enumerate(segments):
-            if segment['type'] == 'text' and segment['content'].strip():
-                # Small delay to avoid overloading server
-                time.sleep(REQUEST_DELAY)
-                
-                data = {"q": segment['content'], "source": "en", "target": target_lang, "format": "text"}
-                response = requests.post(urljoin(LIBRETRANSLATE_URL, "/translate"), json=data, timeout=20)
-                response.raise_for_status()
-                
-                translated_segment = response.json().get("translatedText", "")
-                translated_segment = apply_term_translations(translated_segment, target_lang)
-                segments[i]['content'] = translated_segment
-        
-        # Reconstruct the full string
-        result = ''.join(segment['content'] for segment in segments)
-        
-        return escape_android_string(result)
-    
-    except Exception as e:
-        print(f"    Conservative translation failed for key '{key}': {e}")
-        return escape_android_string(original_text)  # Ultimate fallback
-
-def correct_special_format(key, translated_text, original_text, placeholders):
+def correct_special_format(name, translated_text, original_text):
     """Applies specific format corrections for known problematic keys."""
-    if key not in SPECIAL_FORMAT_KEYS_SLASH:
-        return translated_text  # No correction needed
-    
-    # For blood pressure and similar format with slashes
-    if len(placeholders) >= 2:
-        # Find the placeholders in the original and translated text
-        original_placeholders = extract_placeholders(original_text)
-        translated_placeholders = extract_placeholders(translated_text)
-        
-        if len(original_placeholders) >= 2 and len(translated_placeholders) >= 2:
-            # For the format like "%1$d/%2$d %3$s"
-            # Get the first two placeholders
-            ph1 = original_placeholders[0]['original']
-            ph2 = original_placeholders[1]['original']
-            
-            # Check if they appear in the correct order in the translation
-            if (translated_placeholders[0]['original'] == ph1 and 
-                translated_placeholders[1]['original'] == ph2):
-                
-                # Make sure they have a slash between them
-                first_pos = translated_text.find(ph1) + len(ph1)
-                second_pos = translated_text.find(ph2, first_pos)
-                
-                if second_pos > first_pos:
-                    between_text = translated_text[first_pos:second_pos]
-                    if '/' not in between_text:
-                        # Add slash if missing
-                        corrected = (
-                            translated_text[:first_pos] + 
-                            '/' + 
-                            translated_text[second_pos:]
-                        )
-                        print(f"    Corrected slash format for '{key}': Added missing slash")
-                        return corrected
-            
-            # If the order is wrong or the format can't be easily corrected
-            # Create a safe format based on the original
-            if key == "bp_value_display" or "progress" in key:
-                # Extract text before first placeholder
-                prefix_end = original_text.find(original_placeholders[0]['original'])
-                if prefix_end > 0:
-                    prefix = original_text[:prefix_end].strip()
-                else:
-                    prefix = ""
-                
-                # Extract text after second placeholder
-                suffix_start = original_text.find(original_placeholders[1]['original']) + len(original_placeholders[1]['original'])
-                if suffix_start < len(original_text):
-                    suffix = original_text[suffix_start:].strip()
-                else:
-                    suffix = ""
-                
-                # Translate just the prefix and suffix
-                translated_prefix = ""
-                if prefix:
-                    try:
-                        data = {"q": prefix, "source": "en", "target": target_lang, "format": "text"}
-                        response = requests.post(urljoin(LIBRETRANSLATE_URL, "/translate"), json=data, timeout=10)
-                        translated_prefix = response.json().get("translatedText", prefix).strip()
-                    except:
-                        translated_prefix = prefix
-                
-                translated_suffix = ""
-                if suffix:
-                    try:
-                        data = {"q": suffix, "source": "en", "target": target_lang, "format": "text"}
-                        response = requests.post(urljoin(LIBRETRANSLATE_URL, "/translate"), json=data, timeout=10)
-                        translated_suffix = response.json().get("translatedText", suffix).strip()
-                    except:
-                        translated_suffix = suffix
-                
-                # Reconstruct with correct slash format
-                if len(original_placeholders) == 2:
-                    # Format: prefix PH1/PH2 suffix
-                    corrected = f"{translated_prefix} {ph1}/{ph2}"
-                    if translated_suffix:
-                        corrected += f" {translated_suffix}"
-                elif len(original_placeholders) > 2:
-                    # Handle formats with more than 2 placeholders
-                    ph3 = original_placeholders[2]['original']
-                    corrected = f"{translated_prefix} {ph1}/{ph2} {ph3}"
-                    if translated_suffix:
-                        corrected += f" {translated_suffix}"
-                
-                print(f"    Applied special correction for '{key}'")
-                return corrected
-    
-    # Return original if no correction could be applied
-    return translated_text
+    if name not in SPECIAL_FORMAT_KEYS_SLASH:
+        return translated_text # No correction needed for this key
+
+    # Find all original placeholders to ensure they are preserved
+    original_placeholders = ANDROID_PLACEHOLDER_REGEX.findall(original_text)
+    if len(original_placeholders) != 2: # Expecting two placeholders for these keys
+        print(f"    Warning: Expected 2 placeholders for '{name}', found {len(original_placeholders)}. Skipping special correction.")
+        return translated_text
+
+    # Extract the actual specifiers (like %1$d, %2$d)
+    spec1 = original_placeholders[0][0]
+    spec2 = original_placeholders[1][0]
+
+    # Attempt to extract the translated prefix robustly
+    # Find the first placeholder in the translated text
+    first_placeholder_match = ANDROID_PLACEHOLDER_REGEX.search(translated_text)
+    if first_placeholder_match:
+        prefix_end_index = first_placeholder_match.start()
+        translated_prefix = translated_text[:prefix_end_index].strip()
+    else:
+        # Fallback: try to get prefix from original if translation lost placeholders
+        original_prefix_match = re.match(r'^([^%]+)', original_text)
+        translated_prefix = original_prefix_match.group(1).strip() if original_prefix_match else ""
+        print(f"    Warning: Placeholders lost in translation for '{name}'. Using prefix '{translated_prefix}'.")
+
+
+    # Reconstruct with the correct format and original specifiers
+    corrected_format = f"{translated_prefix} {spec1}/{spec2}"
+    print(f"    Correction Applied for '{name}': '{translated_text}' -> '{corrected_format}'")
+    return corrected_format
 
 def generate_xml(source_resources, existing_resources, lang_dir, lang_code):
     """Generates the translated strings.xml file."""
     output_file = os.path.join(lang_dir, "strings.xml")
 
     root = ET.Element("resources")
-    comment = ET.Comment(f" Auto-translated with LibreTranslate - {SUPPORTED_LANGUAGES.get(lang_code, lang_code)} ")
+    comment = ET.Comment(f" Translated by script - {SUPPORTED_LANGUAGES.get(lang_code, lang_code)} ")
     root.append(comment)
 
     processed_names = set()
@@ -474,9 +267,10 @@ def generate_xml(source_resources, existing_resources, lang_dir, lang_code):
             should_translate = source_data and (original_value != existing_value)
 
             if should_translate:
-                translated = translate_text(original_value, lang_code, key=name)
+                translated = translate_text(original_value, lang_code)
+                corrected = correct_special_format(name, translated, original_value)
                 # Final cleanup for escaped quotes that might come from translator
-                final_text = translated.replace('&quot;', '\\"')
+                final_text = corrected.replace('&quot;', '\\"')
                 string_elem.text = final_text
             else:
                  # Keep existing, but ensure proper escaping
@@ -525,8 +319,9 @@ def generate_xml(source_resources, existing_resources, lang_dir, lang_code):
                  for k, v in current_attribs.items():
                      string_elem.set(k, v)
                  original_value = source_data.get('value')
-                 translated = translate_text(original_value, lang_code, key=name)
-                 final_text = translated.replace('&quot;', '\\"')
+                 translated = translate_text(original_value, lang_code)
+                 corrected = correct_special_format(name, translated, original_value)
+                 final_text = corrected.replace('&quot;', '\\"')
                  string_elem.text = final_text
 
             elif element_type == 'string-array':
@@ -553,7 +348,7 @@ def generate_xml(source_resources, existing_resources, lang_dir, lang_code):
         xml_string_bytes = ET.tostring(root, encoding='utf-8', method='xml')
         xml_string = xml_string_bytes.decode('utf-8')
 
-        # Use minidom for pretty printing
+        # Use minidom for pretty printing (optional, but nice)
         try:
             reparsed = minidom.parseString(xml_string)
             pretty_xml = reparsed.toprettyxml(indent="    ", encoding='utf-8').decode('utf-8')
@@ -605,11 +400,6 @@ def main():
         default=list(SUPPORTED_LANGUAGES.keys() - {'en'}),
         help="Languages to translate to (language codes)"
     )
-    parser.add_argument(
-        "--retranslate-all",
-        action="store_true",
-        help="Retranslate all strings, ignoring existing translations"
-    )
 
     args = parser.parse_args()
 
@@ -658,17 +448,11 @@ def main():
     for lang in valid_target_languages:
         lang_dir = os.path.join(res_dir_path, f"values-{lang}")
         existing_file = os.path.join(lang_dir, "strings.xml")
-        
-        # Load existing translations if we're not forcing retranslation
-        existing_resources = {} if args.retranslate_all else load_existing_translations(existing_file)
+        existing_resources = load_existing_translations(existing_file)
 
         print(f"\nProcessing language: {lang} ({SUPPORTED_LANGUAGES.get(lang, 'Unknown')})...")
         if existing_resources:
             print(f"  Found {len(existing_resources)} existing resource entries in {existing_file}")
-        elif args.retranslate_all:
-            print(f"  Retranslating all strings (ignoring existing translations)")
-        else:
-            print(f"  No existing translations found, will create new file")
 
         output_file = generate_xml(source_resources, existing_resources, lang_dir, lang)
         if output_file:
