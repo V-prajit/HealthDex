@@ -81,7 +81,7 @@
     <string name="specify_type">Specify Vital Type</string>
     <string name="select_unit">Select Unit</string>
     <string name="specify_unit">Specify Unit</string>
-    <string name="real_time_vitals_header">Real-time Vital Signs</string>
+    <string name="real_time_vitals_header">Vital Signs stats</string>
     <string name="bp_input_error">Please enter valid Systolic and Diastolic values</string>
     <string name="systolic_value">Systolic Value</string>
     <string name="diastolic_value">Diastolic Value</string>
