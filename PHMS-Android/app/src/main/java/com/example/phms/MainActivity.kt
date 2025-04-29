@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
@@ -63,7 +64,6 @@ import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable as Composable1
-import androidx.compose.ui.unit.sp
 
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
@@ -540,7 +540,10 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(onClick = onForgotPassword) {
-            Text(stringResource(R.string.forgot_password))
+            Text(stringResource(R.string.forgot_password),
+                style = MaterialTheme.typography.labelLarge,
+                fontSize = 22.sp
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -590,7 +593,11 @@ fun LoginScreen(
             },
             modifier = Modifier.fillMaxWidth(0.6f) 
         ) {
-            Text(stringResource(R.string.login_button)) 
+            Text(
+                stringResource(R.string.login_button),
+                style = MaterialTheme.typography.labelLarge,
+                fontSize = 22.sp
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -605,7 +612,7 @@ fun LoginScreen(
                 Text(
                     stringResource(R.string.biometric_authentication),
                     style = MaterialTheme.typography.labelLarge,
-                    fontSize = 13.sp
+                    fontSize = 22.sp
                 )
             }
         }

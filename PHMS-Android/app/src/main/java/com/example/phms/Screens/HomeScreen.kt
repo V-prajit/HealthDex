@@ -472,13 +472,13 @@ fun DashboardCard(
 
 @Composable
 fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
-    val titleText = "Next Appointment:"
+    val titleText = "Appointment:"
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp) // Match original DashboardCard height
+            .height(120.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp), // Match original DashboardCard shape
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant // Match original
         ),
@@ -495,29 +495,33 @@ fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    fontSize = 10.sp,
+                    fontSize = 18.sp,
                 )
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    "${appointment.doctorName ?: "Dr. ?"}",
+                    "${"Dr." + appointment.doctorName ?: "Dr. ?"}",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     "${formatDate(appointment.date)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     "${appointment.time}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp
                 )
-
             } else {
                 // Display default content if no appointment
                 Icon(
@@ -531,7 +535,8 @@ fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
                     text = titleText,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp
                 )
             }
         }
@@ -571,7 +576,8 @@ fun DietSummaryCard(
                 "Cals: $calories/$calorieGoal",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp
             )
             LinearProgressIndicator(
                 progress = { (calories.toFloat() / calorieGoal.toFloat()).coerceIn(0f, 1f) },
@@ -580,11 +586,11 @@ fun DietSummaryCard(
                 trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text("P: $protein/$proteinGoal", style = MaterialTheme.typography.labelSmall, maxLines=1)
+            Text("P: $protein/$proteinGoal", style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("F: $fat/$fatGoal", style = MaterialTheme.typography.labelSmall, maxLines=1)
+            Text("F: $fat/$fatGoal", style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("C: $carbs/$carbGoal", style = MaterialTheme.typography.labelSmall, maxLines=1)
+            Text("C: $carbs/$carbGoal", style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
         }
     }
 }
