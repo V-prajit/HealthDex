@@ -15,14 +15,14 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "Received intent: action=${intent.action}")
 
-        // Handle device boot to reschedule alarms
+
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             Log.d(TAG, "Device boot completed, rescheduling all appointment reminders")
             handleBootCompleted(context)
             return
         }
 
-        // Check if this is our specific appointment reminder action
+
         if (intent.action != AppointmentAlarmManager.ACTION_APPOINTMENT_REMINDER) {
             Log.w(TAG, "Unknown action: ${intent.action}")
             return
@@ -36,7 +36,7 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Processing reminder for appointment ID: $appointmentId")
 
-        val doctorName = intent.getStringExtra(AppointmentAlarmManager.EXTRA_DOCTOR_NAME) ?: "Doctor"
+        val doctorName = intent.getStringExtra(AppointmentAlarmManager.EXTRA_DOCTOR_NAME) ?: context.getString(R.string.doctor)
         val dateStr = intent.getStringExtra(AppointmentAlarmManager.EXTRA_DATE) ?: ""
         val timeStr = intent.getStringExtra(AppointmentAlarmManager.EXTRA_TIME) ?: ""
         val reason = intent.getStringExtra(AppointmentAlarmManager.EXTRA_REASON) ?: ""
@@ -52,7 +52,7 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Get the latest appointment data from repository
+
                 val appointment = AppointmentRepository.getAppointment(appointmentId)
 
                 if (appointment != null && appointment.reminders) {
@@ -73,9 +73,9 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
 
                     val message = when (notificationType) {
                         AppointmentAlarmManager.NotificationType.ONE_DAY_BEFORE ->
-                            "You have an appointment tomorrow"
+                            context.getString(R.string.appointment_reminder_1_day)
                         AppointmentAlarmManager.NotificationType.ONE_HOUR_BEFORE ->
-                            "You have an appointment in 1 hour"
+                            context.getString(R.string.appointment_reminder_1_hour)
                     }
 
                     val notificationId = when (notificationType) {
@@ -85,7 +85,7 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
                             2000 + appointmentId
                     }
 
-                    // Show the notification
+
                     val notificationManager = AppointmentNotificationManager(context)
                     notificationManager.showAppointmentReminderWithMessage(
                         notificationAppointment,
@@ -103,9 +103,7 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
         }
     }
 
-    /**
-     * Handle device boot completed by rescheduling all alarms
-     */
+
     private fun handleBootCompleted(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {

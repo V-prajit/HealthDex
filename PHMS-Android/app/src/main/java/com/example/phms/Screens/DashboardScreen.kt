@@ -44,21 +44,21 @@ fun DashboardScreen(
             ) {
                 NavigationBarItem(
                     selected = selectedTab == "home",
-                    onClick = { selectedTab = "home"; showSearchScreen = false }, // Ensuring search closes
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    onClick = { selectedTab = "home"; showSearchScreen = false },
+                    icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home)) },
                     label = {
                         Text(
                             stringResource(R.string.home),
-                            style = MaterialTheme.typography.labelSmall, // Using small label style
+                            style = MaterialTheme.typography.labelSmall,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis // Add ellipsis if it still overflows
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 )
                 NavigationBarItem(
                     selected = selectedTab == "notes",
                     onClick = { selectedTab = "notes"; newNoteRequested = false },
-                    icon = { Icon(Icons.Default.Note, contentDescription = "Notes") },
+                    icon = { Icon(Icons.Default.Note, contentDescription = stringResource(R.string.notes)) },
                     label = {
                         Text(
                             stringResource(R.string.notes),
@@ -71,7 +71,7 @@ fun DashboardScreen(
                 NavigationBarItem(
                     selected = selectedTab == "chat",
                     onClick = { selectedTab = "chat" },
-                    icon = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
+                    icon = { Icon(Icons.Default.Chat, contentDescription = stringResource(R.string.chat)) },
                     label = {
                         Text(
                             stringResource(R.string.chat),
@@ -84,7 +84,7 @@ fun DashboardScreen(
                 NavigationBarItem(
                     selected = selectedTab == "vitals",
                     onClick = { selectedTab = "vitals" },
-                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Vitals") },
+                    icon = { Icon(Icons.Default.Favorite, contentDescription = stringResource(R.string.vitals)) },
                     label = {
                         Text(
                             stringResource(R.string.vitals),
@@ -164,7 +164,7 @@ fun DashboardScreen(
                 PokemonMedicationsScreen(
                     userToken = userToken,
                     onBack = { selectedTab = "home" },
-                    onSettingsClick = { onSettingsClick("medications") } // Pass onSettingsClick
+                    onSettingsClick = { onSettingsClick("medications") }
                 )
             }
             "diet" -> DietScreen(
@@ -173,10 +173,10 @@ fun DashboardScreen(
                 onSettingsClick = { onSettingsClick("diet") }
             )
             "doctors" -> {
-                 DoctorsScreen(
+                DoctorsScreen(
                     userId = userToken,
                     onBackClick = { selectedTab = "home" }
-                 )
+                )
             }
         }
     }

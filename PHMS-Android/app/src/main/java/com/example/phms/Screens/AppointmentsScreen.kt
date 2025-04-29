@@ -288,7 +288,7 @@ fun AppointmentCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${appointment.time} (${appointment.duration} min)",
+                        text = stringResource(R.string.appointment_time_duration, appointment.time, appointment.duration),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -495,7 +495,7 @@ fun AppointmentDialog(
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Default.DateRange, contentDescription = null)
+                            Icon(Icons.Default.DateRange, contentDescription = stringResource(R.string.select_date_desc))
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -514,7 +514,7 @@ fun AppointmentDialog(
                         readOnly = true,
                         trailingIcon = {
                             IconButton(onClick = { showTimePicker = true }) {
-                                Icon(Icons.Default.AccessTime, contentDescription = "Select time")
+                                Icon(Icons.Default.AccessTime, contentDescription = stringResource(R.string.select_time_desc))
                             }
                         },
                         modifier = Modifier.weight(1f)
@@ -636,7 +636,7 @@ fun AppointmentDialog(
                             doctorId = selectedDoctorId,
                             doctorName = doctors.find { it.id == selectedDoctorId }?.name,
                             date = date,
-                            time = String.format("%02d:%02d", selectedHour, selectedMinute), // Save the selected time
+                            time = String.format("%02d:%02d", selectedHour, selectedMinute),
                             duration = duration.toIntOrNull() ?: 30,
                             reason = reason,
                             notes = notes,
@@ -721,7 +721,7 @@ fun AppointmentDialog(
 fun formatDate(dateString: String): String {
     return try {
         val date = LocalDate.parse(dateString)
-        val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy", Locale.getDefault())
+        val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d,<y_bin_425>", Locale.getDefault())
         date.format(formatter)
     } catch (e: Exception) {
         dateString
@@ -752,20 +752,20 @@ fun ThemedTimePicker(
                 }) {
                     Icon(
                         Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Increase hour",
+                        contentDescription = stringResource(R.string.increase_hour_desc),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Row {
                     Text(
-                        text = String.format("%02d", hour).substring(0, 1), // First digit
+                        text = String.format("%02d", hour).substring(0, 1),
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontFamily = PokemonClassicFontFamily,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Text(
-                        text = String.format("%02d", hour).substring(1, 2), // Second digit
+                        text = String.format("%02d", hour).substring(1, 2),
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontFamily = PokemonClassicFontFamily,
                             color = MaterialTheme.colorScheme.onSurface
@@ -778,7 +778,7 @@ fun ThemedTimePicker(
                 }) {
                     Icon(
                         Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Decrease hour",
+                        contentDescription = stringResource(R.string.decrease_hour_desc),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -800,20 +800,20 @@ fun ThemedTimePicker(
                 }) {
                     Icon(
                         Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Increase minute",
+                        contentDescription = stringResource(R.string.increase_minute_desc),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Row {
                     Text(
-                        text = String.format("%02d", minute).substring(0, 1), // First digit
+                        text = String.format("%02d", minute).substring(0, 1),
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontFamily = PokemonClassicFontFamily,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Text(
-                        text = String.format("%02d", minute).substring(1, 2), // Second digit
+                        text = String.format("%02d", minute).substring(1, 2),
                         style = MaterialTheme.typography.displayMedium.copy(
                             fontFamily = PokemonClassicFontFamily,
                             color = MaterialTheme.colorScheme.onSurface
@@ -826,7 +826,7 @@ fun ThemedTimePicker(
                 }) {
                     Icon(
                         Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Decrease minute",
+                        contentDescription = stringResource(R.string.decrease_minute_desc),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -845,7 +845,7 @@ fun ThemedTimePickerDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(
-            "Select Time",
+            stringResource(R.string.select_time_title),
             fontFamily = PokemonClassicFontFamily,
             color = MaterialTheme.colorScheme.onSurface
         ) },
@@ -890,10 +890,10 @@ fun AppointmentCalendarWithScroll(
             TextButton(onClick = { calendarViewEnabled = !calendarViewEnabled }) {
                 Icon(
                     imageVector = if (calendarViewEnabled) Icons.Default.ViewList else Icons.Default.DateRange,
-                    contentDescription = "Toggle View"
+                    contentDescription = stringResource(if (calendarViewEnabled) R.string.list_view_desc else R.string.calendar_view_desc)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(if (calendarViewEnabled) "List View" else "Calendar View")
+                Text(stringResource(if (calendarViewEnabled) R.string.list_view else R.string.calendar_view))
             }
         }
 
@@ -943,7 +943,7 @@ fun AppointmentCalendarWithScroll(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("All Appointments")
+                Text(stringResource(R.string.all_appointments))
                 Switch(
                     checked = showAllAppointments,
                     onCheckedChange = { showAllAppointments = it }
@@ -962,7 +962,7 @@ fun AppointmentCalendarWithScroll(
 
             sortedDates.forEach { date ->
                 val readableDate = try {
-                    LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy"))
+                    LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEEE, MMM d,<y_bin_425>"))
                 } catch (e: Exception) {
                     date
                 }

@@ -1,17 +1,32 @@
-package com.example.phms
+package com.example.phms.Screens
 
-import androidx.compose.foundation.layout.*
+import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.example.phms.R
+import com.example.phms.fetchUserData
+import com.example.phms.sendUserDataToBackend
 import com.google.firebase.auth.FirebaseAuth
-import android.content.Context
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) -> Unit ) {
@@ -61,7 +76,7 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.user_details), style = MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.user_details_title), style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -179,14 +194,14 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
 
         Button(
             onClick = {
-                // Validate all fields
+
                 hasFirstNameError.value = firstName.value.isBlank()
                 hasLastNameError.value = lastName.value.isBlank()
                 hasAgeError.value = age.value.isBlank() || !age.value.all { char -> char.isDigit() }
                 hasHeightError.value = height.value.isBlank() || !height.value.all { char -> char.isDigit() || char == '.' }
                 hasWeightError.value = weight.value.isBlank() || !weight.value.all { char -> char.isDigit() || char == '.' }
 
-                // Only proceed if all fields are valid
+
                 if (!hasFirstNameError.value && !hasLastNameError.value &&
                     !hasAgeError.value && !hasHeightError.value && !hasWeightError.value) {
                     val securityQuestionId = prefs.getInt("SECURITY_QUESTION_ID", 1)
@@ -211,8 +226,8 @@ fun UserDetailsScreen(userToken: String?, onDetailsSubmitted: (String, String?) 
                         updatedBiometric,
                         securityQuestionId,
                         securityAnswer
-                    ) {
-                        message.value = it
+                    ) { responseMessage ->
+                        message.value = responseMessage
                         if (userToken != null){
                             fetchUserData(userToken) { userData ->
                                 onDetailsSubmitted(userToken, userData?.firstName)
