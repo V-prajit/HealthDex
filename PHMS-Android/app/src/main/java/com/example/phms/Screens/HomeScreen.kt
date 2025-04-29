@@ -315,7 +315,7 @@ fun HomeScreen(
                 .height(260.dp), // Adjust height based on card size
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            userScrollEnabled = false
+            userScrollEnabled = false // Grid itself shouldn't scroll
         ) {
             item {
                 DietSummaryCard(
@@ -402,7 +402,7 @@ fun HomeScreen(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(120.dp))
     }
 }
 
