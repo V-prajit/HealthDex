@@ -72,6 +72,7 @@ fun VitalSignsScreen(
     var selectedType by remember { mutableStateOf(allLabel) }
     var expanded by remember { mutableStateOf(false) }
     var latestByType by remember { mutableStateOf<VitalSign?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val vitalHistory by vitalSignsViewModel.vitalHistory.collectAsState()
     val thresholds by vitalSignsViewModel.thresholds.collectAsState()
@@ -181,6 +182,7 @@ fun VitalSignsScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(vitalsLabel) },
@@ -386,20 +388,46 @@ fun VitalSignsScreen(
     if (showDlg) {
         VitalDialog(
             initial = editing,
-            userId = userId,
+            userId  = userId,
             onSave = { newV ->
                 scope.launch {
+                    // 1) Save or update the entry
                     if (newV.id == null) VitalRepository.addVital(newV)
-                    else VitalRepository.updateVital(newV)
+                    else                 VitalRepository.updateVital(newV)
 
+                    // 2) Refresh your lists
                     vitals = VitalRepository.getVitals(userId!!)
-                    latestByType =
-                        if (selectedType != allLabel && selectedType != otherLabel)
-                            VitalRepository.getLatestVital(userId, selectedType)
-                        else null
+                    latestByType = if (selectedType != allLabel && selectedType != otherLabel)
+                                    VitalRepository.getLatestVital(userId, selectedType)
+                                else null
 
+                    // 3) Pre‐compute whether it should trigger an alert
+                    val shouldAlert = when (newV.type) {
+                    bpLabel -> {
+                        newV.manualSystolic!!  > thresholds.bpSysHigh ||
+                        newV.manualSystolic!!  < thresholds.bpSysLow  ||
+                        newV.manualDiastolic!! > thresholds.bpDiaHigh ||
+                        newV.manualDiastolic!! < thresholds.bpDiaLow
+                    }
+                    glucoseLabel -> {
+                        newV.value!! > thresholds.glucoseHigh ||
+                        newV.value!! < thresholds.glucoseLow
+                    }
+                    cholLabel -> {
+                        newV.value!! > thresholds.cholesterolHigh ||
+                        newV.value!! < thresholds.cholesterolLow
+                    }
+                    else -> false
+                    }
+
+                    // 4) Send the email alert (Unit) and close the dialog
                     sendAlertIfNeeded(newV)
                     showDlg = false
+
+                    // 5) Show snackbar if it breached
+                    if (shouldAlert) {
+                    snackbarHostState.showSnackbar("An emergency alert was sent")
+                    }
                 }
             },
             onCancel = { showDlg = false }
