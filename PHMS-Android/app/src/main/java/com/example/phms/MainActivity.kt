@@ -1,6 +1,7 @@
 package com.example.phms
 
 import android.Manifest
+import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.pm.PackageManager
 import android.os.Build
@@ -47,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,9 +78,9 @@ val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
 class MainActivity : FragmentActivity() {
     private lateinit var auth: FirebaseAuth
-
     private var localeVersion by mutableIntStateOf(0)
     private var darkModeEnabled by mutableStateOf(true)
+    private var returnToTab by mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,7 +121,6 @@ class MainActivity : FragmentActivity() {
         val isFirstLaunch = !appPrefs.contains("has_launched_before")
 
         if (isFirstLaunch) {
-            // Don't set has_launched_before yet - we'll set it after language selection
         } else {
             appPrefs.edit().putBoolean("has_launched_before", true).apply()
         }
@@ -148,7 +149,6 @@ class MainActivity : FragmentActivity() {
                 var userToken by remember { mutableStateOf(auth.currentUser?.uid) }
                 var firstName by remember { mutableStateOf<String?>(null) }
                 var showSettings by remember { mutableStateOf(false) }
-                var returnToTab by remember { mutableStateOf<String?>(null) }
                 var showFirstTimeLaunch by remember { mutableStateOf(isFirstLaunch) }
 
                 val biometricAuth = remember {
@@ -261,12 +261,15 @@ class MainActivity : FragmentActivity() {
         prefs.edit().putBoolean("DARK_MODE", darkMode).apply()
     }
 
-    fun forceLocaleRecomposition(languageCode: String? = null) {
+    fun updateLocale(languageCode: String) {
+        val localeList = LocaleListCompat.forLanguageTags(languageCode)
+        AppCompatDelegate.setApplicationLocales(localeList)
+
+        val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        prefs.edit().putString("selected_language", languageCode).apply()
+
         localeVersion++
-        if (languageCode != null) {
-            val localeList = LocaleListCompat.forLanguageTags(languageCode)
-            AppCompatDelegate.setApplicationLocales(localeList)
-        }
+        Log.d("MainActivity", "Locale updated to $languageCode, localeVersion=$localeVersion")
     }
 }
 
@@ -309,7 +312,6 @@ fun FirstTimeLanguageScreen(onLanguageSelected: () -> Unit) {
                                     context,
                                     language.code
                                 )
-                                (context as? MainActivity)?.forceLocaleRecomposition(language.code)
                                 onLanguageSelected()
                             }
                             .padding(vertical = 16.dp),
@@ -405,7 +407,6 @@ fun AuthScreen(
                                             context,
                                             language.code
                                         )
-                                        (context as? MainActivity)?.forceLocaleRecomposition(language.code)
                                         showLanguageSelector = false
                                     }
                                     .padding(vertical = 16.dp),
@@ -601,12 +602,10 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
 
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = onSwitch) {
-
-            Text(stringResource( R.string.already_have_account))
+            Text(stringResource(R.string.already_have_account))
         }
     }
 }
-
 
 @Composable
 fun LoginScreen(
@@ -673,11 +672,10 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
         Button(
             onClick = {
                 if (email.value.isBlank() || password.value.isBlank()) {
-                    message.value =  errorEmptyFieldsText
+                    message.value = errorEmptyFieldsText
                     return@Button
                 }
                 message.value = ""
@@ -749,7 +747,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = onSwitch) {
-
             Text(stringResource(R.string.dont_have_account))
         }
     }
