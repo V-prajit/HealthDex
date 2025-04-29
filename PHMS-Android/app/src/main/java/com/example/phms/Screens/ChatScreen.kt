@@ -82,7 +82,7 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
 
-    // Get the height of the bottom navigation bar
+
     val density = LocalDensity.current
     val bottomNavHeight = with(density) { 80.dp.toPx() }
     val bottomNavHeightDp = with(density) { bottomNavHeight.toDp() }
@@ -101,7 +101,7 @@ fun ChatScreen(
             .navigationBarsPadding()
             .imePadding()
     ) {
-        // Top app bar
+
         TopAppBar(
             title = {
                 Box(
@@ -110,7 +110,7 @@ fun ChatScreen(
                 ) {
                     Text(stringResource(R.string.health_chat))
                 }
-                    },
+            },
             navigationIcon = {
                 IconButton(onClick = onBackClick) {
                     Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
@@ -126,14 +126,14 @@ fun ChatScreen(
 
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary, // e.g., pokeBlue
-                titleContentColor = MaterialTheme.colorScheme.onPrimary, // e.g., Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                 actionIconContentColor = MaterialTheme.colorScheme.onPrimary
             )
         )
 
-        // Messages area
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -189,7 +189,7 @@ fun ChatScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        "AI",
+                                        stringResource(R.string.chat_ai_initials),
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
@@ -245,12 +245,12 @@ fun ChatScreen(
                     maxLines = 4,
                     shape = RoundedCornerShape(0.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface, // Use theme text color
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
                         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        focusedContainerColor = MaterialTheme.colorScheme.surface, // Use theme surface
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary, // Use theme primary
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline, // Use theme outline
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                         cursorColor = MaterialTheme.colorScheme.primary
                     ),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = PokemonClassicFontFamily)
@@ -258,7 +258,7 @@ fun ChatScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Send button
+
                 FloatingActionButton(
                     onClick = {
                         if (messageText.isNotBlank() && !isLoading) {
@@ -275,7 +275,7 @@ fun ChatScreen(
                         }
                     },
                     modifier = Modifier.size(48.dp),
-                    containerColor = MaterialTheme.colorScheme.secondary, // Use theme secondary
+                    containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary,
                     shape = RoundedCornerShape(0.dp),
                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
@@ -323,8 +323,7 @@ fun PokemonChatMessageItem(message: ChatMessage) {
                 fontSize = 14.sp,
                 color = textColor
             )
-            // Note: The speech bubble tail from the image requires a custom drawable background (9-patch).
-            // This implementation uses simple rounded rectangles.
+
         }
     }
 }
@@ -338,13 +337,13 @@ private fun sendMessage(
     updateMessageText: (String) -> Unit,
     scope: kotlinx.coroutines.CoroutineScope
 ) {
-    // Add user message
+
     val userMessage = ChatMessage(role = "user", content = messageText)
     val updatedMessages = messages + listOf(userMessage)
     updateMessages(updatedMessages)
     updateMessageText("")
 
-    // Show loading and send request
+
     updateIsLoading(true)
 
     scope.launch {
@@ -370,12 +369,12 @@ fun FormattedText(
     modifier: Modifier = Modifier,
     color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
 ) {
-    // Simple formatting for numbered lists, bullet points, bold and italic text
+
     val formattedText = buildAnnotatedString {
         val lines = text.lines()
 
         lines.forEach { line ->
-            // Check for bold text (** or __ in markdown)
+
             val boldPattern = "\\*\\*(.+?)\\*\\*|__(.+?)__".toRegex()
             val italicPattern = "\\*(.+?)\\*|_(.+?)_".toRegex()
 

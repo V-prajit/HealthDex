@@ -28,8 +28,8 @@ class AppointmentNotificationManager(private val context: Context) {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Appointment Reminders"
-            val descriptionText = "Notifications for upcoming doctor appointments"
+            val name = context.getString(R.string.appointment_notification_channel_name)
+            val descriptionText = context.getString(R.string.appointment_notification_channel_desc)
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -41,7 +41,7 @@ class AppointmentNotificationManager(private val context: Context) {
     }
 
     fun showAppointmentReminder(appointment: Appointment) {
-        // Check notification permission
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -49,7 +49,7 @@ class AppointmentNotificationManager(private val context: Context) {
             }
         }
 
-        // Create an intent to open the app
+
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("OPEN_APPOINTMENTS", true)
@@ -60,23 +60,23 @@ class AppointmentNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Format date and time for notification
+
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMMM d")
         val date = LocalDate.parse(appointment.date)
         val formattedDate = date.format(dateFormatter)
 
-        // Build notification
+
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Upcoming Appointment Reminder")
-            .setContentText("You have an appointment with ${appointment.doctorName} at ${appointment.time} on $formattedDate")
+            .setContentTitle(context.getString(R.string.appointment_notification_title))
+            .setContentText(context.getString(R.string.appointment_notification_content, appointment.doctorName ?: "Doctor", appointment.time, formattedDate))
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("You have an appointment with ${appointment.doctorName} at ${appointment.time} on $formattedDate.\nReason: ${appointment.reason}"))
+                .bigText(context.getString(R.string.appointment_notification_big_text, appointment.doctorName ?: "Doctor", appointment.time, formattedDate, appointment.reason)))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Show notification with permission check
+
         try {
             with(NotificationManagerCompat.from(context)) {
                 val notificationId = NOTIFICATION_ID_PREFIX + (appointment.id ?: 0)
@@ -92,7 +92,7 @@ class AppointmentNotificationManager(private val context: Context) {
         message: String,
         notificationId: Int = NOTIFICATION_ID_PREFIX + (appointment.id ?: 0)
     ) {
-        // Check notification permission
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -100,7 +100,7 @@ class AppointmentNotificationManager(private val context: Context) {
             }
         }
 
-        // Create an intent to open the app
+
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("OPEN_APPOINTMENTS", true)
@@ -111,18 +111,18 @@ class AppointmentNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Build notification
+
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(message)
-            .setContentText("Appointment with ${appointment.doctorName} at ${appointment.time}")
+            .setContentText(context.getString(R.string.appointment_notification_content_simple, appointment.doctorName ?: "Doctor", appointment.time))
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("$message\nReason: ${appointment.reason}"))
+                .bigText("$message\n${context.getString(R.string.reason)}: ${appointment.reason}"))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Show notification
+
         try {
             with(NotificationManagerCompat.from(context)) {
                 notify(notificationId, builder.build())

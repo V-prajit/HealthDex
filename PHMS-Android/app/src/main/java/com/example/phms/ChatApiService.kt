@@ -11,6 +11,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
+
 class ChatApiService {
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -18,7 +19,7 @@ class ChatApiService {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    // Use the API key from BuildConfig
+
     private val apiKey = BuildConfig.OPENAI_API_KEY
 
     private val model = "gpt-4o-mini"
@@ -34,7 +35,7 @@ class ChatApiService {
             val result = withContext(Dispatchers.IO) {
                 val messagesJson = JSONArray()
 
-                // Add a system message to provide context about health-related questions
+
                 messagesJson.put(JSONObject().apply {
                     put("role", "system")
                     put("content", "You are a helpful assistant answering health-related questions. " +
@@ -42,7 +43,7 @@ class ChatApiService {
                             "for consulting a healthcare professional.")
                 })
 
-                // Add the conversation history
+
                 messages.forEach { message ->
                     messagesJson.put(JSONObject().apply {
                         put("role", message.role)
@@ -99,9 +100,9 @@ class ChatApiService {
     }
 }
 
-// Data class to represent chat messages
+
 data class ChatMessage(
-    val role: String, // "user" or "assistant"
+    val role: String,
     val content: String,
     val timestamp: Long = System.currentTimeMillis()
 )

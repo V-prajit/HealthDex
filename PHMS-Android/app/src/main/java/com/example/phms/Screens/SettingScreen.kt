@@ -77,7 +77,7 @@ fun SettingScreen(
                     title = { Text(stringResource(R.string.settings)) },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                         }
                     }
                 )
@@ -95,8 +95,8 @@ fun SettingScreen(
 
                 Divider()
                 ListItem(
-                    headlineContent = { Text("Enable Biometric Login") },
-                    supportingContent = { Text(if (biometricEnabled) "Enabled" else "Disabled") },
+                    headlineContent = { Text(stringResource(R.string.enable_biometric_login_title)) },
+                    supportingContent = { Text(if (biometricEnabled) stringResource(R.string.enabled) else stringResource(R.string.disabled)) },
                     trailingContent = {
                         Switch(
                             checked = biometricEnabled,
@@ -110,8 +110,8 @@ fun SettingScreen(
 
                 Divider()
                 ListItem(
-                    headlineContent = { Text("Enable Dark Mode") },
-                    supportingContent = { Text(if (darkModeEnabled) "Enabled" else "Disabled") },
+                    headlineContent = { Text(stringResource(R.string.enable_dark_mode_title)) },
+                    supportingContent = { Text(if (darkModeEnabled) stringResource(R.string.enabled) else stringResource(R.string.disabled)) },
                     trailingContent = {
                         Switch(
                             checked = darkModeEnabled,
@@ -126,8 +126,8 @@ fun SettingScreen(
 
                 Divider()
                 ListItem(
-                    headlineContent = { Text("Vital Sign Thresholds") },
-                    supportingContent = { Text("Set alert limits for vital signs") },
+                    headlineContent = { Text(stringResource(R.string.vital_threshold_title)) },
+                    supportingContent = { Text(stringResource(R.string.vital_threshold_desc)) },
                     trailingContent = {
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
                     },
@@ -137,7 +137,7 @@ fun SettingScreen(
                 Divider()
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.emergency_contacts)) },
-                    supportingContent = { Text("Manage emergency contact notifications") },
+                    supportingContent = { Text(stringResource(R.string.emergency_contacts_desc)) },
                     trailingContent = {
                         Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
                     },
@@ -156,10 +156,10 @@ fun SettingScreen(
 
                 Divider()
 
-                // Add test alert button for development
+
                 ListItem(
-                    headlineContent = { Text("Test Emergency Alert") },
-                    supportingContent = { Text("Send a test alert (for development)") },
+                    headlineContent = { Text(stringResource(R.string.test_emergency_alert_title)) },
+                    supportingContent = { Text(stringResource(R.string.test_emergency_alert_desc)) },
                     trailingContent = {
                         Icon(Icons.Default.Warning, contentDescription = null)
                     },
@@ -169,30 +169,30 @@ fun SettingScreen(
                             if (userId != null) {
                                 val alertRequest = VitalAlertRequest(
                                     userId = userId,
-                                    vitalName = "Heart Rate",
+                                    vitalName = context.getString(R.string.test_alert_vital_name),
                                     value = 150f,
                                     threshold = 100f,
                                     isHigh = true
                                 )
 
                                 try {
-                                    val response: retrofit2.Response<Map<String, Int>> = RetrofitClient.apiService.sendVitalAlert(alertRequest) // <-- CHANGE THIS
+                                    val response: retrofit2.Response<Map<String, Int>> = RetrofitClient.apiService.sendVitalAlert(alertRequest)
 
                                     if (response.isSuccessful) {
                                         val result = response.body()
-                                        Toast.makeText(context, "Test alert sent successfully. Emails: ${result?.get("emailsSent") ?: 0}", Toast.LENGTH_LONG).show() // <-- Adjusted Toast
+                                        Toast.makeText(context, context.getString(R.string.test_alert_success_toast, result?.get("emailsSent") ?: 0), Toast.LENGTH_LONG).show()
                                     } else {
-                                        val errorBody = response.errorBody()?.string() ?: "Unknown error"
+                                        val errorBody = response.errorBody()?.string() ?: context.getString(R.string.login_error_unknown)
                                         Log.e("TestAlertError", "Test alert failed: ${response.code()} - $errorBody")
-                                        Toast.makeText(context, "Test alert failed: ${response.code()}", Toast.LENGTH_SHORT).show() // <-- Adjusted Toast
+                                        Toast.makeText(context, context.getString(R.string.test_alert_failed_toast, response.code()), Toast.LENGTH_SHORT).show()
                                     }
                                 } catch (e: Exception) {
                                     Log.e("TestAlertError", "Failed to send test alert", e)
                                     val errorMsg = e.message ?: e.toString()
-                                    Toast.makeText(context, "Error: $errorMsg", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.error, errorMsg), Toast.LENGTH_SHORT).show()
                                 }
                             } else {
-                                Toast.makeText(context, "No user ID found", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.user_not_found), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -200,39 +200,39 @@ fun SettingScreen(
 
                 Divider()
                 ListItem(
-                    headlineContent = { Text("Test Appointment Reminder") },
-                    supportingContent = { Text("Send a test notification immediately") },
+                    headlineContent = { Text(stringResource(R.string.test_appointment_reminder_title)) },
+                    supportingContent = { Text(stringResource(R.string.test_appointment_reminder_desc)) },
                     trailingContent = {
                         Icon(Icons.Default.Notifications, contentDescription = null)
                     },
                     modifier = Modifier.clickable {
-                        // Create a test appointment for today
+
                         val testAppointment = Appointment(
                             id = 999,
                             userId = prefs.getString("LAST_USER_UID", "") ?: "",
                             doctorId = 1,
-                            doctorName = "Dr. Test Doctor",
+                            doctorName = stringResource(R.string.test_dr_name),
                             date = LocalDate.now().toString(),
                             time = "12:00",
                             duration = 30,
-                            reason = "Test Appointment",
-                            notes = "This is a test notification",
+                            reason = stringResource(R.string.test_appointment_reason),
+                            notes = stringResource(R.string.test_appointment_notes),
                             status = "scheduled",
                             reminders = true
                         )
 
-                        // Create and show notification directly
+
                         val notificationManager = AppointmentNotificationManager(context)
                         notificationManager.showAppointmentReminder(testAppointment)
 
-                        Toast.makeText(context, "Test notification sent", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, stringResource(R.string.test_notification_sent_toast), Toast.LENGTH_SHORT).show()
                     }
                 )
 
                 Divider()
                 ListItem(
-                    headlineContent = { Text("Schedule Appointment Reminders") },
-                    supportingContent = { Text("Set up timed notifications for upcoming appointments") },
+                    headlineContent = { Text(stringResource(R.string.schedule_reminders_title)) },
+                    supportingContent = { Text(stringResource(R.string.schedule_reminders_desc)) },
                     trailingContent = {
                         Icon(
                             imageVector = Icons.Default.Alarm,
@@ -245,10 +245,10 @@ fun SettingScreen(
                             scope.launch {
                                 val alarmManager = AppointmentAlarmManager(context)
                                 alarmManager.scheduleAllAppointmentReminders(userId)
-                                Toast.makeText(context, "Appointment reminders scheduled", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, stringResource(R.string.reminders_scheduled_toast), Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Toast.makeText(context, "User ID not found", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, stringResource(R.string.user_id_not_found_toast), Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
@@ -334,32 +334,32 @@ fun ThresholdSettingsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Set Vital Sign Thresholds") },
+        title = { Text(stringResource(R.string.vital_threshold_title)) },
         text = {
             Column(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
-                    .verticalScroll(rememberScrollState()) // Make dialog content scrollable
+                    .verticalScroll(rememberScrollState())
             ) {
-                ThresholdTextField(label = "Heart Rate High (bpm)", value = hrHigh, onValueChange = { hrHigh = it })
-                ThresholdTextField(label = "Heart Rate Low (bpm)", value = hrLow, onValueChange = { hrLow = it })
+                ThresholdTextField(label = stringResource(R.string.hr_label), value = hrHigh, onValueChange = { hrHigh = it })
+                ThresholdTextField(label = stringResource(R.string.hr_low_label), value = hrLow, onValueChange = { hrLow = it })
                 Spacer(Modifier.height(8.dp))
-                ThresholdTextField(label = "Systolic BP High (mmHg)", value = bpSysHigh, onValueChange = { bpSysHigh = it })
-                ThresholdTextField(label = "Systolic BP Low (mmHg)", value = bpSysLow, onValueChange = { bpSysLow = it })
-                 Spacer(Modifier.height(8.dp))
-                 ThresholdTextField(label = "Diastolic BP High (mmHg)", value = bpDiaHigh, onValueChange = { bpDiaHigh = it })
-                 ThresholdTextField(label = "Diastolic BP Low (mmHg)", value = bpDiaLow, onValueChange = { bpDiaLow = it })
-                 Spacer(Modifier.height(8.dp))
-                 ThresholdTextField(label = "Glucose High (mg/dL)", value = glucoseHigh, onValueChange = { glucoseHigh = it })
-                 ThresholdTextField(label = "Glucose Low (mg/dL)", value = glucoseLow, onValueChange = { glucoseLow = it })
-                 Spacer(Modifier.height(8.dp))
-                 ThresholdTextField(label = "Cholesterol High (mg/dL)", value = cholesterolHigh, onValueChange = { cholesterolHigh = it })
-                 ThresholdTextField(label = "Cholesterol Low (mg/dL)", value = cholesterolLow, onValueChange = { cholesterolLow = it })
+                ThresholdTextField(label = stringResource(R.string.systolic_label), value = bpSysHigh, onValueChange = { bpSysHigh = it })
+                ThresholdTextField(label = stringResource(R.string.systolic_low_label), value = bpSysLow, onValueChange = { bpSysLow = it })
+                Spacer(Modifier.height(8.dp))
+                ThresholdTextField(label = stringResource(R.string.diastolic_label), value = bpDiaHigh, onValueChange = { bpDiaHigh = it })
+                ThresholdTextField(label = stringResource(R.string.diastolic_low_label), value = bpDiaLow, onValueChange = { bpDiaLow = it })
+                Spacer(Modifier.height(8.dp))
+                ThresholdTextField(label = stringResource(R.string.glucose_label), value = glucoseHigh, onValueChange = { glucoseHigh = it })
+                ThresholdTextField(label = stringResource(R.string.glucose_low_label), value = glucoseLow, onValueChange = { glucoseLow = it })
+                Spacer(Modifier.height(8.dp))
+                ThresholdTextField(label = stringResource(R.string.cholesterol_label), value = cholesterolHigh, onValueChange = { cholesterolHigh = it })
+                ThresholdTextField(label = stringResource(R.string.cholesterol_low_label), value = cholesterolLow, onValueChange = { cholesterolLow = it })
             }
         },
         confirmButton = {
             TextButton(onClick = {
-                // Validate and save
+
                 val newThresholds = ThresholdValues(
                     hrHigh = hrHigh.toFloatOrNull() ?: currentThresholds.hrHigh,
                     hrLow = hrLow.toFloatOrNull() ?: currentThresholds.hrLow,
@@ -370,26 +370,26 @@ fun ThresholdSettingsDialog(
                     glucoseHigh = glucoseHigh.toFloatOrNull() ?: currentThresholds.glucoseHigh,
                     glucoseLow = glucoseLow.toFloatOrNull() ?: currentThresholds.glucoseLow,
                     cholesterolHigh = cholesterolHigh.toFloatOrNull() ?: currentThresholds.cholesterolHigh,
-                     cholesterolLow = cholesterolLow.toFloatOrNull() ?: currentThresholds.cholesterolLow
+                    cholesterolLow = cholesterolLow.toFloatOrNull() ?: currentThresholds.cholesterolLow
                 )
-                 // Basic validation example: ensure low < high
+
                 if (newThresholds.hrLow >= newThresholds.hrHigh ||
-                     newThresholds.bpSysLow >= newThresholds.bpSysHigh ||
-                     newThresholds.bpDiaLow >= newThresholds.bpDiaHigh ||
-                     newThresholds.glucoseLow >= newThresholds.glucoseHigh ||
-                     newThresholds.cholesterolLow >= newThresholds.cholesterolHigh) {
-                     Toast.makeText(context, "Low threshold cannot be higher than high threshold", Toast.LENGTH_LONG).show()
-                 } else {
-                     viewModel.saveThresholds(newThresholds)
-                     onDismiss()
-                 }
+                    newThresholds.bpSysLow >= newThresholds.bpSysHigh ||
+                    newThresholds.bpDiaLow >= newThresholds.bpDiaHigh ||
+                    newThresholds.glucoseLow >= newThresholds.glucoseHigh ||
+                    newThresholds.cholesterolLow >= newThresholds.cholesterolHigh) {
+                    Toast.makeText(context, stringResource(R.string.error_threshold_low_high), Toast.LENGTH_LONG).show()
+                } else {
+                    viewModel.saveThresholds(newThresholds)
+                    onDismiss()
+                }
             }) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -405,7 +405,7 @@ fun ThresholdTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
-        // *** CORRECTED LINE BELOW ***
+
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         singleLine = true,
         modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)

@@ -1,13 +1,28 @@
 package com.example.phms
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +46,7 @@ fun DietGoalsSettingsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Diet Goals Settings") },
+        title = { Text(stringResource(R.string.diet_goals_title)) },
         text = {
             Column(
                 modifier = Modifier
@@ -39,7 +54,7 @@ fun DietGoalsSettingsDialog(
                     .padding(vertical = 8.dp)
             ) {
                 Text(
-                    "Set your daily nutritional goals",
+                    stringResource(R.string.diet_goals_description),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -50,10 +65,10 @@ fun DietGoalsSettingsDialog(
                         calorieGoal = it
                         calorieError = it.toIntOrNull() == null
                     },
-                    label = { Text("Daily Calorie Goal") },
+                    label = { Text(stringResource(R.string.daily_calorie_goal_label)) },
                     isError = calorieError,
                     supportingText = {
-                        if (calorieError) Text("Please enter a valid number")
+                        if (calorieError) Text(stringResource(R.string.error_invalid_number))
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
@@ -67,10 +82,10 @@ fun DietGoalsSettingsDialog(
                         proteinGoal = it
                         proteinError = it.toIntOrNull() == null
                     },
-                    label = { Text("Protein Goal (grams)") },
+                    label = { Text(stringResource(R.string.protein_goal_label)) },
                     isError = proteinError,
                     supportingText = {
-                        if (proteinError) Text("Please enter a valid number")
+                        if (proteinError) Text(stringResource(R.string.error_invalid_number))
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
@@ -84,10 +99,10 @@ fun DietGoalsSettingsDialog(
                         fatGoal = it
                         fatError = it.toIntOrNull() == null
                     },
-                    label = { Text("Fat Goal (grams)") },
+                    label = { Text(stringResource(R.string.fat_goal_label)) },
                     isError = fatError,
                     supportingText = {
-                        if (fatError) Text("Please enter a valid number")
+                        if (fatError) Text(stringResource(R.string.error_invalid_number))
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
@@ -101,10 +116,10 @@ fun DietGoalsSettingsDialog(
                         carbGoal = it
                         carbError = it.toIntOrNull() == null
                     },
-                    label = { Text("Carbohydrate Goal (grams)") },
+                    label = { Text(stringResource(R.string.carb_goal_label)) },
                     isError = carbError,
                     supportingText = {
-                        if (carbError) Text("Please enter a valid number")
+                        if (carbError) Text(stringResource(R.string.error_invalid_number))
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
@@ -114,7 +129,7 @@ fun DietGoalsSettingsDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    // Validate inputs
+
                     calorieError = calorieGoal.toIntOrNull() == null
                     proteinError = proteinGoal.toIntOrNull() == null
                     fatError = fatGoal.toIntOrNull() == null
@@ -134,12 +149,12 @@ fun DietGoalsSettingsDialog(
                     }
                 }
             ) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

@@ -98,8 +98,8 @@ fun PokemonMedicationsScreen(
     showDeleteConfirmation?.let { medication ->
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = null },
-            title = { Text("Delete Medication") },
-            text = { Text("Are you sure you want to delete ${medication.name}?") },
+            title = { Text(stringResource(R.string.delete_medication_title)) },
+            text = { Text(stringResource(R.string.delete_medication_confirmation, medication.name)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -115,12 +115,12 @@ fun PokemonMedicationsScreen(
                         showDeleteConfirmation = null
                     }
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = null }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -135,7 +135,7 @@ fun PokemonMedicationsScreen(
                         modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Medicine Pouch",
+                            stringResource(R.string.medication_pouch_title),
                             fontFamily = PokemonClassicFontFamily,
                             fontWeight = FontWeight.Normal,
                             fontSize = 24.sp,
@@ -152,12 +152,12 @@ fun PokemonMedicationsScreen(
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
                     }
                 }
             )
@@ -174,7 +174,7 @@ fun PokemonMedicationsScreen(
                     .padding(bottom = 72.dp, end = 16.dp)
                     .size(56.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Medication")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_medication_desc))
             }
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -194,7 +194,7 @@ fun PokemonMedicationsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        "Your medicine pouch is empty!",
+                        stringResource(R.string.medication_pouch_empty),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
@@ -202,7 +202,7 @@ fun PokemonMedicationsScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "Tap the + button to add your first medicine",
+                        stringResource(R.string.tap_to_add_medication),
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -217,10 +217,10 @@ fun PokemonMedicationsScreen(
                 ) {
                     items(meds) { med ->
                         val medicationThemeColors = when (med.category.lowercase()) {
-                            "cold & flu" -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
-                            "pain relief" -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
-                            "allergy" -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
-                            "digestive" -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+                            stringResource(R.string.med_cat_cold_flu).lowercase() -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+                            stringResource(R.string.med_cat_pain_relief).lowercase() -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+                            stringResource(R.string.med_cat_allergy).lowercase() -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+                            stringResource(R.string.med_cat_digestive).lowercase() -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
                             else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
                         }
 
@@ -354,7 +354,7 @@ fun PokemonMedicationCard(
                     )
                 )
                 Text(
-                    text = "x${medication.frequency}",
+                    text = stringResource(R.string.medication_frequency_display, medication.frequency),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = contentColor,
                         fontWeight = FontWeight.Bold,
@@ -383,16 +383,16 @@ fun ExtendedMedicationDialog(
     var frequency by remember { mutableStateOf(initial?.frequency ?: "1") }
     var instructions by remember { mutableStateOf(initial?.instructions ?: "") }
 
-    val categories = listOf("Cold & Flu", "Pain Relief", "Allergy", "Digestive", "Miscellaneous")
+    val categories = listOf(stringResource(R.string.med_cat_cold_flu), stringResource(R.string.med_cat_pain_relief), stringResource(R.string.med_cat_allergy), stringResource(R.string.med_cat_digestive), stringResource(R.string.med_cat_misc))
     var categoryExpanded by remember { mutableStateOf(false) }
 
-    val dosageOptions = listOf("tsp", "tbsp", "ml", "pill", "capsule")
+    val dosageOptions = listOf(stringResource(R.string.dosage_tsp), stringResource(R.string.dosage_tbsp), stringResource(R.string.dosage_ml), stringResource(R.string.dosage_pill), stringResource(R.string.dosage_capsule))
     var dosageExpanded by remember { mutableStateOf(false) }
 
     val frequencyOptions = listOf("1", "2", "3", "4")
     var frequencyExpanded by remember { mutableStateOf(false) }
 
-    val weekdays = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val weekdays = listOf(stringResource(R.string.day_mon), stringResource(R.string.day_tue), stringResource(R.string.day_wed), stringResource(R.string.day_thu), stringResource(R.string.day_fri), stringResource(R.string.day_sat), stringResource(R.string.day_sun))
     val selectedDays = remember { mutableStateListOf<String>() }
 
     val freqInt = frequency.toIntOrNull() ?: 1
@@ -418,13 +418,13 @@ fun ExtendedMedicationDialog(
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text(if (initial == null) "Add Medication" else "Edit Medication") },
+        title = { Text(if (initial == null) stringResource(R.string.add_medication_title) else stringResource(R.string.edit_medication_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.name_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
@@ -437,7 +437,7 @@ fun ExtendedMedicationDialog(
                         value = category,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Category") },
+                        label = { Text(stringResource(R.string.category_label)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -463,7 +463,7 @@ fun ExtendedMedicationDialog(
                         value = dosage,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Dosage") },
+                        label = { Text(stringResource(R.string.dosage_label)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dosageExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -489,7 +489,7 @@ fun ExtendedMedicationDialog(
                         value = frequency,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Times per day") },
+                        label = { Text(stringResource(R.string.times_per_day_label)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = frequencyExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -525,14 +525,14 @@ fun ExtendedMedicationDialog(
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text(
-                            "Time ${i + 1}: $time",
+                            stringResource(R.string.medication_time_button, i + 1, time),
                             fontFamily = PokemonClassicFontFamily
                         )
                     }
                 }
 
                 Spacer(Modifier.height(12.dp))
-                Text("Days to take")
+                Text(stringResource(R.string.days_to_take_label))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     weekdays.forEach { day ->
                         FilterChip(
@@ -550,7 +550,7 @@ fun ExtendedMedicationDialog(
                 OutlinedTextField(
                     value = instructions,
                     onValueChange = { instructions = it },
-                    label = { Text("Instructions") },
+                    label = { Text(stringResource(R.string.instructions_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -573,7 +573,7 @@ fun ExtendedMedicationDialog(
                     )
                     onSave(med)
                 }) {
-                    Text("Save")
+                    Text(stringResource(R.string.save))
                 }
 
                 if (initial != null) {
@@ -585,18 +585,18 @@ fun ExtendedMedicationDialog(
                     ) {
                         Icon(
                             Icons.Default.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = stringResource(R.string.delete),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Delete")
+                        Text(stringResource(R.string.delete))
                     }
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = onCancel) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

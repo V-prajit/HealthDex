@@ -14,14 +14,14 @@ class MedicationReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "Received intent: action=${intent.action}")
 
-        // Handle device boot to reschedule alarms
+
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             Log.d(TAG, "Device boot completed, rescheduling all medication reminders")
             handleBootCompleted(context)
             return
         }
 
-        // Check if this is our specific medication reminder action
+
         if (intent.action != MedicationAlarmManager.ACTION_MEDICATION_REMINDER) {
             Log.w(TAG, "Unknown action: ${intent.action}")
             return
@@ -35,7 +35,7 @@ class MedicationReminderReceiver : BroadcastReceiver() {
 
         Log.d(TAG, "Processing reminder for medication ID: $medicationId")
 
-        val medicationName = intent.getStringExtra(MedicationAlarmManager.EXTRA_MEDICATION_NAME) ?: "Medication"
+        val medicationName = intent.getStringExtra(MedicationAlarmManager.EXTRA_MEDICATION_NAME) ?: context.getString(R.string.default_medication_name)
         val dosage = intent.getStringExtra(MedicationAlarmManager.EXTRA_MEDICATION_DOSAGE) ?: ""
         val instructions = intent.getStringExtra(MedicationAlarmManager.EXTRA_MEDICATION_INSTRUCTIONS) ?: ""
         val userId = intent.getStringExtra(MedicationAlarmManager.EXTRA_USER_ID) ?: ""
@@ -43,7 +43,7 @@ class MedicationReminderReceiver : BroadcastReceiver() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Show the notification
+
                 showMedicationNotification(context, medicationId, medicationName, dosage, instructions, timeIndex)
                 Log.d(TAG, "Successfully showed notification for medication $medicationName")
             } catch (e: Exception) {
@@ -52,9 +52,7 @@ class MedicationReminderReceiver : BroadcastReceiver() {
         }
     }
 
-    /**
-     * Show notification for medication reminder
-     */
+
     private fun showMedicationNotification(
         context: Context,
         medicationId: Int,
@@ -75,9 +73,7 @@ class MedicationReminderReceiver : BroadcastReceiver() {
         )
     }
 
-    /**
-     * Handle device boot completed by rescheduling all alarms
-     */
+
     private fun handleBootCompleted(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
