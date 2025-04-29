@@ -383,6 +383,7 @@ fun ExtendedMedicationDialog(
     var frequency by remember { mutableStateOf(initial?.frequency ?: "1") }
     var instructions by remember { mutableStateOf(initial?.instructions ?: "") }
 
+    val context = LocalContext.current
     val categories = listOf(stringResource(R.string.med_cat_cold_flu), stringResource(R.string.med_cat_pain_relief), stringResource(R.string.med_cat_allergy), stringResource(R.string.med_cat_digestive), stringResource(R.string.med_cat_misc))
     var categoryExpanded by remember { mutableStateOf(false) }
 
@@ -424,7 +425,7 @@ fun ExtendedMedicationDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.name_label)) },
+                    label = { Text(stringResource(R.string.med_name_label)) }, // Corrected label
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
@@ -437,7 +438,7 @@ fun ExtendedMedicationDialog(
                         value = category,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.category_label)) },
+                        label = { Text(stringResource(R.string.med_category_label)) }, // Corrected label
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -463,7 +464,7 @@ fun ExtendedMedicationDialog(
                         value = dosage,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.dosage_label)) },
+                        label = { Text(stringResource(R.string.med_dosage_label)) }, // Corrected label
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dosageExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -489,7 +490,7 @@ fun ExtendedMedicationDialog(
                         value = frequency,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.times_per_day_label)) },
+                        label = { Text(stringResource(R.string.med_frequency_label)) }, // Corrected label
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = frequencyExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -513,6 +514,7 @@ fun ExtendedMedicationDialog(
                 timeList.forEachIndexed { i, time ->
                     val currentHour = remember(time) { time.substringBefore(":").toIntOrNull() ?: 9 }
                     val currentMinute = remember(time) { time.substringAfter(":").toIntOrNull() ?: 0 }
+                    val timeButtonText = stringResource(R.string.time_dose_display, i + 1, time) // Use R.string.time_dose_display
 
                     OutlinedButton(
                         onClick = {
@@ -525,7 +527,7 @@ fun ExtendedMedicationDialog(
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text(
-                            stringResource(R.string.medication_time_button, i + 1, time),
+                            timeButtonText, // Use the fetched string resource
                             fontFamily = PokemonClassicFontFamily
                         )
                     }

@@ -1,13 +1,48 @@
 package com.example.phms.Screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocalPharmacy
+import androidx.compose.material.icons.filled.Note
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,8 +82,16 @@ fun SearchScreen(
     onNavigateToDiet: () -> Unit
 ) {
     val context = LocalContext.current
+    val allTagsStr = stringResource(R.string.all_tags) // Get string resource here
+    val notesStr = stringResource(R.string.notes)
+    val vitalsStr = stringResource(R.string.vitals_tab)
+    val appointmentsStr = stringResource(R.string.appointments)
+    val medicationStr = stringResource(R.string.medication)
+    val dietStr = stringResource(R.string.diet)
+    val doctorStr = stringResource(R.string.doctor)
+
     var query by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(stringResource(R.string.all_tags)) }
+    var selectedCategory by remember { mutableStateOf(allTagsStr) }
 
     val recentSearchesState = remember { mutableStateListOf<String>() }
 
@@ -91,50 +134,50 @@ fun SearchScreen(
 
     val scope = rememberCoroutineScope()
 
-    val filteredNotes by remember(allNotes, query, selectedCategory) {
+    val filteredNotes by remember(allNotes, query, selectedCategory, allTagsStr, notesStr) { // Pass strings to remember
         derivedStateOf {
             allNotes.filter { note ->
                 note.contains(query, ignoreCase = true) &&
-                        (selectedCategory == context.getString(R.string.all_tags) || selectedCategory == context.getString(R.string.notes))
+                        (selectedCategory == allTagsStr || selectedCategory == notesStr) // Use variables
             }
         }
     }
-    val filteredVitals by remember(allVitals, query, selectedCategory) {
+    val filteredVitals by remember(allVitals, query, selectedCategory, allTagsStr, vitalsStr) { // Pass strings to remember
         derivedStateOf {
             allVitals.filter { vital ->
                 vital.contains(query, ignoreCase = true) &&
-                        (selectedCategory == context.getString(R.string.all_tags) || selectedCategory == context.getString(R.string.vitals_tab))
+                        (selectedCategory == allTagsStr || selectedCategory == vitalsStr) // Use variables
             }
         }
     }
-    val filteredAppointments by remember(allAppointments, query, selectedCategory) {
+    val filteredAppointments by remember(allAppointments, query, selectedCategory, allTagsStr, appointmentsStr) { // Pass strings to remember
         derivedStateOf {
             allAppointments.filter { appt ->
                 (appt.doctorName?.contains(query, ignoreCase = true) ?: false ||
                         appt.reason.contains(query, ignoreCase = true)) &&
-                        (selectedCategory == context.getString(R.string.all_tags) || selectedCategory == context.getString(R.string.appointments))
+                        (selectedCategory == allTagsStr || selectedCategory == appointmentsStr) // Use variables
             }
         }
     }
 
 
-    val filteredMedications by remember(allMedications, query, selectedCategory) {
+    val filteredMedications by remember(allMedications, query, selectedCategory, allTagsStr, medicationStr) { // Pass strings to remember
         derivedStateOf {
             allMedications.filter { med ->
                 (med.name.contains(query, ignoreCase = true) ||
                         med.category.contains(query, ignoreCase = true)) &&
-                        (selectedCategory == context.getString(R.string.all_tags) || selectedCategory == context.getString(R.string.medication))
+                        (selectedCategory == allTagsStr || selectedCategory == medicationStr) // Use variables
             }
         }
     }
 
 
-    val filteredDiets by remember(allDiets, query, selectedCategory) {
+    val filteredDiets by remember(allDiets, query, selectedCategory, allTagsStr, dietStr) { // Pass strings to remember
         derivedStateOf {
             allDiets.filter { diet ->
                 (diet.mealType.contains(query, ignoreCase = true) ||
                         (diet.description?.contains(query, ignoreCase = true) ?: false)) &&
-                        (selectedCategory == context.getString(R.string.all_tags) || selectedCategory == context.getString(R.string.diet))
+                        (selectedCategory == allTagsStr || selectedCategory == dietStr) // Use variables
             }
         }
     }
@@ -185,7 +228,7 @@ fun SearchScreen(
 
 
                     if (filteredNotes.isNotEmpty()) {
-                        item { Text(stringResource(R.string.notes) + ":", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(notesStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredNotes, key = { "note_${it.hashCode()}" }) { note ->
                             SearchResultCard(
                                 text = highlightQuery(note, query),
@@ -201,7 +244,7 @@ fun SearchScreen(
 
 
                     if (filteredVitals.isNotEmpty()) {
-                        item { Text(stringResource(R.string.vitals) + ":", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(vitalsStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredVitals, key = { "vital_${it.hashCode()}" }) { vital ->
                             SearchResultCard(
                                 text = highlightQuery(vital, query),
@@ -217,9 +260,9 @@ fun SearchScreen(
 
 
                     if (filteredAppointments.isNotEmpty()) {
-                        item { Text(stringResource(R.string.appointments) + ":", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(appointmentsStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredAppointments, key = { "appt_${it.id}" }) { appt ->
-                            val label = stringResource(R.string.search_appointment_label, appt.date, appt.time, appt.doctorName ?: stringResource(R.string.doctor), appt.reason)
+                            val label = stringResource(R.string.search_appointment_label, appt.date, appt.time, appt.doctorName ?: doctorStr, appt.reason)
                             SearchResultCard(
                                 text = highlightQuery(label, query),
                                 icon = Icons.Default.EventNote,
@@ -234,7 +277,7 @@ fun SearchScreen(
 
 
                     if (filteredMedications.isNotEmpty()) {
-                        item { Text(stringResource(R.string.medications) + ":", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(medicationStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredMedications, key = { "med_${it.id ?: it.hashCode()}" }) { med ->
                             val label = stringResource(R.string.search_medication_label, med.name, med.dosage)
                             SearchResultCard(
@@ -251,7 +294,7 @@ fun SearchScreen(
 
 
                     if (filteredDiets.isNotEmpty()) {
-                        item { Text(stringResource(R.string.diet) + ":", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(dietStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredDiets, key = { "diet_${it.id ?: it.hashCode()}" }) { diet ->
                             val label = stringResource(R.string.search_diet_label, diet.mealType, diet.description ?: "", diet.calories)
                             SearchResultCard(
@@ -318,10 +361,51 @@ fun SearchScreen(
 
                     item { Text(stringResource(R.string.search_by_category_title), style = MaterialTheme.typography.titleMedium) }
                     item { Spacer(modifier = Modifier.height(8.dp)) }
-                    item { CategoryChips(selectedCategory) { selectedCategory = it } }
+                    item {
+                        CategoryChips(
+                            selected = selectedCategory,
+                            onSelect = { selectedCategory = it },
+                            categories = listOf(allTagsStr, notesStr, vitalsStr, appointmentsStr, medicationStr, dietStr) // Pass fetched strings
+                        )
+                    }
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun CategoryChips(
+    selected: String,
+    onSelect: (String) -> Unit,
+    categories: List<String>
+) {
+    val context = LocalContext.current
+
+    val icons = mapOf(
+        stringResource(R.string.all_tags) to Icons.Default.Search,
+        stringResource(R.string.notes) to Icons.Default.Note,
+        stringResource(R.string.vitals_tab) to Icons.Default.Favorite,
+        stringResource(R.string.appointments) to Icons.Default.EventNote,
+        stringResource(R.string.medication) to Icons.Default.LocalPharmacy,
+        stringResource(R.string.diet) to Icons.Default.Restaurant
+    )
+
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        categories.forEach { cat ->
+            FilterChip(
+                selected = (selected == cat),
+                onClick = { onSelect(cat) },
+                leadingIcon = { icons[cat]?.let { Icon(it, contentDescription = null) } },
+                label = { Text(cat) }
+            )
         }
     }
 }
@@ -360,48 +444,6 @@ private fun SearchResultCard(text: AnnotatedString, icon: ImageVector, onClick: 
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-@Composable
-private fun CategoryChips(
-    selected: String,
-    onSelect: (String) -> Unit
-) {
-    val context = LocalContext.current
-
-    val categories = listOf(
-        stringResource(R.string.all_tags),
-        stringResource(R.string.notes),
-        stringResource(R.string.vitals_tab),
-        stringResource(R.string.appointments),
-        stringResource(R.string.medication),
-        stringResource(R.string.diet)
-    )
-    val icons = mapOf(
-        stringResource(R.string.all_tags) to Icons.Default.Search,
-        stringResource(R.string.notes) to Icons.Default.Note,
-        stringResource(R.string.vitals_tab) to Icons.Default.Favorite,
-        stringResource(R.string.appointments) to Icons.Default.EventNote,
-        stringResource(R.string.medication) to Icons.Default.LocalPharmacy,
-        stringResource(R.string.diet) to Icons.Default.Restaurant
-    )
-
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        categories.forEach { cat ->
-            FilterChip(
-                selected = (selected == cat),
-                onClick = { onSelect(cat) },
-                leadingIcon = { Icon(icons[cat]!!, contentDescription = null) },
-                label = { Text(cat) }
             )
         }
     }

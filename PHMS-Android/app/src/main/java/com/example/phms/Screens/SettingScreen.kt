@@ -65,6 +65,21 @@ fun SettingScreen(
         mutableStateOf(prefs.getBoolean("DARK_MODE", false))
     }
 
+    // Fetch string resources outside lambdas where needed
+    val enabledStr = stringResource(R.string.enabled)
+    val disabledStr = stringResource(R.string.disabled)
+    val testAlertSuccessToastStr = stringResource(R.string.test_alert_success_toast)
+    val testAlertFailToastStr = stringResource(R.string.test_alert_failed_toast)
+    val unknownErrorStr = stringResource(R.string.login_error_unknown)
+    val userNotFoundStr = stringResource(R.string.user_not_found)
+    val errorTemplateStr = stringResource(R.string.error)
+    val testDrNameStr = stringResource(R.string.test_dr_name)
+    val testAppointmentReasonStr = stringResource(R.string.test_appointment_reason)
+    val testAppointmentNotesStr = stringResource(R.string.test_appointment_notes)
+    val testNotificationSentToastStr = stringResource(R.string.test_notification_sent_toast)
+    val remindersScheduledToastStr = stringResource(R.string.reminders_scheduled_toast)
+    val userIdNotFoundToastStr = stringResource(R.string.user_id_not_found_toast)
+
     if (showEmergencyContacts) {
         EmergencyContactsScreen(
             userId = prefs.getString("LAST_USER_UID", "") ?: "",
@@ -96,7 +111,7 @@ fun SettingScreen(
                 Divider()
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.enable_biometric_login_title)) },
-                    supportingContent = { Text(if (biometricEnabled) stringResource(R.string.enabled) else stringResource(R.string.disabled)) },
+                    supportingContent = { Text(if (biometricEnabled) enabledStr else disabledStr) }, // Use variable
                     trailingContent = {
                         Switch(
                             checked = biometricEnabled,
@@ -111,7 +126,7 @@ fun SettingScreen(
                 Divider()
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.enable_dark_mode_title)) },
-                    supportingContent = { Text(if (darkModeEnabled) stringResource(R.string.enabled) else stringResource(R.string.disabled)) },
+                    supportingContent = { Text(if (darkModeEnabled) enabledStr else disabledStr) }, // Use variable
                     trailingContent = {
                         Switch(
                             checked = darkModeEnabled,
@@ -166,10 +181,11 @@ fun SettingScreen(
                     modifier = Modifier.clickable {
                         scope.launch {
                             val userId = prefs.getString("LAST_USER_UID", null)
+                            val testAlertVitalNameStr = context.getString(R.string.test_alert_vital_name) // Fetch here
                             if (userId != null) {
                                 val alertRequest = VitalAlertRequest(
                                     userId = userId,
-                                    vitalName = context.getString(R.string.test_alert_vital_name),
+                                    vitalName = testAlertVitalNameStr, // Use variable
                                     value = 150f,
                                     threshold = 100f,
                                     isHigh = true
@@ -180,19 +196,19 @@ fun SettingScreen(
 
                                     if (response.isSuccessful) {
                                         val result = response.body()
-                                        Toast.makeText(context, context.getString(R.string.test_alert_success_toast, result?.get("emailsSent") ?: 0), Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, String.format(testAlertSuccessToastStr, result?.get("emailsSent") ?: 0), Toast.LENGTH_LONG).show() // Use variable
                                     } else {
-                                        val errorBody = response.errorBody()?.string() ?: context.getString(R.string.login_error_unknown)
+                                        val errorBody = response.errorBody()?.string() ?: unknownErrorStr // Use variable
                                         Log.e("TestAlertError", "Test alert failed: ${response.code()} - $errorBody")
-                                        Toast.makeText(context, context.getString(R.string.test_alert_failed_toast, response.code()), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, String.format(testAlertFailToastStr, response.code()), Toast.LENGTH_SHORT).show() // Use variable
                                     }
                                 } catch (e: Exception) {
                                     Log.e("TestAlertError", "Failed to send test alert", e)
                                     val errorMsg = e.message ?: e.toString()
-                                    Toast.makeText(context, context.getString(R.string.error, errorMsg), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, String.format(errorTemplateStr, errorMsg), Toast.LENGTH_SHORT).show() // Use variable
                                 }
                             } else {
-                                Toast.makeText(context, context.getString(R.string.user_not_found), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, userNotFoundStr, Toast.LENGTH_SHORT).show() // Use variable
                             }
                         }
                     }
@@ -211,12 +227,12 @@ fun SettingScreen(
                             id = 999,
                             userId = prefs.getString("LAST_USER_UID", "") ?: "",
                             doctorId = 1,
-                            doctorName = stringResource(R.string.test_dr_name),
+                            doctorName = testDrNameStr, // Use variable
                             date = LocalDate.now().toString(),
                             time = "12:00",
                             duration = 30,
-                            reason = stringResource(R.string.test_appointment_reason),
-                            notes = stringResource(R.string.test_appointment_notes),
+                            reason = testAppointmentReasonStr, // Use variable
+                            notes = testAppointmentNotesStr, // Use variable
                             status = "scheduled",
                             reminders = true
                         )
@@ -225,7 +241,7 @@ fun SettingScreen(
                         val notificationManager = AppointmentNotificationManager(context)
                         notificationManager.showAppointmentReminder(testAppointment)
 
-                        Toast.makeText(context, stringResource(R.string.test_notification_sent_toast), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, testNotificationSentToastStr, Toast.LENGTH_SHORT).show() // Use variable
                     }
                 )
 
@@ -245,10 +261,10 @@ fun SettingScreen(
                             scope.launch {
                                 val alarmManager = AppointmentAlarmManager(context)
                                 alarmManager.scheduleAllAppointmentReminders(userId)
-                                Toast.makeText(context, stringResource(R.string.reminders_scheduled_toast), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, remindersScheduledToastStr, Toast.LENGTH_SHORT).show() // Use variable
                             }
                         } else {
-                            Toast.makeText(context, stringResource(R.string.user_id_not_found_toast), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, userIdNotFoundToastStr, Toast.LENGTH_SHORT).show() // Use variable
                         }
                     }
                 )
@@ -270,7 +286,8 @@ fun SettingScreen(
                                                 language.code
                                             )
                                             showLanguageDialog = false
-                                            onBackClick()
+                                            // Don't call onBackClick here, let MainActivity handle recomposition if needed
+                                            // onBackClick()
                                         }
                                         .padding(vertical = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -319,6 +336,7 @@ fun ThresholdSettingsDialog(
 ) {
     val currentThresholds by viewModel.thresholds.collectAsState()
     val context = LocalContext.current
+    val errorThresholdLowHighStr = stringResource(R.string.error_threshold_low_high) // Fetch string
 
     var hrHigh by remember { mutableStateOf(currentThresholds.hrHigh.toString()) }
     var hrLow by remember { mutableStateOf(currentThresholds.hrLow.toString()) }
@@ -378,7 +396,7 @@ fun ThresholdSettingsDialog(
                     newThresholds.bpDiaLow >= newThresholds.bpDiaHigh ||
                     newThresholds.glucoseLow >= newThresholds.glucoseHigh ||
                     newThresholds.cholesterolLow >= newThresholds.cholesterolHigh) {
-                    Toast.makeText(context, stringResource(R.string.error_threshold_low_high), Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, errorThresholdLowHighStr, Toast.LENGTH_LONG).show() // Use variable
                 } else {
                     viewModel.saveThresholds(newThresholds)
                     onDismiss()
