@@ -9,118 +9,110 @@ import androidx.compose.ui.unit.sp
 import com.example.phms.R
 
 val PokemonClassicFontFamily = FontFamily(
-    Font(R.font.waher, FontWeight.Normal)
+    Font(R.font.pixeloperator, FontWeight.Normal)
 )
 
-val DefaultFontFamily = FontFamily.Default
-
-
 val Typography = Typography(
-    // Apply Pokemon Font to ALL styles
-    displayLarge = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 57.sp,
-        lineHeight = 64.sp,
+
+    /* ── Display (rarely shown on phone, but nice to have) ───────── */
+
+    displayLarge  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontWeight    = FontWeight.Normal,
+        fontSize      = 72.sp,   // ≈ 1.33 × headlineLarge
+        lineHeight    = 88.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 45.sp,
-        lineHeight = 52.sp,
-        letterSpacing = 0.sp
+        fontFamily    = PokemonClassicFontFamily,
+        fontWeight    = FontWeight.Normal,
+        fontSize      = 60.sp,   // ≈ 1.11 × headlineLarge
+        lineHeight    = 74.sp
     ),
-    displaySmall = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
-        letterSpacing = 0.sp
+    displaySmall  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontWeight    = FontWeight.Normal,
+        fontSize      = 48.sp,   // ≈ 0.89 × headlineLarge
+        lineHeight    = 60.sp
     ),
-    headlineLarge = TextStyle(
+
+    /* ── Headlines (taken from your prompt) ──────────────────────── */
+
+    headlineLarge  = TextStyle(
         fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal, // Adjust if the font has different weights
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
-        letterSpacing = 0.sp
+        fontSize   = 54.sp,
+        lineHeight = 78.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
-        letterSpacing = 0.sp
+        fontSize   = 44.sp,
+        lineHeight = 64.sp
     ),
-    headlineSmall = TextStyle(
+    headlineSmall  = TextStyle(
         fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 0.sp
+        fontSize   = 32.sp,
+        lineHeight = 48.sp
     ),
-    titleLarge = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal, // Use Normal if the font doesn't have Bold
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
+
+    /* ── Titles (section headers, dialogs, etc.) ─────────────────── */
+
+    titleLarge  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 30.sp,   // sits halfway between headlineSmall & bodyLarge
+        lineHeight    = 40.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal, // Use Normal if the font doesn't have Medium
-        fontSize = 16.sp, // Adjusted size, was 18
-        lineHeight = 24.sp,
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 24.sp,
+        lineHeight    = 32.sp,
         letterSpacing = 0.15.sp
     ),
-    titleSmall = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal, // Use Normal if the font doesn't have Medium
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
+    titleSmall  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 20.sp,
+        lineHeight    = 28.sp,
         letterSpacing = 0.1.sp
     ),
-    bodyLarge = TextStyle(
-        fontFamily = PokemonClassicFontFamily, // Apply Pokemon font
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp // Pokemon font might need different spacing
+
+    /* ── Body copy ───────────────────────────────────────────────── */
+
+    bodyLarge  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 20.sp,
+        lineHeight    = 28.sp,
+        letterSpacing = 0.4.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = PokemonClassicFontFamily, // Apply Pokemon font
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.25.sp // Pokemon font might need different spacing
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 18.sp,
+        lineHeight    = 26.sp,
+        letterSpacing = 0.3.sp
     ),
-    bodySmall = TextStyle(
-        fontFamily = PokemonClassicFontFamily, // Apply Pokemon font
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.4.sp // Pokemon font might need different spacing
+    bodySmall  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 16.sp,
+        lineHeight    = 22.sp,
+        letterSpacing = 0.4.sp
     ),
-    labelLarge = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal, // Use Normal if font doesn't have Medium
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
+
+    /* ── Labels (buttons, chips, bottom nav) ─────────────────────── */
+
+    labelLarge  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 18.sp,
+        lineHeight    = 24.sp,
         letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal, // Use Normal if font doesn't have Medium
-        fontSize = 12.sp, // Original size
-        lineHeight = 16.sp,
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 16.sp,
+        lineHeight    = 20.sp,
         letterSpacing = 0.5.sp
     ),
-    // Style for Bottom Navigation - explicitly small
-    labelSmall = TextStyle(
-        fontFamily = PokemonClassicFontFamily,
-        fontWeight = FontWeight.Normal, // Use Normal if font doesn't have Medium
-        fontSize = 10.sp, // Make this smaller for the bottom bar
-        lineHeight = 14.sp, // Adjust line height accordingly
+    labelSmall  = TextStyle(
+        fontFamily    = PokemonClassicFontFamily,
+        fontSize      = 14.sp,
+        lineHeight    = 18.sp,
         letterSpacing = 0.5.sp
     )
 )
