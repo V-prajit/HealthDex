@@ -145,7 +145,7 @@ val healthdexOnErrorContainer = Color(0xFF410001) // Dark text for light contain
 // For Light Theme Background/Surface
 val healthdexBackground = Color(0xFFFFFBFE) // Almost White
 val healthdexOnBackground = Color(0xFF191C1D) // Very Dark Gray
-val healthdexSurface = Color(0xFFFBFE) // Almost White
+val healthdexSurface = Color(0xFFFFFBFE) // Almost White
 val healthdexOnSurface = Color(0xFF191C1D) // Very Dark Gray
 val healthdexSurfaceVariant = Color(0xFFE0E0E0) // Light Gray
 val healthdexOnSurfaceVariant = Color(0xFF444748) // Dark Gray
