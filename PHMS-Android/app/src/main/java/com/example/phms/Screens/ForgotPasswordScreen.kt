@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
     var userId by remember { mutableStateOf("") }
     var securityQuestionId by remember { mutableStateOf(0) }
 
-
+    val context = LocalContext.current
     val emailRequiredMessage = stringResource(R.string.error_empty_email)
     val passwordResetSentMessage = stringResource(R.string.password_reset_email_sent)
     val passwordResetFailedMessage = stringResource(R.string.password_reset_failed)
@@ -45,6 +46,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
     val userNotFoundMessage = stringResource(R.string.error_user_not_found_email)
     val findAccountErrorTemplate = stringResource(R.string.error_find_account)
     val verifyErrorTemplate = stringResource(R.string.error_verify_security)
+    val noErrorDetailsText = stringResource(R.string.error_no_details)
 
     Scaffold(
         topBar = {
@@ -112,7 +114,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
                                     securityQuestion = SecurityQuestions.questions.find { it.id == securityQuestionId }?.question ?: ""
                                     userFound = true
                                 } else {
-                                    val errorBody = response.errorBody()?.string() ?: stringResource(R.string.error_no_details)
+                                    val errorBody = response.errorBody()?.string() ?: noErrorDetailsText
                                     Log.e("ForgotPassword", "Error finding user: $errorBody")
                                     message = userNotFoundMessage
                                 }
