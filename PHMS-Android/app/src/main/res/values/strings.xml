@@ -9,10 +9,8 @@
     <string name="already_have_account">Already have an account? Login here</string>
     <string name="dont_have_account">Don\'t have an account? Register here</string>
     <string name="error_empty_fields">Email and password cannot be empty</string>
-    <string name="enable_biometric">Enable Biometric</string>
-    <string name="login_failed">Login Failed: %1$s</string>
-    <string name="registration_failed">Error: %1$s</string>
-    <string name="empty_token">Empty token</string>
+    <string name="enable_biometric">Enable Biometric Login</string> <string name="login_failed">Login Failed: %1$s</string>
+    <string name="registration_failed">Registration Error: %1$s</string> <string name="empty_token">Empty token</string>
     <string name="biometric_authentication">Use Biometrics</string>
     <string name="biometric_cancelled">Biometric Authentication Cancelled. Please check again!</string>
     <string name="no_biometrics_enrolled">No biometrics enrolled. Check settings.</string>
@@ -20,8 +18,7 @@
     <string name="biometric_unavailable">Biometric hardware unavailable. Try again later.</string>
     <string name="biometric_update_required">Update required to enable biometrics.</string>
     <string name="biometric_success">Biometric Authentication Successful!</string>
-    <string name="user_not_found">User not found on firebase!</string>
-    <string name="biometric_failed">Biometric Authentication Failed</string>
+    <string name="user_not_found">User not found!</string> <string name="biometric_failed">Biometric Authentication Failed</string>
     <string name="biometric_login">Biometric Login</string>
     <string name="biometric_subtitle">Use face recognition, fingerprint or other supported biometric login</string>
     <string name="welcome_user">Welcome: %1$s</string>
@@ -36,8 +33,7 @@
     <string name="error_empty_email_password">Email and password cannot be empty</string>
     <string name="hide_password">Hide password</string>
     <string name="show_password">Show password</string>
-    <string name="login_error_unknown">Unknown error</string>
-    <string name="error_biometric_not_enabled">Biometric login not enabled for this user</string>
+    <string name="login_error_unknown">Unknown login error</string> <string name="error_biometric_not_enabled">Biometric login not enabled for this user</string>
     <string name="user_details">User Details</string>
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
@@ -63,23 +59,17 @@
     <string name="search">Search…</string>
     <string name="quick_access">Quick Access</string>
     <string name="health_dashboard">Health Dashboard</string>
-    <string name="chatbot">Chatbot</string>
-    <string name="not_available_short">N/A</string>
+    <string name="chatbot">Health Chatbot</string> <string name="not_available_short">N/A</string>
     <string name="appointment_summary_title">Appointment:</string>
     <string name="doctor_prefix">Dr.</string>
-    <string name="doctor_unknown">Dr. ?</string>
-    <string name="calories_progress_short">Cals: %1$d/%2$d</string>
-    <string name="protein_progress_short">P: %1$d/%2$d</string>
-    <string name="fat_progress_short">F: %1$d/%2$d</string>
-    <string name="carb_progress_short">C: %1$d/%2$d</string>
-    <string name="vitals">Vitals</string>
+    <string name="doctor_unknown">Doctor Unknown</string> <string name="calories_progress_short">Cals: %1$d/%2$d</string>
+    <string name="protein_progress_short">P: %1$d/%2$d g</string> <string name="fat_progress_short">F: %1$d/%2$d g</string> <string name="carb_progress_short">C: %1$d/%2$d g</string> <string name="vitals">Vitals</string>
     <string name="edit_vital">Edit Vital</string>
     <string name="add_vital">Add Vital</string>
     <string name="value_label">Value</string>
     <string name="vital_input_error">Enter type, numeric value &amp; unit.</string>
     <string name="no_entries_yet">No entries yet. Tap + to add.</string>
-    <string name="filter_by_type_label">Filter by</string>
-    <string name="most_recent">Most Recent</string>
+    <string name="filter_by_type_label">Filter by Type</string> <string name="most_recent">Most Recent</string>
     <string name="all">All</string>
     <string name="blood_pressure">Blood Pressure</string>
     <string name="glucose">Glucose</string>
@@ -126,30 +116,23 @@
     <string name="file_name">File Name</string>
     <string name="file_content">File Content</string>
     <string name="duplicate_note_title">A note with this title already exists. Please choose a different title.</string>
-    <string name="switch_to_grid">Switch to Grid</string>
-    <string name="switch_to_list">Switch to List</string>
-    <string name="rename">Rename</string>
+    <string name="switch_to_grid">Switch to Grid View</string> <string name="switch_to_list">Switch to List View</string> <string name="rename">Rename</string>
     <string name="delete">Delete</string>
     <string name="notes_title">Notes</string>
     <string name="notes_untitled">(Untitled)</string>
     <string name="more_options">More options</string>
     <string name="filter_by_tag">Filter by Tag: %1$s</string>
     <string name="select_tag">Select tag</string>
-    <string name="all_tags">All</string>
-    <string name="tagged_note_desc">Tagged Note</string>
+    <string name="all_tags">All Tags</string> <string name="tagged_note_desc">Tagged Note</string>
     <string name="note_image_preview">Note image preview</string>
     <string name="edit_note_title">Edit Note</string>
     <string name="create_note_title">Create Note</string>
-    <string name="file_name_label">File Name</string>
-    <string name="note_title_hint">Enter note title</string>
+    <string name="file_name_label">Note Title</string> <string name="note_title_hint">Enter note title</string>
     <string name="tag_label">Tag</string>
     <string name="tag_optional_hint">Select Tag (Optional)</string>
-    <string name="file_content_label">File Content</string>
-    <string name="note_details_hint">Enter note details…</string>
-    <string name="add_image_button">Insert Image</string>
-    <string name="attached_images_title">Attached Images:</string>
-    <string name="error_filename_empty">Filename cannot be empty.</string>
-    <string name="duplicate_dialog_title">Duplicate Note Title</string>
+    <string name="file_content_label">Note Content</string> <string name="note_details_hint">Enter note details…</string>
+    <string name="add_image_button">Add Image</string> <string name="attached_images_title">Attached Images:</string>
+    <string name="error_filename_empty">Note title cannot be empty.</string> <string name="duplicate_dialog_title">Duplicate Note Title</string>
     <string name="duplicate_dialog_text">A note with the name \"%1$s\" already exists. Replace it or cancel to rename?</string>
     <string name="replace_button">Replace</string>
     <string name="cancel_rename_button">Cancel (Rename)</string>
@@ -162,10 +145,7 @@
     <string name="next_image">Next image</string>
     <string name="zoom_pan_instructions">Pinch to zoom, drag to pan</string>
     <string name="images_tag">Images</string>
-    <string name="note_image_content_desc">Image</string>
-    <string name="cancel_discard_desc">Cancel / Discard</string>
-    <string name="health_chat">Nurse Joy</string>
-    <string name="send_message">Send message</string>
+    <string name="note_image_content_desc">Note Image</string> <string name="cancel_discard_desc">Cancel / Discard Changes</string> <string name="health_chat">Health Chat</string> <string name="send_message">Send message</string>
     <string name="type_health_question">Type your health question…</string>
     <string name="chat_welcome_title">Welcome to Health Chat</string>
     <string name="chat_welcome_message">Ask me any health-related questions, and I\'ll provide helpful information. Remember, I\'m not a substitute for professional medical advice.</string>
@@ -211,10 +191,7 @@
     <string name="tap_to_add_doctor">Tap + to add a doctor</string>
     <string name="confirm_delete">Confirm Delete</string>
     <string name="delete_doctor_confirmation">Are you sure you want to delete Dr. %1$s?</string>
-    <string name="call_doctor_desc">Call</string>
-    <string name="email_doctor_desc">Email</string>
-    <string name="map_doctor_desc">Map</string>
-    <string name="spec_allergist">Allergist / Immunologist</string>
+    <string name="call_doctor_desc">Call Doctor</string> <string name="email_doctor_desc">Email Doctor</string> <string name="map_doctor_desc">View Doctor Address on Map</string> <string name="spec_allergist">Allergist / Immunologist</string>
     <string name="spec_cardiologist">Cardiologist</string>
     <string name="spec_dermatologist">Dermatologist</string>
     <string name="spec_endocrinologist">Endocrinologist</string>
@@ -240,8 +217,7 @@
     <string name="date">Date</string>
     <string name="time">Time</string>
     <string name="duration_minutes">Duration (min)</string>
-    <string name="reason">Reason</string>
-    <string name="status">Status</string>
+    <string name="reason">Reason for Visit</string> <string name="status">Status</string>
     <string name="enable_reminders">Enable Reminders</string>
     <string name="reminders_on">Reminders On</string>
     <string name="reminders_off">Reminders Off</string>
@@ -288,15 +264,13 @@
     <string name="day_sun">Sun</string>
     <string name="add_medication_title">Add Medication</string>
     <string name="edit_medication_title">Edit Medication</string>
-    <string name="med_name_label">Name</string>
-    <string name="med_category_label">Category</string>
+    <string name="med_name_label">Medication Name</string> <string name="med_category_label">Category</string>
     <string name="med_dosage_label">Dosage</string>
     <string name="med_frequency_label">Times per day</string>
     <string name="select_time_for_dose_title">Select Time for Dose %1$d</string>
     <string name="time_dose_display">Time %1$d: %2$s</string>
     <string name="med_days_label">Days to take</string>
-    <string name="med_instructions_label">Instructions</string>
-    <string name="delete_medication_title">Delete Medication</string>
+    <string name="med_instructions_label">Instructions (Optional)</string> <string name="delete_medication_title">Delete Medication</string>
     <string name="delete_medication_confirmation">Are you sure you want to delete %1$s?</string>
     <string name="medication_pouch_title">Medicine Pouch</string>
     <string name="add_medication_desc">Add Medication</string>
@@ -307,8 +281,7 @@
     <string name="med_cat_allergy">Allergy</string>
     <string name="med_cat_digestive">Digestive</string>
     <string name="med_cat_misc">Miscellaneous</string>
-    <string name="medication_frequency_display">x%1$s</string>
-    <string name="dosage_tsp">tsp</string>
+    <string name="medication_frequency_display">x%1$s daily</string> <string name="dosage_tsp">tsp</string>
     <string name="dosage_tbsp">tbsp</string>
     <string name="dosage_ml">ml</string>
     <string name="dosage_pill">pill</string>
@@ -339,15 +312,12 @@
     <string name="protein_short_g">%1$d g P</string>
     <string name="fats_short_g">%1$d g F</string>
     <string name="carbs_short_g">%1$d g C</string>
-    <string name="vitals_tab">Vital</string>
-    <string name="medication">Medication</string>
+    <string name="vitals_tab">Vitals</string> <string name="medication">Medication</string>
     <string name="search_results_for">Search results for \"%1$s\"</string>
     <string name="search_appointment_label">%1$s %2$s with %3$s - %4$s</string>
     <string name="search_medication_label">%1$s (%2$s)</string>
     <string name="search_diet_label">%1$s: %2$s (%3$d kcal)</string>
-    <string name="recent_searches_title">Recent</string>
-    <string name="clear_recent_desc">Clear Recent</string>
-    <string name="no_recent_searches">No recent searches</string>
+    <string name="recent_searches_title">Recent Searches</string> <string name="clear_recent_desc">Clear Recent Searches</string> <string name="no_recent_searches">No recent searches</string>
     <string name="search_by_category_title">Search by category</string>
     <string name="enable_biometric_login_title">Enable Biometric Login</string>
     <string name="enable_dark_mode_title">Enable Dark Mode</string>
@@ -384,45 +354,45 @@
     <string name="error_capture_failed">Failed to capture image</string>
     <string name="error_permission_denied_camera">Camera permission required to take photos</string>
     <string name="error_camera_launch">Could not launch camera. Please check app permissions.</string>
-    <string name="error_no_food_found">"error_no_food_found"</string>
-    <string name="error_fetch_details">"error_fetch_details"</string>
-    <string name="edit_meal_title">"edit_meal_title"</string>
-    <string name="add_meal_title">"add_meal_title"</string>
-    <string name="meal_type_label">"Meal Timing"</string>
-    <string name="food_description_label">"food_description_label"</string>
-    <string name="error_description_empty">"error_description_empty"</string>
-    <string name="clear_description">"clear_description"</string>
-    <string name="search_food_button">"search_food_button"</string>
-    <string name="searching_food_button">"searching_food_button"</string>
-    <string name="enter_manually_button">"enter_manually_button"</string>
-    <string name="enter_manually_instead_button">"enter_manually_instead_button"</string>
-    <string name="select_match_title">"select_match_title"</string>
-    <string name="manual_entry_title">"manual_entry_title"</string>
-    <string name="calories_label">"calories_label"</string>
-    <string name="error_calories_nan">"error_calories_nan"</string>
-    <string name="protein_g_label">"protein_g_label"</string>
-    <string name="fats_g_label">"fats_g_label"</string>
-    <string name="carbs_g_label">"carbs_g_label"</string>
-    <string name="weight_g_label">"weight_g_label"</string>
-    <string name="diet_goals_title">"diet_goals_title"</string>
-    <string name="diet_goals_description">"diet_goals_description"</string>
-    <string name="daily_calorie_goal_label">"daily_calorie_goal_label"</string>
-    <string name="error_invalid_number">"error_invalid_number"</string>
-    <string name="protein_goal_label">"protein_goal_label"</string>
-    <string name="fat_goal_label">"fat_goal_label"</string>
-    <string name="carb_goal_label">"carb_goal_label"</string>
-    <string name="days_to_take_label">"days_to_take_label"</string>
-    <string name="instructions_label">"instructions_label"</string>
+    <string name="error_no_food_found">No food found matching \'%1$s\'</string>
+    <string name="error_fetch_details">Could not fetch details for \'%1$s\'</string>
+    <string name="edit_meal_title">Edit Meal Entry</string>
+    <string name="add_meal_title">Add Meal Entry</string>
+    <string name="meal_type_label">Meal Type</string>
+    <string name="food_description_label">Food or Description</string>
+    <string name="error_description_empty">Description cannot be empty</string>
+    <string name="clear_description">Clear description</string>
+    <string name="search_food_button">Search Food Database</string>
+    <string name="searching_food_button">Searching…</string>
+    <string name="enter_manually_button">Enter Manually</string>
+    <string name="enter_manually_instead_button">Enter Details Manually Instead</string>
+    <string name="select_match_title">Select a Matching Food:</string>
+    <string name="manual_entry_title">Enter Nutritional Information Manually</string>
+    <string name="calories_label">Calories (kcal)</string>
+    <string name="error_calories_nan">Calories must be a number</string>
+    <string name="protein_g_label">Protein (g)</string>
+    <string name="fats_g_label">Fat (g)</string>
+    <string name="carbs_g_label">Carbs (g)</string>
+    <string name="weight_g_label">Weight (g) (Optional)</string>
+    <string name="diet_goals_title">Set Daily Diet Goals</string>
+    <string name="diet_goals_description">Set your target daily intake for calories and macronutrients.</string>
+    <string name="daily_calorie_goal_label">Daily Calorie Goal (kcal)</string>
+    <string name="error_invalid_number">Please enter a valid number</string>
+    <string name="protein_goal_label">Daily Protein Goal (g)</string>
+    <string name="fat_goal_label">Daily Fat Goal (g)</string>
+    <string name="carb_goal_label">Daily Carb Goal (g)</string>
+    <string name="days_to_take_label">Days to Take:</string>
+    <string name="instructions_label">Instructions (Optional)</string>
     <string-array name="motivational_quotes">
-        <item>Believe you can and you\'re halfway there.</item>
-        <item>The only bad workout is the one that didn\'t happen.</item>
-        <item>Your health is an investment, not an expense.</item>
-        <item>Small steps every day lead to big results.</item>
-        <item>Be stronger than your excuses.</item>
-        <item>Progress, not perfection.</item>
-        <item>Take care of your body. It’s the only place you have to live.</item>
-        <item>Consistency is key to achieving your health goals.</item>
-        <item>Every healthy choice counts.</item>
-        <item>Don\'t wait for tomorrow, start today.</item>
-    </string-array>
+    <item>Believe you can and you\'re halfway there.</item>
+    <item>The only bad workout is the one that didn\'t happen.</item>
+    <item>Your health is an investment, not an expense.</item>
+    <item>Small steps every day lead to big results.</item>
+    <item>Be stronger than your excuses.</item>
+    <item>Progress, not perfection.</item>
+    <item>Take care of your body. It’s the only place you have to live.</item>
+    <item>Consistency is key to achieving your health goals.</item>
+    <item>Every healthy choice counts.</item>
+    <item>Don\'t wait for tomorrow, start today.</item>
+</string-array>
 </resources>
