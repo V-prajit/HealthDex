@@ -343,7 +343,7 @@
     <string name="carbs_short_g">العربية 中文(简体) हिन्दी Indonesia</string>
     <string name="vitals_tab">अटल</string>
     <string name="medication">दवा</string>
-    <string name="search_results_for">\\'_PHMSPH0__\&amp;quot; के लिए खोज परिणाम</string>
+    <string name="search_results_for">\"%1$s\" के लिए खोज परिणाम</string>
     <string name="search_appointment_label">العربية 中文(简体) 中文(繁體) हिन्दी Indonesia</string>
     <string name="search_medication_label">العربية 中文(简体) हिन्दी INDONESIA</string>
     <string name="search_diet_label">العربية 中文(简体) 中文(繁體) हिन्दी Indonesia</string>
