@@ -8,9 +8,8 @@ if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
 
-// Get the API key from local.properties with a default value if not found
 val openaiApiKey = localProperties.getProperty("openai.api.key", "")
-val fdcApiKey = localProperties.getProperty("FDC_API_KEY", "") // <-- ADD THIS LINE
+val fdcApiKey = localProperties.getProperty("FDC_API_KEY", "")
 
 plugins {
     alias(libs.plugins.android.application)
@@ -33,7 +32,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField ("String", "FDC_API_KEY", "\"${fdcApiKey}\"")    }
+        buildConfigField ("String", "FDC_API_KEY", "\"${fdcApiKey}\"")
+    }
 
     buildTypes {
         release {
@@ -42,9 +42,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "OPENAI_API_KEY", "\"${openaiApiKey}\"")        }
+            buildConfigField("String", "OPENAI_API_KEY", "\"${openaiApiKey}\"")
+        }
         debug {
-            buildConfigField("String", "OPENAI_API_KEY", "\"${openaiApiKey}\"")        }
+            buildConfigField("String", "OPENAI_API_KEY", "\"${openaiApiKey}\"")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -65,7 +67,6 @@ dependencies {
     implementation ("com.google.firebase:firebase-auth-ktx:22.1.1")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.google.code.gson:gson:2.8.8")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
