@@ -55,9 +55,6 @@ object LocaleHelper {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("selected_language", languageCode).apply()
 
-        if (context is MainActivity) {
-            context.forceLocaleRecomposition()
-        }
     }
 
     fun getCurrentLanguageCode(context: Context): String {
