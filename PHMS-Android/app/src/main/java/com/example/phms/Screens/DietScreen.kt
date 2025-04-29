@@ -150,7 +150,7 @@ fun DietScreen(
                 }
 
                 Text(
-                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE, MMM d,<x_bin_197>")),
+                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy")),
                     style = MaterialTheme.typography.titleMedium
                 )
 

@@ -388,7 +388,7 @@
     <string name="error_fetch_details">"error_fetch_details"</string>
     <string name="edit_meal_title">"edit_meal_title"</string>
     <string name="add_meal_title">"add_meal_title"</string>
-    <string name="meal_type_label">"meal_type_label"</string>
+    <string name="meal_type_label">"Meal Timing"</string>
     <string name="food_description_label">"food_description_label"</string>
     <string name="error_description_empty">"error_description_empty"</string>
     <string name="clear_description">"clear_description"</string>

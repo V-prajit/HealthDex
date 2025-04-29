@@ -64,7 +64,7 @@ interface NotesApi {
 }
 
 object NotesRepositoryBackend {
-    private const val BASE_URL = "http://10.0.2.2:8085"
+    private const val BASE_URL = "http://100.83.200.110:8085"
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())

@@ -721,7 +721,7 @@ fun AppointmentDialog(
 fun formatDate(dateString: String): String {
     return try {
         val date = LocalDate.parse(dateString)
-        val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d,<y_bin_425>", Locale.getDefault())
+        val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy", Locale.getDefault())
         date.format(formatter)
     } catch (e: Exception) {
         dateString
@@ -962,7 +962,7 @@ fun AppointmentCalendarWithScroll(
 
             sortedDates.forEach { date ->
                 val readableDate = try {
-                    LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEEE, MMM d,<y_bin_425>"))
+                    LocalDate.parse(date).format(DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy"))
                 } catch (e: Exception) {
                     date
                 }
