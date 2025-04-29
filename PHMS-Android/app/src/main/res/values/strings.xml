@@ -109,7 +109,7 @@
 
     <string name="no_results_found">No results found</string>
 
-    <string name="forgot_password">Forgot Password</string>
+    <string name="forgot_password">Forgot Password?</string>
     <string name="forgot_password_description">Enter your email address, and we\'ll send you a link to reset your password.</string>
     <string name="send_reset_link">Send Reset Link</string>
     <string name="password_reset_email_sent">Password reset email sent! Check your inbox.</string>
