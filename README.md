@@ -1,4 +1,4 @@
-# CSE-3310-PHMS
+# HealthDex
 
 **Personal Health Management System**
 
@@ -31,7 +31,7 @@ A full-stack application composed of an Android client and a Ktor backend server
 
 ## Overview
 
-This project provides a robust Personal Health Management System (PHMS) that enables users to:
+HealthDex is a robust Personal Health Management System (PHMS) that enables users to:
 
 - **Track vital signs**: Heart rate, blood pressure, glucose, cholesterol, etc.  
 - **Receive alerts**: Email and in-app notifications for abnormal readings.  
@@ -43,12 +43,12 @@ This project provides a robust Personal Health Management System (PHMS) that ena
 ## Project Structure
 
 ```
-CSE-3310-PHMS/
+HealthDex/
 ├── PHMS-Android/       # Android application code (Jetpack Compose)
 ├── PHMS-Backend/       # Ktor backend server code
 ├── Supporting/         # Scripts, docs, and utilities
-├── README.md           # Project documentation (this file)
-└── LICENSE.md          # License information
+├── LICENSE.md          # License information
+└── README.md           # Project documentation (this file)
 ```
 
 ---
@@ -72,7 +72,7 @@ Before you begin, make sure you have the following installed:
 
 ```bash
 git clone https://github.com/V-prajit/HealthDex
-cd CSE-3310-PHMS
+cd HealthDex
 ```
 
 
@@ -88,7 +88,7 @@ This project uses Firebase for authentication and backend services.
 3. Download the generated `google-services.json` file.  
 4. Place it in:
    ```
-   CSE-3310-PHMS/PHMS-Android/app/google-services.json
+   HealthDex/PHMS-Android/app/google-services.json
    ```
 
 #### Backend Service Account
@@ -97,7 +97,7 @@ This project uses Firebase for authentication and backend services.
 2. Download and rename it to `serviceAccountKey.json`.  
 3. Place it in:
    ```
-   CSE-3310-PHMS/PHMS-Backend/src/main/resources/serviceAccountKey.json
+   HealthDex/PHMS-Backend/src/main/resources/serviceAccountKey.json
    ```
 
 ### 3. Backend Setup (PHMS-Backend)
@@ -105,7 +105,7 @@ This project uses Firebase for authentication and backend services.
 Navigate to the backend directory:
 
 ```bash
-cd CSE-3310-PHMS/PHMS-Backend
+cd HealthDex/PHMS-Backend
 ```
 
 #### Environment Variables (`.env`)
@@ -140,7 +140,7 @@ The server starts on `http://0.0.0.0:8085` by default.
 ### 4. Android Setup (PHMS-Android)
 
 1. Open Android Studio and select **Open an existing project**.  
-2. Navigate to `CSE-3310-PHMS/PHMS-Android` and open it.
+2. Navigate to `HealthDex/PHMS-Android` and open it.
 
 #### Configure API Keys (`local.properties`)
 
@@ -177,10 +177,10 @@ To test fingerprint login on an Android Virtual Device (AVD):
 
 ```bash
 # Start the backend server
-cd CSE-3310-PHMS/PHMS-Backend
+cd HealthDex/PHMS-Backend
 ./gradlew run
 
-# In a new terminal, launch the Android app via Android Studio
+# In a new terminal, open the Android project in Android Studio and run the app
 ```
 
 1. Register/log in via Firebase; biometric login can be enabled after initial sign-in.  
