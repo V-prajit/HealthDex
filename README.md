@@ -23,7 +23,8 @@ A full-stack application composed of an Android client and a Ktor backend server
    - [4. Android Setup (PHMS-Android)](#4-android-setup-phms-android)  
      - [Configure API Keys (`local.properties`)](#configure-api-keys-localproperties)  
      - [Build and Run](#build-and-run-1)  
-   - [5. Emulator Setup for Biometrics](#5-emulator-setup-for-biometrics)  
+   - [5. Language Translator (LibreTranslate) Setup](#5-language-translator-libretranslate-setup)  
+   - [6. Emulator Setup for Biometrics](#6-emulator-setup-for-biometrics)  
 5. [Running the Application](#running-the-application)  
 6. [License](#license)  
 
@@ -37,6 +38,7 @@ HealthDex is a robust Personal Health Management System (PHMS) that enables user
 - **Receive alerts**: Email and in-app notifications for abnormal readings.  
 - **Manage health data**: Medications, diet logs, appointments, and custom notes.  
 - **Secure authentication**: Firebase Authentication with biometric (fingerprint) login support.  
+- **Multi-language support**: Powered by LibreTranslate for on-device translation.
 
 ---
 
@@ -44,11 +46,12 @@ HealthDex is a robust Personal Health Management System (PHMS) that enables user
 
 ```
 HealthDex/
-├── PHMS-Android/       # Android application code (Jetpack Compose)
-├── PHMS-Backend/       # Ktor backend server code
-├── Supporting/         # Scripts, docs, and utilities
-├── LICENSE.md          # License information
-└── README.md           # Project documentation (this file)
+├── PHMS-Android/             # Android application code (Jetpack Compose)
+├── PHMS-Backend/             # Ktor backend server code
+├── Supporting/  
+│   └── Language Translator/  # LibreTranslate integration scripts and docs
+├── LICENSE.md                # License information
+└── README.md                 # Project documentation (this file)
 ```
 
 ---
@@ -63,6 +66,7 @@ Before you begin, make sure you have the following installed:
   java -version
   ```
 - **Android Studio**: Official IDE for Android development  
+- **Docker** (optional): For setting up LibreTranslate locally
 
 ---
 
@@ -163,7 +167,26 @@ sdk.dir=/path/to/android/sdk
 - Select an emulator or connected device.  
 - Click **Run 'app'** (green ▶️) in the toolbar.
 
-### 5. Emulator Setup for Biometrics
+### 5. Language Translator (LibreTranslate) Setup
+
+HealthDex includes multi-language support via LibreTranslate. Follow these steps to run it locally:
+
+1. **Clone LibreTranslate**:
+   ```bash
+   git clone https://github.com/LibreTranslate/LibreTranslate.git
+   cd LibreTranslate
+   ```
+2. **Run via Docker** (recommended):
+   ```bash
+   docker-compose up -d
+   ```
+3. **API Endpoint**  
+   By default, LibreTranslate runs at `http://localhost:5000`.  
+   HealthDex will call this endpoint for translation services.
+
+For more details, visit the [LibreTranslate GitHub repo](https://github.com/LibreTranslate/LibreTranslate).
+
+### 6. Emulator Setup for Biometrics
 
 To test fingerprint login on an Android Virtual Device (AVD):
 
@@ -180,11 +203,15 @@ To test fingerprint login on an Android Virtual Device (AVD):
 cd HealthDex/PHMS-Backend
 ./gradlew run
 
-# In a new terminal, open the Android project in Android Studio and run the app
+# In a new terminal, start LibreTranslate (if using locally)
+cd HealthDex/Supporting/Language Translator/LibreTranslate
+docker-compose up -d
+
+# In Android Studio, open and run the Android app
 ```
 
-1. Register/log in via Firebase; biometric login can be enabled after initial sign-in.  
-2. Begin tracking vital signs and managing your health data.
+1. Register/log in via Firebase; biometric login and multi-language translation will now work.  
+2. Begin tracking vital signs and managing your health data in your preferred language.
 
 ---
 
