@@ -15,20 +15,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import androidx.compose.material.icons.filled.Edit
 import com.example.phms.Diet
 import com.example.phms.DietDialog
 import com.example.phms.DietGoalDTO
 import com.example.phms.DietGoalsSettingsDialog
+import com.example.phms.R
 import com.example.phms.repository.DietGoalRepository
 import com.example.phms.repository.DietRepository
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +64,7 @@ fun DietScreen(
         if (userId != null) {
             diets = DietRepository.getDiets(userId)
 
-            // Filter diets for the selected date and calculate totals
+
             val todayDiets = diets.filter {
                 try {
                     val entryDate = LocalDateTime.parse(it.timestamp).toLocalDate()
@@ -81,7 +83,7 @@ fun DietScreen(
 
     LaunchedEffect(userId) {
         if (userId != null) {
-            // Load diet goals
+
             val goals = DietGoalRepository.getDietGoals(userId)
             if (goals != null) {
                 dietGoals = goals
@@ -96,18 +98,18 @@ fun DietScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Diet Tracker") },
+                title = { Text(stringResource(R.string.diet_tracker_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onSettingsClick) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
                     IconButton(onClick = { showGoalsDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Goals")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_goals_desc))
                     }
                 }
             )
@@ -122,7 +124,7 @@ fun DietScreen(
                     .padding(bottom = 72.dp, end = 16.dp)
                     .navigationBarsPadding()
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Meal")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_meal_desc))
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -133,7 +135,7 @@ fun DietScreen(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // Date selector
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -144,22 +146,22 @@ fun DietScreen(
                 IconButton(onClick = {
                     selectedDate = selectedDate.minusDays(1)
                 }) {
-                    Icon(Icons.Default.ChevronLeft, contentDescription = "Previous Day")
+                    Icon(Icons.Default.ChevronLeft, contentDescription = stringResource(R.string.previous_day_desc))
                 }
 
                 Text(
-                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy")),
+                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE, MMM d,<x_bin_197>")),
                     style = MaterialTheme.typography.titleMedium
                 )
 
                 IconButton(onClick = {
                     selectedDate = selectedDate.plusDays(1)
                 }) {
-                    Icon(Icons.Default.ChevronRight, contentDescription = "Next Day")
+                    Icon(Icons.Default.ChevronRight, contentDescription = stringResource(R.string.next_day_desc))
                 }
             }
 
-            // Nutrition summary card
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -170,60 +172,60 @@ fun DietScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "Daily Summary",
+                        text = stringResource(R.string.daily_summary_title),
                         style = MaterialTheme.typography.titleMedium
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Calories progress
+
                     val calorieProgress = (totalCalories.toFloat() / calorieGoal).coerceIn(0f, 1f)
                     Text(
-                        text = "Calories: $totalCalories / $calorieGoal kcal",
+                        text = stringResource(R.string.calories_progress, totalCalories, calorieGoal),
                         style = MaterialTheme.typography.bodyMedium
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
 
                     LinearProgressIndicator(
-                        progress = calorieProgress,
+                        progress = { calorieProgress },
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Macronutrients
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         MacronutrientItem(
-                            name = "Protein",
+                            name = stringResource(R.string.protein_label),
                             value = totalProtein,
                             goal = proteinGoal,
-                            color = Color(0xFF66BB6A)  // Green
+                            color = Color(0xFF66BB6A)
                         )
 
                         MacronutrientItem(
-                            name = "Fats",
+                            name = stringResource(R.string.fats_label),
                             value = totalFats,
                             goal = fatGoal,
-                            color = Color(0xFFFFB74D)  // Orange
+                            color = Color(0xFFFFB74D)
                         )
 
                         MacronutrientItem(
-                            name = "Carbs",
+                            name = stringResource(R.string.carbs_label),
                             value = totalCarbs,
                             goal = carbGoal,
-                            color = Color(0xFF42A5F5)  // Blue
+                            color = Color(0xFF42A5F5)
                         )
                     }
                 }
             }
 
-            // Meals list
+
             Text(
-                text = "Meals",
+                text = stringResource(R.string.meals_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -236,7 +238,7 @@ fun DietScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No meals recorded yet.\nTap + to add your first meal.",
+                        text = stringResource(R.string.no_meals_recorded),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -258,7 +260,7 @@ fun DietScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No meals recorded for this date.\nTap + to add a meal.",
+                            text = stringResource(R.string.no_meals_for_date),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -279,7 +281,7 @@ fun DietScreen(
                                             if (DietRepository.deleteDiet(id)) {
                                                 diets = diets.filter { it.id != id }
 
-                                                // Update totals
+
                                                 totalCalories -= diet.calories
                                                 totalProtein -= diet.protein ?: 0
                                                 totalFats -= diet.fats ?: 0
@@ -296,7 +298,7 @@ fun DietScreen(
         }
     }
 
-    // Show dialog when add/edit is requested
+
     if (showDialog) {
         DietDialog(
             diet = selectedDiet,
@@ -304,12 +306,12 @@ fun DietScreen(
             onSave = { diet ->
                 scope.launch {
                     if (diet.id == null) {
-                        // Add new diet
+
                         val added = DietRepository.addDiet(diet)
                         if (added != null) {
                             diets = listOf(added) + diets
 
-                            // Update totals if the meal is for today
+
                             val entryDate = LocalDateTime.parse(added.timestamp).toLocalDate()
                             if (entryDate == selectedDate) {
                                 totalCalories += added.calories
@@ -319,13 +321,13 @@ fun DietScreen(
                             }
                         }
                     } else {
-                        // Update existing diet
+
                         if (DietRepository.updateDiet(diet)) {
-                            // Find old diet to update totals
+
                             val oldDiet = diets.find { it.id == diet.id }
                             diets = diets.map { if (it.id == diet.id) diet else it }
 
-                            // Update totals if the meal is for today
+
                             val entryDate = LocalDateTime.parse(diet.timestamp).toLocalDate()
                             if (entryDate == selectedDate && oldDiet != null) {
                                 totalCalories = totalCalories - oldDiet.calories + diet.calories
@@ -383,7 +385,7 @@ fun MacronutrientItem(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "$value\ng",
+                text = stringResource(R.string.macro_value_g, value),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -397,7 +399,7 @@ fun MacronutrientItem(
         )
 
         Text(
-            text = "$value/$goal g",
+            text = stringResource(R.string.macro_progress_g, value, goal),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -434,13 +436,13 @@ fun DietItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Meal type indicator
+
                     val color = when (diet.mealType) {
-                        "Breakfast" -> Color(0xFFFFC107)  // Amber
-                        "Lunch" -> Color(0xFF4CAF50)      // Green
-                        "Dinner" -> Color(0xFF3F51B5)     // Indigo
-                        "Snack" -> Color(0xFFFF9800)      // Orange
-                        else -> Color(0xFF9C27B0)         // Purple
+                        stringResource(R.string.meal_type_breakfast) -> Color(0xFFFFC107)
+                        stringResource(R.string.meal_type_lunch) -> Color(0xFF4CAF50)
+                        stringResource(R.string.meal_type_dinner) -> Color(0xFF3F51B5)
+                        stringResource(R.string.meal_type_snack) -> Color(0xFFFF9800)
+                        else -> Color(0xFF9C27B0)
                     }
 
                     Box(
@@ -467,7 +469,7 @@ fun DietItem(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = diet.description ?: "No description",
+                text = diet.description ?: stringResource(R.string.no_description),
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -479,7 +481,7 @@ fun DietItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${diet.calories} kcal",
+                    text = stringResource(R.string.calories_kcal, diet.calories),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -487,7 +489,7 @@ fun DietItem(
                 Row {
                     diet.protein?.let {
                         Text(
-                            text = "$it g P",
+                            text = stringResource(R.string.protein_short_g, it),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(end = 8.dp)
                         )
@@ -495,7 +497,7 @@ fun DietItem(
 
                     diet.fats?.let {
                         Text(
-                            text = "$it g F",
+                            text = stringResource(R.string.fats_short_g, it),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(end = 8.dp)
                         )
@@ -503,7 +505,7 @@ fun DietItem(
 
                     diet.carbohydrates?.let {
                         Text(
-                            text = "$it g C",
+                            text = stringResource(R.string.carbs_short_g, it),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -522,7 +524,7 @@ fun DietItem(
                 ) {
                     Icon(
                         Icons.Default.Edit,
-                        contentDescription = "Edit",
+                        contentDescription = stringResource(R.string.edit),
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -533,7 +535,7 @@ fun DietItem(
                 ) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = stringResource(R.string.delete),
                         modifier = Modifier.size(16.dp)
                     )
                 }

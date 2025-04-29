@@ -58,6 +58,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.phms.Screens.DashboardScreen
 import com.example.phms.Screens.ForgotPasswordScreen
 import com.example.phms.Screens.SettingScreen
+import com.example.phms.Screens.UserDetailsScreen
 import com.example.phms.network.NutritionRetrofit
 import com.example.phms.repository.NutritionRepository
 import com.example.phms.ui.theme.PHMSTheme
@@ -127,25 +128,25 @@ class MainActivity : FragmentActivity() {
         )
 
         setContent {
-            val currentDarkMode = this@MainActivity.darkModeEnabled 
-            val currentLocaleVersion = this@MainActivity.localeVersion 
+            val currentDarkMode = this@MainActivity.darkModeEnabled
+            val currentLocaleVersion = this@MainActivity.localeVersion
 
             val context = LocalContext.current
             val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
 
             PHMSTheme(darkTheme = currentDarkMode) {
-                var isLoggedIn by remember { mutableStateOf(auth.currentUser != null) } 
+                var isLoggedIn by remember { mutableStateOf(auth.currentUser != null) }
                 var userToken by remember { mutableStateOf(auth.currentUser?.uid) }
                 var firstName by remember { mutableStateOf<String?>(null) }
                 var showSettings by remember { mutableStateOf(false) }
                 var returnToTab by remember { mutableStateOf<String?>(null) }
 
-              
+
                 val biometricAuth = remember {
-                     BiometricAuth(this@MainActivity) { success, name ->
-                        if (success) {                      
-                             val savedUid = prefs.getString("LAST_USER_UID", null)
-                             val savedFirstName = prefs.getString("LAST_USER_FIRSTNAME", null)
+                    BiometricAuth(this@MainActivity) { success, name ->
+                        if (success) {
+                            val savedUid = prefs.getString("LAST_USER_UID", null)
+                            val savedFirstName = prefs.getString("LAST_USER_FIRSTNAME", null)
                             userToken = savedUid
                             isLoggedIn = true
                             firstName = name ?: savedFirstName
@@ -154,19 +155,19 @@ class MainActivity : FragmentActivity() {
                 }
 
 
-                LaunchedEffect(auth.currentUser) { 
+                LaunchedEffect(auth.currentUser) {
                     val currentUser = auth.currentUser
                     if (currentUser != null) {
-                         if (userToken != currentUser.uid || firstName == null) {
-                             Log.d("MainActivity", "LaunchedEffect: User logged in (${currentUser.uid}), fetching data.")
-                             userToken = currentUser.uid
-                             fetchUserData(currentUser.uid) { userData ->
-                                 firstName = userData?.firstName
-                                 isLoggedIn = true
-                             }
+                        if (userToken != currentUser.uid || firstName == null) {
+                            Log.d("MainActivity", "LaunchedEffect: User logged in (${currentUser.uid}), fetching data.")
+                            userToken = currentUser.uid
+                            fetchUserData(currentUser.uid) { userData ->
+                                firstName = userData?.firstName
+                                isLoggedIn = true
+                            }
                         }
                     } else {
-                         Log.d("MainActivity", "LaunchedEffect: No user logged in.")
+                        Log.d("MainActivity", "LaunchedEffect: No user logged in.")
                     }
                 }
 
@@ -197,7 +198,7 @@ class MainActivity : FragmentActivity() {
                                 firstName = null
                                 showSettings = false
                                 returnToTab = null
-                                // Consider clearing relevant prefs on logout
+
                                 prefs.edit().remove("LAST_USER_FIRSTNAME").apply()
                             }
                         )
@@ -218,7 +219,7 @@ class MainActivity : FragmentActivity() {
                         )
                     }
 
-                    else -> { 
+                    else -> {
                         Log.d("MainActivity", "Showing Auth Screen")
                         AuthScreen(
                             auth = auth,
@@ -226,11 +227,11 @@ class MainActivity : FragmentActivity() {
                             onLoginSuccess = { token, name ->
                                 isLoggedIn = true
                                 userToken = token
-                                firstName = name                               
+                                firstName = name
                             },
                             onSettingsClick = {
                                 showSettings = true
-                                returnToTab = null 
+                                returnToTab = null
                             }
                         )
                     }
@@ -239,7 +240,7 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    // Function to update theme - MODIFIED
+
     fun updateTheme(darkMode: Boolean) {
         AppCompatDelegate.setDefaultNightMode(
             if (darkMode) AppCompatDelegate.MODE_NIGHT_YES
@@ -261,24 +262,24 @@ class MainActivity : FragmentActivity() {
 @Composable1
 fun AuthScreen(
     auth: FirebaseAuth,
-    biometricAuth: BiometricAuth, 
+    biometricAuth: BiometricAuth,
     onLoginSuccess: (String, String?) -> Unit,
     onSettingsClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background 
+        color = MaterialTheme.colorScheme.background
     ){
         var isRegistering by remember { mutableStateOf(false) }
         var showForgotPassword by remember { mutableStateOf(false) }
-        var userToken by remember { mutableStateOf<String?>(null) } 
+        var userToken by remember { mutableStateOf<String?>(null) }
         var showUserDetailsScreen by remember { mutableStateOf(false) }
 
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp), 
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = onSettingsClick) {
@@ -290,17 +291,17 @@ fun AuthScreen(
                     ForgotPasswordScreen(onBackClick = { showForgotPassword = false })
                 }
                 showUserDetailsScreen -> {
-                     UserDetailsScreen(userToken) { token, firstName ->
-                        onLoginSuccess(token, firstName) 
+                    UserDetailsScreen(userToken) { token, firstName ->
+                        onLoginSuccess(token, firstName)
                     }
                 }
                 isRegistering -> {
                     RegisterScreen(auth, onSwitch = { isRegistering = false }) { token ->
-                        userToken = token 
+                        userToken = token
                         showUserDetailsScreen = true
                     }
                 }
-                else -> { 
+                else -> {
                     LoginScreen(
                         auth = auth,
                         biometricAuth = biometricAuth,
@@ -336,7 +337,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
         Text(text = stringResource(R.string.register), style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
-        // Email Input
+
         OutlinedTextField(
             value = email.value,
             onValueChange = { email.value = it },
@@ -347,7 +348,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        // Password Input
+
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
@@ -359,7 +360,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                        contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password)
                     )
                 }
             },
@@ -370,12 +371,12 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
 
         Column(modifier = Modifier.padding(start = 16.dp).fillMaxWidth(), horizontalAlignment = Alignment.Start) {
             Text(
-                text = "Password requirements:",
+                text = stringResource(R.string.password_requirements_title),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "- At least 6 characters",
+                text = stringResource(R.string.password_requirement_length),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -391,7 +392,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
                 value = SecurityQuestions.questions[selectedQuestionIndex.value].question,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Security Question") },
+                label = { Text(stringResource(R.string.security_question_label)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded.value) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -415,11 +416,11 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        // Security Answer Input
+
         OutlinedTextField(
             value = securityAnswer.value,
             onValueChange = { securityAnswer.value = it },
-            label = { Text("Security Answer") },
+            label = { Text(stringResource(R.string.security_answer_label)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
@@ -432,17 +433,17 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(checked = enableBiometric.value, onCheckedChange = { enableBiometric.value = it })
-            Text(stringResource(R.string.enable_biometric)) // Assuming R.string.enable_biometric
+            Text(stringResource(R.string.enable_biometric))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
                 if (email.value.isBlank() || password.value.isBlank()) {
-                    message.value = "Email and password cannot be empty"
+                    message.value = context.getString(R.string.error_empty_email_password)
                     return@Button
                 }
-                 message.value = ""
+                message.value = ""
 
                 auth.createUserWithEmailAndPassword(email.value, password.value)
                     .addOnCompleteListener { task ->
@@ -460,7 +461,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
                                 onRegistrationSuccess(firebaseUser.uid)
                             }
                         } else {
-                            message.value = "Error: ${task.exception?.message}"
+                            message.value = context.getString(R.string.registration_failed, task.exception?.message ?: "")
                         }
                     }
             },
@@ -476,7 +477,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
 
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = onSwitch) {
-            // Assuming R.string.already_have_account
+
             Text(stringResource( R.string.already_have_account))
         }
     }
@@ -531,7 +532,7 @@ fun LoginScreen(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                        contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password)
                     )
                 }
             },
@@ -548,14 +549,14 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Login Button
+
         Button(
             onClick = {
                 if (email.value.isBlank() || password.value.isBlank()) {
                     message.value =  errorEmptyFieldsText
                     return@Button
                 }
-                 message.value = ""
+                message.value = ""
 
                 auth.signInWithEmailAndPassword(email.value, password.value)
                     .addOnCompleteListener { task ->
@@ -567,31 +568,31 @@ fun LoginScreen(
                                 val prefs = context.getSharedPreferences("user_prefs", MODE_PRIVATE)
                                 fetchUserData(firebaseUser.uid) { user ->
                                     Log.d("LoginScreen", "User data fetched: ${user?.firstName}")
-                                    firstName.value = user?.firstName // Update local state (though might be reset on nav)
-                                    val isBiometricEnabledForUser = user?.biometricEnabled ?: false // Assuming fetchUserData returns this
+                                    firstName.value = user?.firstName
+                                    val isBiometricEnabledForUser = user?.biometricEnabled ?: false
 
                                     prefs.edit()
                                         .putString("LAST_USER_UID", firebaseUser.uid)
-                                        .putString("LAST_USER_FIRSTNAME", firstName.value) 
+                                        .putString("LAST_USER_FIRSTNAME", firstName.value)
                                         .putBoolean("LAST_USER_BIOMETRIC", isBiometricEnabledForUser)
                                         .apply()
                                     Log.d("LoginScreen", "Saved UID, Name, Biometric flag after data fetch.")
                                     if (biometricEnabledMap[firebaseUser.uid] == true) {
-                                         Log.d("LoginScreen", "Biometric enabled in map, authenticating...")
+                                        Log.d("LoginScreen", "Biometric enabled in map, authenticating...")
                                         biometricAuth.authenticate()
                                     } else {
-                                         Log.d("LoginScreen", "Biometric not enabled in map, calling onLoginSuccess.")
+                                        Log.d("LoginScreen", "Biometric not enabled in map, calling onLoginSuccess.")
                                         onLoginSuccess(firebaseUser.uid, user?.firstName)
                                     }
                                 }
                             }
                         } else {
-                             Log.w("LoginScreen", "Login failed", task.exception)
-                            message.value = String.format(loginFailedTemplate, task.exception?.message ?: "Unknown error")
+                            Log.w("LoginScreen", "Login failed", task.exception)
+                            message.value = String.format(loginFailedTemplate, task.exception?.message ?: context.getString(R.string.login_error_unknown))
                         }
                     }
             },
-            modifier = Modifier.fillMaxWidth(0.6f) 
+            modifier = Modifier.fillMaxWidth(0.6f)
         ) {
             Text(
                 stringResource(R.string.login_button),
@@ -601,9 +602,9 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button( 
+        Button(
             onClick = {
-                biometricAuth.authenticate() 
+                biometricAuth.authenticate()
             },
             modifier = Modifier.fillMaxWidth(0.6f),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
@@ -619,12 +620,12 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
         if (message.value.isNotEmpty()) {
-            Text(text = message.value, color = MaterialTheme.colorScheme.primary) // Or error color
+            Text(text = message.value, color = MaterialTheme.colorScheme.primary)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = onSwitch) {
-            // Assuming R.string.dont_have_account
+
             Text(stringResource(R.string.dont_have_account))
         }
     }

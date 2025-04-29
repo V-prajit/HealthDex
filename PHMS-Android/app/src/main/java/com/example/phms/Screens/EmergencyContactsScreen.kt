@@ -51,6 +51,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -133,9 +134,9 @@ fun EmergencyContactsScreen(
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("No emergency contacts added")
+                        Text(stringResource(R.string.no_emergency_contacts))
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Tap + to add an emergency contact")
+                        Text(stringResource(R.string.tap_to_add_contact))
                     }
                 }
             }
@@ -164,7 +165,7 @@ fun EmergencyContactsScreen(
         }
     }
 
-    // Edit/Add Dialog
+
     if (showDialog) {
         EmergencyContactDialog(
             contact = currentContact,
@@ -184,12 +185,12 @@ fun EmergencyContactsScreen(
         )
     }
 
-    // Delete Confirmation Dialog
+
     if (confirmDeleteDialog != null) {
         AlertDialog(
             onDismissRequest = { confirmDeleteDialog = null },
             title = { Text(stringResource(R.string.confirm_delete)) },
-            text = { Text("Are you sure you want to delete ${confirmDeleteDialog!!.name}?") },
+            text = { Text(stringResource(R.string.delete_contact_confirmation, confirmDeleteDialog!!.name)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -286,7 +287,7 @@ fun EmergencyContactCard(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Receives emergency notifications")
+                    Text(stringResource(R.string.receives_emergency_notifications))
                 }
             }
         }
@@ -301,6 +302,7 @@ fun EmergencyContactDialog(
     onSave: (EmergencyContact) -> Unit,
     onCancel: () -> Unit
 ) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf(contact?.name ?: "") }
     var email by remember { mutableStateOf(contact?.email ?: "") }
     var phone by remember { mutableStateOf(contact?.phone ?: "") }
@@ -319,7 +321,7 @@ fun EmergencyContactDialog(
                 text = if (contact == null)
                     stringResource(R.string.add_contact)
                 else
-                    "Edit Contact"
+                    stringResource(R.string.edit_contact_title)
             )
         },
         text = {
@@ -330,7 +332,7 @@ fun EmergencyContactDialog(
                         name = it
                         nameError = it.isBlank()
                     },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.name_label)) },
                     isError = nameError,
                     supportingText = {
                         if (nameError) Text(stringResource(R.string.required_field))
@@ -365,10 +367,10 @@ fun EmergencyContactDialog(
                         phone = filteredValue
                         when {
                             filteredValue.isBlank() -> {
-                                phoneError = "Phone number is required"
+                                phoneError = context.getString(R.string.error_phone_required)
                             }
                             !filteredValue.matches(Regex("^\\+?\\d{10,15}$")) -> {
-                                phoneError = "Enter a valid phone number (e.g., +1234567890 or 1234567890)"
+                                phoneError = context.getString(R.string.error_phone_invalid)
                             }
                             else -> {
                                 phoneError = null
@@ -424,7 +426,7 @@ fun EmergencyContactDialog(
 
                     val isPhoneValid = phone.isNotBlank() && phone.matches(Regex("^\\+?\\d{10,15}$"))
                     if (!isPhoneValid && phoneError == null) {
-                        phoneError = if (phone.isBlank()) "Phone number is required" else "Enter a valid phone number"
+                        phoneError = if (phone.isBlank()) context.getString(R.string.error_phone_required) else context.getString(R.string.error_phone_invalid)
                     } else if (isPhoneValid) {
                         phoneError = null
                     }

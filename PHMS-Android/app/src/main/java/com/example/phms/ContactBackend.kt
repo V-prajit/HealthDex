@@ -1,11 +1,9 @@
 package com.example.phms
 
 import android.util.Log
-import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import okhttp3.ResponseBody
 import retrofit2.Call
-import com.google.gson.annotations.SerializedName
-import com.example.phms.AuthRequest
 
 data class UserDTO(
     @SerializedName("firebaseUid") val firebaseUid: String,
@@ -112,4 +110,3 @@ fun fetchUserData(firebaseUid: String, callback: (UserDTO?) -> Unit) {
         }
     })
 }
-

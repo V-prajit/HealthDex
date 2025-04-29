@@ -277,24 +277,24 @@ fun DoctorCard(
                 IconButton(onClick = {
                     ctx.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${doctor.phone}")))
                 }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Call")
+                    Icon(Icons.Default.Phone, contentDescription = stringResource(R.string.call_doctor_desc))
                 }
                 IconButton(onClick = {
                     ctx.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:${doctor.email}")))
                 }) {
-                    Icon(Icons.Default.Email, contentDescription = "Email")
+                    Icon(Icons.Default.Email, contentDescription = stringResource(R.string.email_doctor_desc))
                 }
                 IconButton(onClick = {
                     val q = Uri.encode(doctor.address)
                     ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$q")))
                 }) {
-                    Icon(Icons.Default.LocationOn, contentDescription = "Map")
+                    Icon(Icons.Default.LocationOn, contentDescription = stringResource(R.string.map_doctor_desc))
                 }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // unchanged: details rows
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Phone, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
@@ -345,21 +345,21 @@ fun DoctorDialog(
     var notifyOnEmergency by remember { mutableStateOf(doctor?.notifyOnEmergency ?: false) }
 
     val specificSpecializations = listOf(
-        "Allergist / Immunologist", // Allergies, asthma, immune disorders
-        "Cardiologist",             // Heart
-        "Dermatologist",            // Skin
-        "Endocrinologist",          // Hormones, glands, diabetes, thyroid
-        "ENT (Otolaryngologist)",   // Ear, Nose, Throat
-        "Gastroenterologist",       // Digestive system
-        "Gynecologist / OB-GYN",    // Women's health, pregnancy
-        "Neurologist",              // Brain, nerves
-        "Oncologist",               // Cancer
-        "Ophthalmologist",          // Eyes (medical & surgical care)
-        "Orthopedist",              // Bones, joints, muscles
-        "Pediatrician",             // Children
-        "Primary Care / Internist", // General adult health (replaces Primary)
-        "Psychiatrist",             // Mental health (MD, can prescribe)
-        "Other"                     // Catch-all
+        stringResource(R.string.spec_allergist),
+        stringResource(R.string.spec_cardiologist),
+        stringResource(R.string.spec_dermatologist),
+        stringResource(R.string.spec_endocrinologist),
+        stringResource(R.string.spec_ent),
+        stringResource(R.string.spec_gastroenterologist),
+        stringResource(R.string.spec_gynecologist),
+        stringResource(R.string.spec_neurologist),
+        stringResource(R.string.spec_oncologist),
+        stringResource(R.string.spec_ophthalmologist),
+        stringResource(R.string.spec_orthopedist),
+        stringResource(R.string.spec_pediatrician),
+        stringResource(R.string.spec_primary_care),
+        stringResource(R.string.spec_psychiatrist),
+        stringResource(R.string.other)
     )
 
     var specializationExpanded by remember { mutableStateOf(false) }
@@ -406,17 +406,17 @@ fun DoctorDialog(
                 ) {
                     OutlinedTextField(
                         value = when {
-                            specialization == "Other" && customSpecialization.isNotBlank() -> "Other: $customSpecialization"
-                            specialization == "Other" -> "Other"
+                            specialization == stringResource(R.string.other) && customSpecialization.isNotBlank() -> stringResource(R.string.other_spec_format, customSpecialization)
+                            specialization == stringResource(R.string.other) -> stringResource(R.string.other)
                             else -> specialization
                         },
-                        onValueChange = { /* Read-only for dropdown selection */ },
+                        onValueChange = { },
                         readOnly = true,
                         label = { Text(stringResource(R.string.specialization)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = specializationExpanded) },
-                        isError = specializationError && (specialization.isBlank() || (specialization == "Other" && customSpecialization.isBlank())),
+                        isError = specializationError && (specialization.isBlank() || (specialization == stringResource(R.string.other) && customSpecialization.isBlank())),
                         supportingText = {
-                            if (specializationError && (specialization.isBlank() || (specialization == "Other" && customSpecialization.isBlank()))) {
+                            if (specializationError && (specialization.isBlank() || (specialization == stringResource(R.string.other) && customSpecialization.isBlank()))) {
                                 Text(stringResource(R.string.required_field))
                             }
                         },
@@ -434,10 +434,10 @@ fun DoctorDialog(
                                 onClick = {
                                     specialization = selectionOption
                                     specializationExpanded = false
-                                    if (selectionOption != "Other") {
+                                    if (selectionOption != stringResource(R.string.other)) {
                                         customSpecialization = ""
                                     }
-                                    specializationError = selectionOption == "Other" && customSpecialization.isBlank()
+                                    specializationError = selectionOption == stringResource(R.string.other) && customSpecialization.isBlank()
                                 }
                             )
                         }
@@ -445,18 +445,18 @@ fun DoctorDialog(
                 }
                 Spacer(Modifier.height(8.dp))
 
-                if (specialization == "Other") {
+                if (specialization == stringResource(R.string.other)) {
                     OutlinedTextField(
                         value = customSpecialization,
                         onValueChange = {
                             customSpecialization = it
                             specializationError = it.isBlank()
                         },
-                        label = { Text("Specify Specialization") },
+                        label = { Text(stringResource(R.string.specify_specialization_label)) },
                         isError = specializationError,
                         supportingText = {
                             if (specializationError) {
-                                Text("Please specify the specialization")
+                                Text(stringResource(R.string.error_specify_specialization))
                             }
                         },
                         singleLine = true,
@@ -477,10 +477,10 @@ fun DoctorDialog(
                         phone = filteredValue
                         when {
                             filteredValue.isBlank() -> {
-                                phoneError = "Phone number is required"
+                                phoneError = context.getString(R.string.error_phone_required)
                             }
                             !filteredValue.matches(Regex("^\\+?\\d{10,15}$")) -> {
-                                phoneError = "Enter a valid phone number (e.g., +1234567890 or 1234567890)"
+                                phoneError = context.getString(R.string.error_phone_invalid)
                             }
                             else -> {
                                 phoneError = null
@@ -490,7 +490,7 @@ fun DoctorDialog(
                     label = { Text(stringResource(R.string.phone)) },
                     isError = phoneError != null,
                     supportingText = {
-                            phoneError?.let { Text(it) }
+                        phoneError?.let { Text(it) }
                     },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -568,12 +568,12 @@ fun DoctorDialog(
                 onClick = {
                     nameError = name.isBlank()
 
-                    val finalSpecialization = if (specialization == "Other") customSpecialization.trim() else specialization
+                    val finalSpecialization = if (specialization == stringResource(R.string.other)) customSpecialization.trim() else specialization
                     specializationError = finalSpecialization.isBlank()
 
                     val isPhoneValid = phone.isNotBlank() && phone.matches(Regex("^\\+?\\d{10,15}$"))
                     if (!isPhoneValid && phoneError == null) {
-                        phoneError = if (phone.isBlank()) "Phone number is required" else "Enter a valid phone number"
+                        phoneError = if (phone.isBlank()) context.getString(R.string.error_phone_required) else context.getString(R.string.error_phone_invalid)
                     } else if (isPhoneValid) {
                         phoneError = null
                     }

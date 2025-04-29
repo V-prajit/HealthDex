@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import java.util.*
 
@@ -30,7 +31,13 @@ fun MedicationDialog(
     var frequency by remember { mutableStateOf(initial?.frequency ?: "1") }
     var instructions by remember { mutableStateOf(initial?.instructions ?: "") }
 
-    val categories = listOf("Cold & Flu", "Pain Relief", "Allergy", "Digestive", "Miscellaneous")
+    val categories = listOf(
+        stringResource(R.string.med_category_cold_flu),
+        stringResource(R.string.med_category_pain),
+        stringResource(R.string.med_category_allergy),
+        stringResource(R.string.med_category_digestive),
+        stringResource(R.string.med_category_misc)
+    )
     var categoryExpanded by remember { mutableStateOf(false) }
 
     val dosageOptions = listOf("tsp", "tbsp", "ml", "pill", "capsule")
@@ -39,7 +46,15 @@ fun MedicationDialog(
     val frequencyOptions = listOf("1", "2", "3", "4")
     var frequencyExpanded by remember { mutableStateOf(false) }
 
-    val weekdays = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val weekdays = listOf(
+        stringResource(R.string.day_mon),
+        stringResource(R.string.day_tue),
+        stringResource(R.string.day_wed),
+        stringResource(R.string.day_thu),
+        stringResource(R.string.day_fri),
+        stringResource(R.string.day_sat),
+        stringResource(R.string.day_sun)
+    )
     val selectedDays = remember { mutableStateListOf<String>() }
 
     val initialTimes = initial?.time?.split(",") ?: listOf("09:00")
@@ -48,20 +63,20 @@ fun MedicationDialog(
     val timeList = remember {
         mutableStateListOf<String>().apply {
             if (initial != null && initial.time.isNotEmpty()) {
-                // Handle both single time and comma-separated times
+
                 if (initial.time.contains(",")) {
-                    // Multiple times
+
                     addAll(initial.time.split(","))
                 } else {
-                    // Single time
+
                     add(initial.time)
                 }
 
-                // Adjust list size if needed based on frequency
+
                 while (size < freqInt) add("09:00")
                 while (size > freqInt) removeAt(lastIndex)
             } else {
-                // No saved times, use defaults
+
                 repeat(freqInt) { add("09:00") }
             }
         }
@@ -69,13 +84,13 @@ fun MedicationDialog(
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Add Medication") },
+        title = { Text(stringResource(if (initial == null) R.string.add_medication_title else R.string.edit_medication_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.med_name_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
@@ -88,7 +103,7 @@ fun MedicationDialog(
                         value = category,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Category") },
+                        label = { Text(stringResource(R.string.med_category_label)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -114,7 +129,7 @@ fun MedicationDialog(
                         value = dosage,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Dosage") },
+                        label = { Text(stringResource(R.string.med_dosage_label)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dosageExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -140,7 +155,7 @@ fun MedicationDialog(
                         value = frequency,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Times per day") },
+                        label = { Text(stringResource(R.string.med_frequency_label)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = frequencyExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -176,15 +191,15 @@ fun MedicationDialog(
                             minute,
                             true
                         ).apply {
-                            setTitle("Select Time for Dose ${i + 1}")
+                            setTitle(context.getString(R.string.select_time_for_dose_title, i + 1))
                         }.show()
                     }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Time ${i + 1}: $time")
+                        Text(stringResource(R.string.time_dose_display, i + 1, time))
                     }
                 }
 
                 Spacer(Modifier.height(12.dp))
-                Text("Days to take")
+                Text(stringResource(R.string.med_days_label))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     weekdays.forEach { day ->
                         FilterChip(
@@ -202,7 +217,7 @@ fun MedicationDialog(
                 OutlinedTextField(
                     value = instructions,
                     onValueChange = { instructions = it },
-                    label = { Text("Instructions") },
+                    label = { Text(stringResource(R.string.med_instructions_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -222,12 +237,12 @@ fun MedicationDialog(
                 )
                 onSave(med)
             }) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onCancel) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

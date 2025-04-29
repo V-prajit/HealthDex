@@ -88,9 +88,9 @@ fun HomeScreen(
 
     val context = LocalContext.current
     var upcomingAppointments by remember { mutableStateOf<List<Appointment>>(emptyList()) }
-    var latestAppointment by remember { mutableStateOf<Appointment?>(null) } // State for the grid card
+    var latestAppointment by remember { mutableStateOf<Appointment?>(null) }
 
-    // States for Diet Summary Card
+
     var todaysCalories by remember { mutableStateOf(0) }
     var todaysProtein by remember { mutableStateOf(0) }
     var todaysFat by remember { mutableStateOf(0) }
@@ -108,7 +108,7 @@ fun HomeScreen(
 
     Log.d("HomeScreen", "Composing HomeScreen with firstName: $firstName")
 
-    // Fetch User ID from SharedPreferences
+
     LaunchedEffect(Unit) {
         val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         userId = prefs.getString("LAST_USER_UID", null)
@@ -117,17 +117,17 @@ fun HomeScreen(
         }
     }
 
-    // Fetch Appointment and Diet data when userId is available
+
     LaunchedEffect(userId) {
         userId?.let { uid ->
             if (uid.isNotEmpty()) {
                 launch {
-                    // Fetch appointments
-                    val upcoming = AppointmentRepository.getUpcomingAppointments(uid)
-                    upcomingAppointments = upcoming // For the bottom card
-                    latestAppointment = upcoming.firstOrNull() // For the grid card
 
-                    // Fetch diet goals
+                    val upcoming = AppointmentRepository.getUpcomingAppointments(uid)
+                    upcomingAppointments = upcoming
+                    latestAppointment = upcoming.firstOrNull()
+
+
                     val goals = DietGoalRepository.getDietGoals(uid)
                     goals?.let {
                         calorieGoal = it.calorieGoal
@@ -180,7 +180,7 @@ fun HomeScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Quote and Settings Row
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -212,7 +212,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Search Bar Placeholder
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -236,7 +236,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Greeting Image Box
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -270,7 +270,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Quick Access Section
+
         Text(
             text = stringResource(R.string.quick_access),
             style = MaterialTheme.typography.titleMedium,
@@ -302,7 +302,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Health Dashboard Grid
+
         Text(
             text = stringResource(R.string.health_dashboard),
             style = MaterialTheme.typography.titleMedium,
@@ -312,7 +312,7 @@ fun HomeScreen(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp), // Adjust height based on card size
+                .height(260.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             userScrollEnabled = false
@@ -361,7 +361,7 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Show only the first upcoming appointment here
+
                 val nextAppt = upcomingAppointments.firstOrNull()
                 nextAppt?.let { appt ->
                     Card(
@@ -379,7 +379,7 @@ fun HomeScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.AccessTime, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("${appt.time} (${appt.duration} min)", style = MaterialTheme.typography.bodyMedium)
+                                Text(stringResource(R.string.appointment_time_duration, appt.time, appt.duration), style = MaterialTheme.typography.bodyMedium)
                                 Spacer(modifier = Modifier.weight(1f))
                                 Text(
                                     text = appt.status.replaceFirstChar { it.uppercase() },
@@ -391,7 +391,7 @@ fun HomeScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.MedicalServices, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(appt.doctorName ?: "N/A", style = MaterialTheme.typography.bodyMedium)
+                                Text(appt.doctorName ?: stringResource(R.string.not_available_short), style = MaterialTheme.typography.bodyMedium)
                             }
                             appt.reason.takeIf { it.isNotBlank() }?.let {
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -472,7 +472,7 @@ fun DashboardCard(
 
 @Composable
 fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
-    val titleText = "Appointment:"
+    val titleText = stringResource(R.string.appointment_summary_title)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -480,14 +480,14 @@ fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant // Match original
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Match original
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp).fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally, // Center content like original
-            verticalArrangement = Arrangement.Center // Center content like original
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             if (appointment != null) {
                 Text(
@@ -499,7 +499,7 @@ fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    "${"Dr." + appointment.doctorName ?: "Dr. ?"}",
+                    stringResource(R.string.doctor_prefix, appointment.doctorName ?: stringResource(R.string.doctor_unknown)),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -508,7 +508,7 @@ fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "${formatDate(appointment.date)}",
+                    formatDate(appointment.date),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -516,14 +516,14 @@ fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "${appointment.time}",
+                    appointment.time,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp
                 )
             } else {
-                // Display default content if no appointment
+
                 Icon(
                     Icons.Default.EventNote,
                     contentDescription = titleText,
@@ -573,7 +573,7 @@ fun DietSummaryCard(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                "Cals: $calories/$calorieGoal",
+                stringResource(R.string.calories_progress_short, calories, calorieGoal),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -586,11 +586,11 @@ fun DietSummaryCard(
                 trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text("P: $protein/$proteinGoal", style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
+            Text(stringResource(R.string.protein_progress_short, protein, proteinGoal), style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("F: $fat/$fatGoal", style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
+            Text(stringResource(R.string.fat_progress_short, fat, fatGoal), style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("C: $carbs/$carbGoal", style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
+            Text(stringResource(R.string.carb_progress_short, carbs, carbGoal), style = MaterialTheme.typography.labelSmall, maxLines=1, fontSize = 16.sp)
         }
     }
 }
