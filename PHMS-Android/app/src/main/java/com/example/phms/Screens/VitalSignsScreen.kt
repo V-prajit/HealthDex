@@ -1,81 +1,27 @@
 package com.example.phms.Screens
 
-// *** ADDED IMPORTS for KeyboardOptions/KeyboardType ***
-// *** END ADDED IMPORTS ***
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import com.example.phms.R
+import android.util.Log
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.phms.BPChartDataPoint
-import com.example.phms.BloodPressureChart
-import com.example.phms.ChartDataPoint
-import com.example.phms.ChartOrange
-import com.example.phms.ChartPurple
-import com.example.phms.ChartRed
-import com.example.phms.R
-import com.example.phms.SimpleLineChart
-import com.example.phms.VitalRepository
-import com.example.phms.VitalSign
-import com.example.phms.VitalSignsViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.UUID
+import java.util.*
+import com.example.phms.*      // RetrofitClient, VitalAlertRequest, charts, etc.
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,328 +29,365 @@ fun VitalSignsScreen(
     userId: String?,
     onBackClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    vitalSignsViewModel: VitalSignsViewModel = viewModel() // Inject ViewModel
+    vitalSignsViewModel: VitalSignsViewModel = viewModel()
 ) {
-    // —— Strings ——
-    val vitalsLabel     = stringResource(R.string.vitals)
-    val backLabel       = stringResource(R.string.back)
-    val addVitalDesc    = stringResource(R.string.add_vital)
-    val allLabel        = stringResource(R.string.all)
-    val bpLabel         = stringResource(R.string.blood_pressure)
-    val glucoseLabel    = stringResource(R.string.glucose)
-    val cholLabel       = stringResource(R.string.cholesterol)
-    val hrLabel         = stringResource(R.string.heart_rate)
-    val otherLabel      = stringResource(R.string.other)
-    val filterLabel     = stringResource(R.string.filter_by_type_label)
-    val mostRecentLabel = stringResource(R.string.most_recent)
-    val noEntriesLabel  = stringResource(R.string.no_entries_yet)
-    val noRecentLabel   = stringResource(R.string.no_most_recent)
-    val editDesc        = stringResource(R.string.edit_vital)
-    val deleteDesc      = stringResource(R.string.delete)
-    val settingsLabel   = stringResource(R.string.settings)
-    // --- Use new string resource for the chart header ---
+    /* ---------------- Strings ---------------- */
+    val vitalsLabel       = stringResource(R.string.vitals)
+    val backLabel         = stringResource(R.string.back)
+    val addVitalDesc      = stringResource(R.string.add_vital)
+    val allLabel          = stringResource(R.string.all)
+    val bpLabel           = stringResource(R.string.blood_pressure)
+    val glucoseLabel      = stringResource(R.string.glucose)
+    val cholLabel         = stringResource(R.string.cholesterol)
+    val otherLabel        = stringResource(R.string.other)
+    val filterLabel       = stringResource(R.string.filter_by_type_label)
+    val mostRecentLabel   = stringResource(R.string.most_recent)
+    val noEntriesLabel    = stringResource(R.string.no_entries_yet)
+    val noRecentLabel     = stringResource(R.string.no_most_recent)
+    val editDesc          = stringResource(R.string.edit_vital)
+    val deleteDesc        = stringResource(R.string.delete)
+    val settingsLabel     = stringResource(R.string.settings)
     val realTimeDataLabel = stringResource(R.string.real_time_vitals_header)
-    val manualEntriesLabel = "Manual Entries" // Keep or change this as needed
+    val manualEntriesLabel = "Manual Entries"
 
-    // —— UI state ——
+    /* ---------------- State ---------------- */
     val scope = rememberCoroutineScope()
-    var vitals       by remember { mutableStateOf<List<VitalSign>>(emptyList()) } // For manual entries
+    var vitals       by remember { mutableStateOf<List<VitalSign>>(emptyList()) }
     var showDlg      by remember { mutableStateOf(false) }
     var editing      by remember { mutableStateOf<VitalSign?>(null) }
     var selectedType by remember { mutableStateOf(allLabel) }
     var expanded     by remember { mutableStateOf(false) }
     var latestByType by remember { mutableStateOf<VitalSign?>(null) }
 
-    // -- ViewModel State --
-    val vitalHistory by vitalSignsViewModel.vitalHistory.collectAsState()
-    val thresholds by vitalSignsViewModel.thresholds.collectAsState()
+    /* ---------------- View-Model flows ---------------- */
+    val vitalHistory  by vitalSignsViewModel.vitalHistory.collectAsState()
+    val thresholds    by vitalSignsViewModel.thresholds.collectAsState()
 
-
-    // —— Load manual data (existing functionality) ——
+    /* ---------------- Load manual entries ---------------- */
     LaunchedEffect(userId) {
         if (userId != null) vitals = VitalRepository.getVitals(userId)
     }
-    // Get latest MANUAL entry (existing functionality)
     LaunchedEffect(userId, selectedType) {
-        latestByType = if (userId != null && selectedType != allLabel && selectedType != otherLabel)
+        latestByType = if (
+            userId != null &&
+            selectedType != allLabel &&
+            selectedType != otherLabel
+        )
             VitalRepository.getLatestVital(userId, selectedType)
         else null
     }
 
-    // Prepare data for charts
+    /* ---------------- Chart data ---------------- */
+    val df = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) }
+
     val heartRateData = remember(vitalHistory) {
         vitalHistory.mapNotNull { it.heartRate?.let { hr -> ChartDataPoint(it.timestampMs, hr) } }
     }
-    val glucoseData = remember(vitalHistory) {
-        vitalHistory.mapNotNull { it.glucose?.let { g -> ChartDataPoint(it.timestampMs, g) } }
-    }
-    val cholesterolData = remember(vitalHistory) {
-        vitalHistory.mapNotNull { it.cholesterol?.let { c -> ChartDataPoint(it.timestampMs, c) } }
-    }
-    val bpData = remember(vitalHistory) {
-         vitalHistory.mapNotNull {
-             if(it.bpSystolic != null && it.bpDiastolic != null)
-                 BPChartDataPoint(it.timestampMs, it.bpSystolic, it.bpDiastolic)
-             else null
-         }
-     }
 
+    val bpData = remember(vitals) {
+        vitals.filter { it.type == bpLabel && it.manualSystolic != null && it.manualDiastolic != null }
+            .mapNotNull { v ->
+                df.parse(v.timestamp)?.time?.let {
+                    BPChartDataPoint(it, v.manualSystolic!!.toFloat(), v.manualDiastolic!!.toFloat())
+                }
+            }
+    }
+    val glucoseData = remember(vitals) {
+        vitals.filter { it.type == glucoseLabel && it.value != null }
+            .mapNotNull { v ->
+                df.parse(v.timestamp)?.time?.let { ChartDataPoint(it, v.value!!.toFloat()) }
+            }
+    }
+    val cholData = remember(vitals) {
+        vitals.filter { it.type == cholLabel && it.value != null }
+            .mapNotNull { v ->
+                df.parse(v.timestamp)?.time?.let { ChartDataPoint(it, v.value!!.toFloat()) }
+            }
+    }
 
-    // —— Compute filtered list for MANUAL entries (existing functionality) ——
+    /* ---------------- Filtered manual list ---------------- */
     val filteredVitals by remember(vitals, selectedType) {
         derivedStateOf {
             when (selectedType) {
                 allLabel -> vitals
-
                 otherLabel -> vitals.filter { vs ->
-                    listOf(bpLabel, glucoseLabel, cholLabel, hrLabel)
-                        .none { t -> t == vs.type }
+                    listOf(bpLabel, glucoseLabel, cholLabel).none { it == vs.type }
                 }
-
-                else -> vitals.filter { vs -> vs.type == selectedType }
+                else -> vitals.filter { it.type == selectedType }
             }
         }
     }
 
-    // —— Main Scaffold ——
+    /* ---------------- helper: alert on manual save ---------------- */
+    suspend fun sendAlertIfNeeded(v: VitalSign) {
+        val (breachValue, threshold, isHigh) = when (v.type) {
+            bpLabel -> {
+                val sys = v.manualSystolic!!
+                val dia = v.manualDiastolic!!
+                when {
+                    sys > thresholds.bpSysHigh -> Triple(sys, thresholds.bpSysHigh, true)
+                    sys < thresholds.bpSysLow  -> Triple(sys, thresholds.bpSysLow, false)
+                    dia > thresholds.bpDiaHigh -> Triple(dia, thresholds.bpDiaHigh, true)
+                    dia < thresholds.bpDiaLow  -> Triple(dia, thresholds.bpDiaLow, false)
+                    else -> return
+                }
+            }
+            glucoseLabel -> {
+                val g = v.value!!
+                when {
+                    g > thresholds.glucoseHigh -> Triple(g, thresholds.glucoseHigh, true)
+                    g < thresholds.glucoseLow  -> Triple(g, thresholds.glucoseLow, false)
+                    else -> return
+                }
+            }
+            cholLabel -> {
+                val c = v.value!!
+                when {
+                    c > thresholds.cholesterolHigh -> Triple(c, thresholds.cholesterolHigh, true)
+                    c < thresholds.cholesterolLow  -> Triple(c, thresholds.cholesterolLow, false)
+                    else -> return
+                }
+            }
+            else -> return
+        }
+
+        try {
+            val resp: Response<Map<String, Int>> = RetrofitClient.apiService.sendVitalAlert(
+                VitalAlertRequest(
+                    userId = userId ?: return,
+                    vitalName = v.type,
+                    value = breachValue.toFloat(),
+                    threshold = threshold,
+                    isHigh = isHigh
+                )
+            )
+            if (!resp.isSuccessful)
+                Log.e("MANUAL_ALERT", "Alert failed ${resp.code()}")
+        } catch (e: Exception) {
+            Log.e("MANUAL_ALERT", "Alert error", e)
+        }
+    }
+
+    /* **************************************************************
+                               UI
+       ************************************************************** */
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(vitalsLabel) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = backLabel)
+                        Icon(Icons.Default.ArrowBack, backLabel)
                     }
                 },
                 actions = {
                     IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = settingsLabel
-                        )
+                        Icon(Icons.Default.Settings, settingsLabel)
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton( // FAB for adding MANUAL entries
-                onClick = {
-                    editing = null
-                    showDlg = true
-                },
+            FloatingActionButton(
+                onClick = { editing = null; showDlg = true },
                 modifier = Modifier
-                    .padding(bottom = 72.dp, end = 16.dp) // Keep padding if needed for navigation bar
+                    .padding(bottom = 72.dp, end = 16.dp)
                     .navigationBarsPadding()
             ) {
-                Icon(Icons.Default.Add, contentDescription = addVitalDesc)
+                Icon(Icons.Default.Add, addVitalDesc)
             }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        // Use LazyColumn for overall scrollability including charts and manual list
         LazyColumn(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp), // Apply horizontal padding once
-             contentPadding = PaddingValues(vertical = 16.dp), // Padding for top/bottom of list
-             verticalArrangement = Arrangement.spacedBy(16.dp) // Spacing between items
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            /* ----- Real-time section ----- */
+            item {
+                Column {
+                    Text(realTimeDataLabel, style = MaterialTheme.typography.headlineSmall)
+                    Spacer(Modifier.height(12.dp))
 
-             // --- Real-time Data Section ---
-             item {
-                 Column {
-                     // --- Use the new string resource here ---
-                     Text(realTimeDataLabel, style = MaterialTheme.typography.headlineSmall)
-                     Spacer(Modifier.height(12.dp))
+                    SimpleLineChart(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = "Heart Rate (bpm)",
+                        data = heartRateData,
+                        highThreshold = thresholds.hrHigh,
+                        lowThreshold = thresholds.hrLow,
+                        lineColor = ChartRed
+                    )
 
-                     // Heart Rate Chart
-                     SimpleLineChart(
-                         modifier = Modifier.fillMaxWidth(),
-                         title = "Heart Rate (bpm)",
-                         data = heartRateData,
-                         highThreshold = thresholds.hrHigh,
-                         lowThreshold = thresholds.hrLow,
-                         lineColor = ChartRed // Assign specific colors if desired
-                     )
+                    BloodPressureChart(
+                        modifier = Modifier.fillMaxWidth(),
+                        data = bpData,
+                        sysHighThreshold = thresholds.bpSysHigh,
+                        sysLowThreshold = thresholds.bpSysLow,
+                        diaHighThreshold = thresholds.bpDiaHigh,
+                        diaLowThreshold = thresholds.bpDiaLow
+                    )
 
-                     // Blood Pressure Chart
-                      BloodPressureChart(
-                          modifier = Modifier.fillMaxWidth(),
-                          data = bpData,
-                          sysHighThreshold = thresholds.bpSysHigh,
-                          sysLowThreshold = thresholds.bpSysLow,
-                          diaHighThreshold = thresholds.bpDiaHigh,
-                          diaLowThreshold = thresholds.bpDiaLow
-                      )
+                    SimpleLineChart(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = "Glucose (mg/dL)",
+                        data = glucoseData,
+                        highThreshold = thresholds.glucoseHigh,
+                        lowThreshold = thresholds.glucoseLow,
+                        lineColor = ChartOrange
+                    )
 
+                    SimpleLineChart(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = "Total Cholesterol (mg/dL)",
+                        data = cholData,
+                        highThreshold = thresholds.cholesterolHigh,
+                        lowThreshold = thresholds.cholesterolLow,
+                        lineColor = ChartPurple
+                    )
+                }
+            }
 
-                     // Glucose Chart
-                     SimpleLineChart(
-                         modifier = Modifier.fillMaxWidth(),
-                         title = "Glucose (mg/dL)",
-                         data = glucoseData,
-                         highThreshold = thresholds.glucoseHigh,
-                         lowThreshold = thresholds.glucoseLow,
-                         lineColor = ChartOrange
-                     )
+            /* ----- Manual entries header ----- */
+            item {
+                Divider(Modifier.padding(vertical = 8.dp))
+                Text(manualEntriesLabel, style = MaterialTheme.typography.headlineSmall)
+                Spacer(Modifier.height(12.dp))
+            }
 
-                     // Cholesterol Chart
-                     SimpleLineChart(
-                         modifier = Modifier.fillMaxWidth(),
-                         title = "Total Cholesterol (mg/dL)",
-                         data = cholesterolData,
-                         highThreshold = thresholds.cholesterolHigh,
-                         lowThreshold = thresholds.cholesterolLow,
-                          lineColor = ChartPurple // Assign specific colors if desired
-                     )
-                 }
-             }
+            /* ----- Filter row (HR removed) ----- */
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(filterLabel, style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.width(8.dp))
+                    Box {
+                        OutlinedButton(onClick = { expanded = true }) {
+                            Text(selectedType)
+                            Icon(Icons.Default.ArrowDropDown, null, Modifier.size(20.dp))
+                        }
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            listOf(allLabel, bpLabel, glucoseLabel, cholLabel, otherLabel)
+                                .forEach { type ->
+                                    DropdownMenuItem(
+                                        text = { Text(type) },
+                                        onClick = {
+                                            selectedType = type
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                        }
+                    }
+                }
+            }
 
-             // --- Manual Entries Section Separator ---
-             item {
-                 Divider(modifier = Modifier.padding(vertical = 8.dp))
-                 Text(manualEntriesLabel, style = MaterialTheme.typography.headlineSmall)
-                 Spacer(Modifier.height(12.dp))
-             }
+            /* ----- Most-recent card ----- */
+            if (selectedType != allLabel && selectedType != otherLabel) {
+                item {
+                    latestByType?.let { v ->
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(0.dp),
+                            elevation = CardDefaults.elevatedCardElevation(4.dp)
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text(mostRecentLabel, style = MaterialTheme.typography.titleSmall)
+                                Spacer(Modifier.height(4.dp))
+                                val display = if (v.type == bpLabel)
+                                    "${v.manualSystolic?.toInt()}/${v.manualDiastolic?.toInt()} ${v.unit}"
+                                else
+                                    "${v.value ?: ""} ${v.unit}"
+                                Text("${v.type}: $display", style = MaterialTheme.typography.bodyLarge)
+                                Spacer(Modifier.height(2.dp))
+                                Text(v.timestamp, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    } ?: Text(noRecentLabel, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
 
-             // --- Manual Entries Filter Row ---
-             item {
-                 Row(verticalAlignment = Alignment.CenterVertically) {
-                     Text(filterLabel, style = MaterialTheme.typography.bodyMedium)
-                     Spacer(Modifier.width(8.dp))
-                     Box {
-                         OutlinedButton(onClick = { expanded = true }) {
-                             Text(selectedType)
-                             Icon(
-                                 Icons.Default.ArrowDropDown,
-                                 contentDescription = null,
-                                 modifier = Modifier.size(20.dp)
-                             )
-                         }
-                         DropdownMenu(
-                             expanded = expanded,
-                             onDismissRequest = { expanded = false }
-                         ) {
-                             listOf(allLabel, bpLabel, glucoseLabel, cholLabel, hrLabel, otherLabel)
-                                 .forEach { type ->
-                                     DropdownMenuItem(
-                                         text = { Text(type) },
-                                         onClick = {
-                                             selectedType = type
-                                             expanded = false
-                                         }
-                                     )
-                                 }
-                         }
-                     }
-                 }
-             }
+            /* ----- Full manual list ----- */
+            if (filteredVitals.isEmpty()) {
+                item {
+                    val msg = if (vitalHistory.isEmpty() && vitals.isEmpty())
+                        "No vital signs data available."
+                    else
+                        noEntriesLabel
+                    Text(msg, style = MaterialTheme.typography.bodyMedium)
+                }
+            } else {
+                items(filteredVitals, key = { it.id ?: UUID.randomUUID() }) { v ->
+                    ElevatedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(0.dp),
+                        elevation = CardDefaults.elevatedCardElevation(2.dp)
+                    ) {
+                        ListItem(
+                            headlineContent = { Text(v.type) },
+                            supportingContent = {
+                                val d = if (v.type == bpLabel)
+                                    "${v.manualSystolic?.toInt()}/${v.manualDiastolic?.toInt()} ${v.unit}"
+                                else
+                                    "${v.value ?: ""} ${v.unit}"
+                                Text(d)
+                            },
+                            trailingContent = {
+                                Row {
+                                    IconButton(onClick = { editing = v; showDlg = true }) {
+                                        Icon(Icons.Default.Edit, editDesc)
+                                    }
+                                    IconButton(onClick = {
+                                        scope.launch {
+                                            v.id?.let { id ->
+                                                if (VitalRepository.deleteVital(id)) {
+                                                    vitals = VitalRepository.getVitals(userId!!)
+                                                    latestByType =
+                                                        if (selectedType != allLabel && selectedType != otherLabel)
+                                                            VitalRepository.getLatestVital(userId, selectedType)
+                                                        else null
+                                                }
+                                            }
+                                        }
+                                    }) {
+                                        Icon(Icons.Default.Delete, deleteDesc)
+                                    }
+                                }
+                            }
+                        )
+                        Divider()
+                        Text(
+                            v.timestamp,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp, end = 16.dp)
+                        )
+                    }
+                }
+            }
 
-
-             // --- Most Recent Manual Entry section ---
-             if (selectedType != allLabel && selectedType != otherLabel) {
-                 item {
-                     latestByType?.let { v ->
-                         ElevatedCard(
-                             modifier = Modifier.fillMaxWidth(),
-                             shape = RoundedCornerShape(0.dp),
-                             elevation = CardDefaults.elevatedCardElevation(4.dp)
-                         ) {
-                             Column(Modifier.padding(16.dp)) {
-                                 Text(mostRecentLabel, style = MaterialTheme.typography.titleSmall)
-                                 Spacer(Modifier.height(4.dp))
-                                 // Display logic assumes 'value' field might hold systolic if minimal approach used
-                                 val valueDisplay =
-                                    if (v.type == bpLabel)
-                                        "${v.manualSystolic?.toInt()}/${v.manualDiastolic?.toInt()} ${v.unit}"
-                                    else
-                                        "${v.value ?: ""} ${v.unit}"
-                                 Text("${v.type}: $valueDisplay", style = MaterialTheme.typography.bodyLarge)
-                                 Spacer(Modifier.height(2.dp))
-                                 Text(v.timestamp, style = MaterialTheme.typography.bodySmall)
-                             }
-                         }
-                     } ?: Text(noRecentLabel, style = MaterialTheme.typography.bodyMedium)
-                 }
-             }
-
-             // --- Full filtered list of Manual Entries ---
-              if (filteredVitals.isEmpty()) {
-                 item {
-                      if(vitalHistory.isEmpty()) {
-                          Text("No vital signs data available.", style = MaterialTheme.typography.bodyMedium)
-                      } else {
-                          Text(noEntriesLabel, style = MaterialTheme.typography.bodyMedium)
-                      }
-                 }
-             } else {
-                 items(filteredVitals, key = { it.id ?: UUID.randomUUID() }) { v ->
-                     ElevatedCard(
-                         modifier = Modifier.fillMaxWidth(),
-                         shape = RoundedCornerShape(0.dp),
-                         elevation = CardDefaults.elevatedCardElevation(2.dp)
-                     ) {
-                         ListItem(
-                             headlineContent   = { Text(v.type) },
-                             supportingContent = {
-                                  // Display logic assumes 'value' field might hold systolic if minimal approach used
-                                  val valueDisplay = if (v.type == bpLabel) {
-                                      "${v.manualSystolic?.toInt()}/${v.manualDiastolic?.toInt()} ${v.unit}"
-                                  } else {
-                                      "${v.value ?: ""} ${v.unit}"
-                                  }
-                                  Text(valueDisplay)
-                              },
-                             trailingContent   = {
-                                 Row {
-                                     IconButton(onClick = {
-                                         editing = v
-                                         showDlg = true
-                                     }) {
-                                         Icon(Icons.Default.Edit, contentDescription = editDesc)
-                                     }
-                                     IconButton(onClick = {
-                                         scope.launch {
-                                             v.id?.let { id ->
-                                                 if (VitalRepository.deleteVital(id)) {
-                                                     vitals = VitalRepository.getVitals(userId!!)
-                                                 }
-                                             }
-                                         }
-                                     }) {
-                                         Icon(Icons.Default.Delete, contentDescription = deleteDesc)
-                                     }
-                                 }
-                             }
-                         )
-                         Divider()
-                         Text(
-                             text = v.timestamp,
-                             style = MaterialTheme.typography.bodySmall,
-                             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp, end = 16.dp)
-                         )
-                     }
-                 }
-             }
-
-             // Add some bottom padding to prevent FAB overlap if needed
-             item {
-                 Spacer(Modifier.height(80.dp))
-             }
+            item { Spacer(Modifier.height(80.dp)) } // bottom padding
         }
     }
 
-    // — Add/Edit dialog for MANUAL entries —
+    /* ---------------- Add / Edit dialog ---------------- */
     if (showDlg) {
         VitalDialog(
-            initial  = editing,
-            userId   = userId,
-            onSave   = { newV ->
+            initial = editing,
+            userId  = userId,
+            onSave  = { newV ->
                 scope.launch {
                     if (newV.id == null) VitalRepository.addVital(newV)
-                    else                  VitalRepository.updateVital(newV)
-                    vitals = VitalRepository.getVitals(userId!!) // Reload manual entries
+                    else VitalRepository.updateVital(newV)
+
+                    vitals = VitalRepository.getVitals(userId!!)
+                    latestByType =
+                        if (selectedType != allLabel && selectedType != otherLabel)
+                            VitalRepository.getLatestVital(userId, selectedType)
+                        else null
+
+                    sendAlertIfNeeded(newV)   // <-- automatic emergency e-mail
                     showDlg = false
                 }
             },
@@ -413,7 +396,9 @@ fun VitalSignsScreen(
     }
 }
 
-// --- VitalDialog --- // Corrected version from previous step
+/* ******************************************************************
+   VitalDialog  —  HR option removed
+   ****************************************************************** */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VitalDialog(
@@ -422,308 +407,215 @@ fun VitalDialog(
     onSave: (VitalSign) -> Unit,
     onCancel: () -> Unit
 ) {
-    // timestamp formatter
     val df = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()) }
 
-    // --- Strings ---
-    val saveLabel        = stringResource(R.string.save)
-    val cancelLabel      = stringResource(R.string.cancel)
-    val inputErrorTxt    = stringResource(R.string.vital_input_error)
-    val bpInputErrorTxt  = stringResource(id = R.string.bp_input_error) // Ensure this exists in strings.xml
-    val dialogTitle      = stringResource(
-        if (initial == null) R.string.add_vital else R.string.edit_vital
-    )
-    val selectTypeLabel  = stringResource(R.string.select_type)
-    val otherLabel       = stringResource(R.string.other)
-    val specifyTypeLabel = stringResource(R.string.specify_type)
-    val selectUnitLabel  = stringResource(R.string.select_unit)
-    val specifyUnitLabel = stringResource(R.string.specify_unit)
-    val systolicLabel    = stringResource(id = R.string.systolic_value) // Ensure this exists
-    val diastolicLabel   = stringResource(id = R.string.diastolic_value) // Ensure this exists
-    val valueLabel       = stringResource(R.string.value_label)
+    /* ---- strings ---- */
+    val saveLabel   = stringResource(R.string.save)
+    val cancelLabel = stringResource(R.string.cancel)
+    val inputErr    = stringResource(R.string.vital_input_error)
+    val bpErr       = stringResource(R.string.bp_input_error)
 
+    val dialogTitle     = stringResource(if (initial == null) R.string.add_vital else R.string.edit_vital)
+    val selectTypeLabel = stringResource(R.string.select_type)
+    val otherLabel      = stringResource(R.string.other)
+    val specifyType     = stringResource(R.string.specify_type)
+    val selectUnit      = stringResource(R.string.select_unit)
+    val specifyUnit     = stringResource(R.string.specify_unit)
+    val systolicLabel   = stringResource(R.string.systolic_value)
+    val diastolicLabel  = stringResource(R.string.diastolic_value)
+    val valueLabel      = stringResource(R.string.value_label)
 
-    // --- Type dropdown state ---
-    val bpLabel       = stringResource(R.string.blood_pressure)
-    val glucoseLabel  = stringResource(R.string.glucose)
-    val cholLabel     = stringResource(R.string.cholesterol)
-    val hrLabel       = stringResource(R.string.heart_rate)
-    val typeOptions   = listOf(bpLabel, glucoseLabel, cholLabel, hrLabel, otherLabel)
+    /* ---- local constants ---- */
+    val bpLabel      = stringResource(R.string.blood_pressure)
+    val glucoseLabel = stringResource(R.string.glucose)
+    val cholLabel    = stringResource(R.string.cholesterol)
 
-    var typeExpanded  by remember { mutableStateOf(false) }
-    var type          by remember { mutableStateOf(initial?.type ?: "") }
-    var customType    by remember { mutableStateOf(initial?.type?.takeIf { it !in typeOptions } ?: "") }
+    val typeOptions = listOf(bpLabel, glucoseLabel, cholLabel, otherLabel)
 
-    // --- Unit dropdown state ---
+    /* ---- state ---- */
+    var typeExpanded by remember { mutableStateOf(false) }
+    var type by remember { mutableStateOf(initial?.type ?: "") }
+    var customType by remember { mutableStateOf(initial?.type?.takeIf { it !in typeOptions } ?: "") }
+
     val unitMap = mapOf(
-      bpLabel      to listOf("mmHg","kPa","cmH₂O","inHg"),
-      glucoseLabel to listOf("mg/dL","mmol/L","mg%","g/L"),
-      cholLabel    to listOf("mg/dL","mmol/L","mg%","g/L"),
-      hrLabel      to listOf("bpm","bps","Hz","cpm")
+        bpLabel to listOf("mmHg", "kPa"),
+        glucoseLabel to listOf("mg/dL", "mmol/L"),
+        cholLabel to listOf("mg/dL", "mmol/L")
     )
+
     var unitExpanded by remember { mutableStateOf(false) }
-    var unit         by remember { mutableStateOf(initial?.unit ?: "") }
-    var customUnit   by remember { mutableStateOf(initial?.unit?.takeIf { it !in unitMap[type].orEmpty() } ?: "") }
-
-    // --- Value field state ---
-    var valueText by remember(initial) {
-        mutableStateOf(
-            if (initial != null && initial.type != bpLabel)
-                initial.value?.toString() ?: ""
-            else ""
-        )
+    var unit by remember { mutableStateOf(initial?.unit ?: "") }
+    var customUnit by remember {
+        mutableStateOf(initial?.unit?.takeIf { initial.type == otherLabel || it !in unitMap[initial.type].orEmpty() } ?: "")
     }
 
-    var systolicValueText by remember(initial) {
-        mutableStateOf(
-            if (initial?.type == bpLabel)
-                initial.manualSystolic?.toString() ?: ""
-            else ""
-        )
-    }
+    var valueText by remember { mutableStateOf(if (initial?.type != bpLabel) initial?.value?.toString() ?: "" else "") }
+    var sysText   by remember { mutableStateOf(if (initial?.type == bpLabel) initial.manualSystolic?.toString() ?: "" else "") }
+    var diaText   by remember { mutableStateOf(if (initial?.type == bpLabel) initial.manualDiastolic?.toString() ?: "" else "") }
 
-    var diastolicValueText by remember(initial) {
-        mutableStateOf(
-            if (initial?.type == bpLabel)
-                initial.manualDiastolic?.toString() ?: ""
-            else ""
-        )
-    }
+    var error by remember { mutableStateOf("") }
 
-    var error        by remember { mutableStateOf("") }
-
-     // Effect to handle initialization and type changes
-     LaunchedEffect(initial, type) {
-         if (initial != null) {
-             // Initialize based on editing item
-             type = initial.type
-             unit = initial.unit
-             if (initial.type == bpLabel) {
-                 systolicValueText  = initial.manualSystolic?.toString() ?: ""
-                 diastolicValueText = initial.manualDiastolic?.toString() ?: ""
-                 valueText = ""
-             } else {
-                 valueText = initial.value?.toString() ?: ""
-                 systolicValueText = ""
-                 diastolicValueText = ""
-             }
-             customType = initial.type.takeIf { it !in typeOptions } ?: ""
-             customUnit = initial.unit.takeIf { it !in unitMap[type].orEmpty() } ?: ""
-         } else {
-              // Reset for adding new item or if type changes clear irrelevant fields
-             if (type == bpLabel) {
-                 valueText = ""
-                 // Ensure default unit is set if type is BP and unit is blank
-                 if(unit.isBlank()) unit = unitMap[bpLabel]?.firstOrNull() ?: ""
-             } else {
-                 systolicValueText = ""
-                 diastolicValueText = ""
-             }
-         }
-          error = "" // Always clear error on init/type change
-     }
-
-
+    /* ---- UI ---- */
     AlertDialog(
-      onDismissRequest = onCancel,
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp,
-      title            = { Text(dialogTitle) },
-      text             = {
-        Column {
-          // — Type selector —
-          Box {
-            OutlinedButton(
-              onClick = { typeExpanded = true },
-              modifier = Modifier.fillMaxWidth()
-            ) {
-              val display = when {
-                type.isBlank()                  -> selectTypeLabel
-                type == otherLabel && customType.isNotBlank() -> customType
-                else                            -> type
-              }
-              Text(display)
-              Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-            }
-            DropdownMenu(
-              expanded = typeExpanded,
-              onDismissRequest = { typeExpanded = false }
-            ) {
-              typeOptions.forEach { opt ->
-                DropdownMenuItem(text = { Text(opt) }, onClick = {
-                  typeExpanded = false
-                  type = opt
-                  if (opt == otherLabel) customType = "" else customType = ""
-                  // Reset unit only if type changes significantly (e.g., away from BP/Other)
-                  if(opt != bpLabel && opt != otherLabel) unit = "" else if (opt == bpLabel && unit.isBlank()) unit = unitMap[bpLabel]?.firstOrNull() ?: ""
-                  customUnit = "" // Always clear custom unit on type change for simplicity
-                })
-              }
-            }
-          }
-
-          if (type == otherLabel) {
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-              value = customType,
-              onValueChange = { customType = it },
-              label = { Text(specifyTypeLabel) },
-              modifier = Modifier.fillMaxWidth()
-            )
-          }
-
-          Spacer(Modifier.height(12.dp))
-
-          // — Unit selector —
-           if (type.isBlank()) {
-              OutlinedButton(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth()) {
-                  Text(selectUnitLabel)
-                  Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-              }
-          } else if (type != otherLabel) {
-              Box {
-                  OutlinedButton(onClick = { unitExpanded = true }, modifier = Modifier.fillMaxWidth()) {
-                      val displayUnit = when {
-                          unit.isNotBlank() && unit != otherLabel -> unit
-                          unit == otherLabel && customUnit.isNotBlank() -> customUnit
-                          unit == otherLabel -> specifyUnitLabel // Prompt if 'Other' selected but no custom unit yet
-                          else -> selectUnitLabel // Default prompt if unit is blank otherwise
-                      }
-                      Text(displayUnit)
-                      Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                  }
-                  DropdownMenu(expanded = unitExpanded, onDismissRequest = { unitExpanded = false }) {
-                      (unitMap[type] ?: emptyList()).plus(otherLabel).forEach { opt ->
-                          DropdownMenuItem(text = { Text(opt) }, onClick = {
-                              unitExpanded = false
-                              unit = opt
-                              if (opt == otherLabel) customUnit = "" else customUnit = ""
-                          })
-                      }
-                  }
-              }
-              if (unit == otherLabel) {
-                  Spacer(Modifier.height(8.dp))
-                  OutlinedTextField(
-                      value = customUnit,
-                      onValueChange = { customUnit = it },
-                      label = { Text(specifyUnitLabel) },
-                      modifier = Modifier.fillMaxWidth()
-                  )
-              }
-          } else { // type=="Other"
-              Spacer(Modifier.height(8.dp))
-              OutlinedTextField(
-                  value = customUnit, // Bind directly to customUnit for "Other" type
-                  onValueChange = { customUnit = it; unit = otherLabel }, // Ensure unit state is 'Other'
-                  label = { Text(specifyUnitLabel) },
-                  modifier = Modifier.fillMaxWidth()
-              )
-          }
-
-          Spacer(Modifier.height(12.dp))
-
-          // — Value field(s) - Conditional Rendering —
-           if (type == bpLabel) {
-               OutlinedTextField(
-                   value = systolicValueText,
-                   onValueChange = { systolicValueText = it ; error = "" },
-                   label = { Text(systolicLabel) },
-                   isError = error.isNotEmpty(),
-                   // *** CORRECTED KeyboardOptions usage ***
-                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                   singleLine = true,
-                   modifier = Modifier.fillMaxWidth()
-               )
-               Spacer(Modifier.height(8.dp))
-               OutlinedTextField(
-                   value = diastolicValueText,
-                   onValueChange = { diastolicValueText = it ; error = "" },
-                   label = { Text(diastolicLabel) },
-                   isError = error.isNotEmpty(),
-                    // *** CORRECTED KeyboardOptions usage ***
-                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                   singleLine = true,
-                   modifier = Modifier.fillMaxWidth()
-               )
-           } else if (type.isNotBlank()) {
-               OutlinedTextField(
-                   value = valueText,
-                   onValueChange = { valueText = it ; error = "" },
-                   label = { Text(valueLabel) },
-                   isError = error.isNotEmpty(),
-                    // *** CORRECTED KeyboardOptions usage ***
-                   keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                   singleLine = true,
-                   modifier = Modifier.fillMaxWidth()
-               )
-           }
-
-          if (error.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            Text(error, color = MaterialTheme.colorScheme.error)
-          }
-        }
-      },
-      confirmButton = {
-        TextButton(onClick = {
-          val finalType = if (type == otherLabel) customType.trim() else type
-          val finalUnit = when {
-            type == otherLabel            -> customUnit.trim()
-            unit == otherLabel            -> customUnit.trim()
-            type == bpLabel && unit.isBlank() -> unitMap[bpLabel]?.firstOrNull() ?: ""
-            unit.isBlank() -> ""
-            else                          -> unit
-          }
-          val now = df.format(Date())
-          var vitalToSave: VitalSign? = null
-
-          if (finalType.isBlank() || finalUnit.isBlank()) {
-              error = inputErrorTxt
-          } else if (type == bpLabel) {
-              val systolicDbl = systolicValueText.toDoubleOrNull()
-              val diastolicDbl = diastolicValueText.toDoubleOrNull()
-
-              if (systolicDbl == null || diastolicDbl == null) {
-                  error = bpInputErrorTxt
-              } else {
-                      vitalToSave = VitalSign(
-                      id              = initial?.id,
-                      userId          = userId ?: "",
-                      type            = finalType,
-                      value           = systolicDbl,
-                      unit            = finalUnit,
-                      timestamp       = now,
-                      manualSystolic  = systolicDbl,
-                      manualDiastolic = diastolicDbl
+        onDismissRequest = onCancel,
+        title = { Text(dialogTitle) },
+        text = {
+            Column {
+                /* type selector */
+                Box {
+                    OutlinedButton(onClick = { typeExpanded = true }, Modifier.fillMaxWidth()) {
+                        val txt = when {
+                            type.isBlank() -> selectTypeLabel
+                            type == otherLabel && customType.isNotBlank() -> customType
+                            type == otherLabel -> "$otherLabel (${specifyType.lowercase()})"
+                            else -> type
+                        }
+                        Text(txt); Icon(Icons.Default.ArrowDropDown, null)
+                    }
+                    DropdownMenu(expanded = typeExpanded, onDismissRequest = { typeExpanded = false }) {
+                        typeOptions.forEach { opt ->
+                            DropdownMenuItem(text = { Text(opt) }, onClick = {
+                                type = opt; typeExpanded = false; customType = ""; unit = ""; customUnit = ""; error = ""
+                            })
+                        }
+                    }
+                }
+                if (type == otherLabel) {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        customType,
+                        { customType = it },
+                        label = { Text(specifyType) },
+                        isError = error.isNotEmpty() && customType.isBlank(),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-          } else {
-               val dbl = valueText.toDoubleOrNull()
-              if (dbl == null) {
-                  error = inputErrorTxt
-              } else {
-                   vitalToSave = VitalSign(
-                      id              = initial?.id,
-                      userId          = userId ?: "",
-                      type            = finalType,
-                      value           = dbl,
-                      unit            = finalUnit,
-                      timestamp       = now
-                    )
-              }
-          }
 
-          vitalToSave?.let { onSave(it) } // Call onSave only if validation succeeded
+                Spacer(Modifier.height(12.dp))
 
-        }) {
-          Text(saveLabel)
-        }
-      },
-      dismissButton = {
-        TextButton(onClick = onCancel) {
-          Text(cancelLabel)
-        }
-      }
+                /* unit selector */
+                if (type.isNotBlank()) {
+                    if (type != otherLabel) {
+                        val opts = unitMap[type] ?: emptyList()
+                        Box {
+                            OutlinedButton(onClick = { unitExpanded = true }, Modifier.fillMaxWidth()) {
+                                val txt = when {
+                                    unit.isBlank() -> selectUnit
+                                    unit == otherLabel && customUnit.isNotBlank() -> customUnit
+                                    unit == otherLabel -> "$otherLabel (${specifyUnit.lowercase()})"
+                                    else -> unit
+                                }
+                                Text(txt); Icon(Icons.Default.ArrowDropDown, null)
+                            }
+                            DropdownMenu(expanded = unitExpanded, onDismissRequest = { unitExpanded = false }) {
+                                opts.plus(otherLabel).forEach { opt ->
+                                    DropdownMenuItem(text = { Text(opt) }, onClick = {
+                                        unit = opt; unitExpanded = false; if (opt != otherLabel) customUnit = ""
+                                    })
+                                }
+                            }
+                        }
+                        if (unit == otherLabel) {
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                customUnit,
+                                { customUnit = it },
+                                label = { Text(specifyUnit) },
+                                isError = error.isNotEmpty() && customUnit.isBlank(),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    } else { /* type == Other (custom) */
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            customUnit,
+                            { customUnit = it; unit = otherLabel },
+                            label = { Text(specifyUnit) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                when (type) {
+                    bpLabel -> {
+                        OutlinedTextField(
+                            sysText,
+                            { sysText = it.filter { c -> c.isDigit() || c == '.' } },
+                            label = { Text(systolicLabel) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            diaText,
+                            { diaText = it.filter { c -> c.isDigit() || c == '.' } },
+                            label = { Text(diastolicLabel) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    glucoseLabel, cholLabel -> {
+                        OutlinedTextField(
+                            valueText,
+                            { valueText = it.filter { c -> c.isDigit() || c == '.' } },
+                            label = { Text(valueLabel) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                if (error.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(error, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                /* validation + build object */
+                val finalType = if (type == otherLabel) customType.trim() else type
+                val finalUnit = if (unit == otherLabel) customUnit.trim() else unit
+
+                val saved: VitalSign? = when (finalType) {
+                    bpLabel -> {
+                        val s = sysText.toDoubleOrNull()
+                        val d = diaText.toDoubleOrNull()
+                        if (s == null || d == null) { error = bpErr; null }
+                        else VitalSign(
+                            id = initial?.id,
+                            userId = userId ?: "",
+                            type = bpLabel,
+                            value = s,
+                            unit = finalUnit.ifBlank { "mmHg" },
+                            timestamp = df.format(Date()),
+                            manualSystolic = s,
+                            manualDiastolic = d
+                        )
+                    }
+                    glucoseLabel, cholLabel -> {
+                        val v = valueText.toDoubleOrNull()
+                        if (v == null) { error = inputErr; null }
+                        else VitalSign(
+                            id = initial?.id,
+                            userId = userId ?: "",
+                            type = finalType,
+                            value = v,
+                            unit = finalUnit.ifBlank { "mg/dL" },
+                            timestamp = df.format(Date())
+                        )
+                    }
+                    else -> { error = inputErr; null }
+                }
+
+                saved?.let { onSave(it) }
+            }) { Text(saveLabel) }
+        },
+        dismissButton = { TextButton(onClick = onCancel) { Text(cancelLabel) } }
     )
 }
