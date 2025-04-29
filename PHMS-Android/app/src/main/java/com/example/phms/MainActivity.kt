@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,13 +18,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -35,6 +41,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -64,8 +71,6 @@ import com.example.phms.repository.NutritionRepository
 import com.example.phms.ui.theme.PHMSTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.Composable as Composable1
-
 
 val biometricEnabledMap = mutableMapOf<String, Boolean>()
 
@@ -73,7 +78,7 @@ class MainActivity : FragmentActivity() {
     private lateinit var auth: FirebaseAuth
 
     private var localeVersion by mutableIntStateOf(0)
-    private var darkModeEnabled by mutableStateOf(false)
+    private var darkModeEnabled by mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,7 +116,11 @@ class MainActivity : FragmentActivity() {
         AppointmentReminderWorker.initialize(this)
 
         val appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        if (!appPrefs.contains("has_launched_before")) {
+        val isFirstLaunch = !appPrefs.contains("has_launched_before")
+
+        if (isFirstLaunch) {
+            // Don't set has_launched_before yet - we'll set it after language selection
+        } else {
             appPrefs.edit().putBoolean("has_launched_before", true).apply()
         }
 
@@ -121,7 +130,7 @@ class MainActivity : FragmentActivity() {
             userPrefs.edit().putBoolean("locale_set", true).apply()
         }
 
-        darkModeEnabled = userPrefs.getBoolean("DARK_MODE", false)
+        darkModeEnabled = userPrefs.getBoolean("DARK_MODE", true)
         AppCompatDelegate.setDefaultNightMode(
             if (darkModeEnabled) AppCompatDelegate.MODE_NIGHT_YES
             else AppCompatDelegate.MODE_NIGHT_NO
@@ -140,7 +149,7 @@ class MainActivity : FragmentActivity() {
                 var firstName by remember { mutableStateOf<String?>(null) }
                 var showSettings by remember { mutableStateOf(false) }
                 var returnToTab by remember { mutableStateOf<String?>(null) }
-
+                var showFirstTimeLaunch by remember { mutableStateOf(isFirstLaunch) }
 
                 val biometricAuth = remember {
                     BiometricAuth(this@MainActivity) { success, name ->
@@ -153,7 +162,6 @@ class MainActivity : FragmentActivity() {
                         }
                     }
                 }
-
 
                 LaunchedEffect(auth.currentUser) {
                     val currentUser = auth.currentUser
@@ -171,7 +179,6 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
-
                 LaunchedEffect(showSettings) {
                     if (!showSettings) {
                         returnToTab = null
@@ -182,7 +189,14 @@ class MainActivity : FragmentActivity() {
                     "MainActivity",
                     "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings, returnToTab=$returnToTab, localeVersion=$currentLocaleVersion"
                 )
+
                 when {
+                    showFirstTimeLaunch -> {
+                        FirstTimeLanguageScreen {
+                            showFirstTimeLaunch = false
+                            appPrefs.edit().putBoolean("has_launched_before", true).apply()
+                        }
+                    }
                     showSettings -> {
                         Log.d("MainActivity", "Showing Settings Screen")
                         SettingScreen(
@@ -228,10 +242,6 @@ class MainActivity : FragmentActivity() {
                                 isLoggedIn = true
                                 userToken = token
                                 firstName = name
-                            },
-                            onSettingsClick = {
-                                showSettings = true
-                                returnToTab = null
                             }
                         )
                     }
@@ -239,7 +249,6 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
-
 
     fun updateTheme(darkMode: Boolean) {
         AppCompatDelegate.setDefaultNightMode(
@@ -250,21 +259,83 @@ class MainActivity : FragmentActivity() {
 
         val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
         prefs.edit().putBoolean("DARK_MODE", darkMode).apply()
-
     }
 
     fun forceLocaleRecomposition(languageCode: String? = null) {
         localeVersion++
+        if (languageCode != null) {
+            val localeList = LocaleListCompat.forLanguageTags(languageCode)
+            AppCompatDelegate.setApplicationLocales(localeList)
+        }
     }
 }
 
+@Composable
+fun FirstTimeLanguageScreen(onLanguageSelected: () -> Unit) {
+    val context = LocalContext.current
 
-@Composable1
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Welcome to PHMS",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            Text(
+                text = "Please select your language",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                items(LocaleHelper.supportedLanguages) { language ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                LocaleHelper.applyLanguageWithoutRecreation(
+                                    context,
+                                    language.code
+                                )
+                                (context as? MainActivity)?.forceLocaleRecomposition(language.code)
+                                onLanguageSelected()
+                            }
+                            .padding(vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = language.displayName,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+
+                    if (language != LocaleHelper.supportedLanguages.last()) {
+                        Divider()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun AuthScreen(
     auth: FirebaseAuth,
     biometricAuth: BiometricAuth,
-    onLoginSuccess: (String, String?) -> Unit,
-    onSettingsClick: () -> Unit
+    onLoginSuccess: (String, String?) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -274,6 +345,12 @@ fun AuthScreen(
         var showForgotPassword by remember { mutableStateOf(false) }
         var userToken by remember { mutableStateOf<String?>(null) }
         var showUserDetailsScreen by remember { mutableStateOf(false) }
+        var showLanguageSelector by remember { mutableStateOf(false) }
+        val context = LocalContext.current
+        val currentLanguageCode = remember { LocaleHelper.getCurrentLanguageCode(context) }
+        val currentLanguage = remember(currentLanguageCode) {
+            LocaleHelper.supportedLanguages.find { it.code == currentLanguageCode } ?: LocaleHelper.supportedLanguages[0]
+        }
 
         Column(modifier = Modifier
             .fillMaxSize()
@@ -282,8 +359,8 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+                IconButton(onClick = { showLanguageSelector = true }) {
+                    Icon(Icons.Default.Language, contentDescription = stringResource(R.string.language))
                 }
             }
             when {
@@ -312,11 +389,58 @@ fun AuthScreen(
                 }
             }
         }
+
+        if (showLanguageSelector) {
+            AlertDialog(
+                onDismissRequest = { showLanguageSelector = false },
+                title = { Text(stringResource(R.string.select_language)) },
+                text = {
+                    LazyColumn {
+                        items(LocaleHelper.supportedLanguages) { language ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        LocaleHelper.applyLanguageWithoutRecreation(
+                                            context,
+                                            language.code
+                                        )
+                                        (context as? MainActivity)?.forceLocaleRecomposition(language.code)
+                                        showLanguageSelector = false
+                                    }
+                                    .padding(vertical = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(language.displayName)
+
+                                if (language.code == currentLanguageCode) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+
+                            if (language != LocaleHelper.supportedLanguages.last()) {
+                                Divider()
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showLanguageSelector = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable1
+@Composable
 fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSuccess: (String) -> Unit) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
@@ -484,7 +608,7 @@ fun RegisterScreen(auth: FirebaseAuth, onSwitch: () -> Unit, onRegistrationSucce
 }
 
 
-@Composable1
+@Composable
 fun LoginScreen(
     auth: FirebaseAuth,
     biometricAuth: BiometricAuth,
