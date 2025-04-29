@@ -45,6 +45,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -235,15 +236,18 @@ class MainActivity : FragmentActivity() {
 
                     else -> {
                         Log.d("MainActivity", "Showing Auth Screen")
-                        AuthScreen(
-                            auth = auth,
-                            biometricAuth = biometricAuth,
-                            onLoginSuccess = { token, name ->
-                                isLoggedIn = true
-                                userToken = token
-                                firstName = name
-                            }
-                        )
+                        key (currentLocaleVersion) {
+                            AuthScreen(
+                                auth = auth,
+                                biometricAuth = biometricAuth,
+                                onLoginSuccess = { token, name ->
+                                    isLoggedIn = true
+                                    userToken = token
+                                    firstName = name
+                                },
+                                onLanguageChange = ::updateLocale
+                            )
+                        }
                     }
                 }
             }
@@ -337,7 +341,8 @@ fun FirstTimeLanguageScreen(onLanguageSelected: () -> Unit) {
 fun AuthScreen(
     auth: FirebaseAuth,
     biometricAuth: BiometricAuth,
-    onLoginSuccess: (String, String?) -> Unit
+    onLoginSuccess: (String, String?) -> Unit,
+    onLanguageChange: (String) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -407,6 +412,7 @@ fun AuthScreen(
                                             context,
                                             language.code
                                         )
+                                        onLanguageChange(language.code)
                                         showLanguageSelector = false
                                     }
                                     .padding(vertical = 16.dp),
