@@ -104,7 +104,7 @@
     <string name="specify_type">Specify Vital Type</string>
     <string name="select_unit">Select Unit</string>
     <string name="specify_unit">Specify Unit</string>
-    <string name="real_time_vitals_header">Real-time Vital Signs</string>
+    <string name="real_time_vitals_header">Vital Signs charts</string>
     <string name="home">Home</string>
 
     <string name="no_results_found">No results found</string>
