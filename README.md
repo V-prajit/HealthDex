@@ -1,26 +1,193 @@
 # CSE-3310-PHMS
-To run the project on your computer get the service key for yourself from firebase service accounts and name the file "serviceAccountKey.json" and place it in "PHMS-Backend/src/main/resources/serviceAccountKey.json" 
-And also get your "google-services.json" from firebased for the project and place it in "CSE-3310-PHMS/PHMS-Android/app"
 
-make sure you have all these then run ./gradlew run in hte PHMS-Backend folder to run the server first then start your android app with android studio
+**Personal Health Management System**
 
-To test biometric login on your virtual device, first add a fingerprint through the device’s settings (typically found under Security > Fingerprint Enrollment) before you register or log in. Then, on the login screen, open the Extended Controls (the “...” menu on the emulator) and navigate to the Fingerprint section. Use this panel to simulate a fingerprint scan, which will trigger the biometric authentication process in your app
+A full-stack application composed of an Android client and a Ktor backend server to help users track vital signs, manage medications, diet, appointments, and receive real-time alerts.
 
-Backend Environment Variables (.env):
+---
 
-The backend uses a .env file to store credentials for sending email alerts (e.g., vital sign alerts).
-Create a file named .env in the root directory of the backend project (PHMS-Backend/.env).
-Add the following lines to this file, replacing the placeholder values with your actual Gmail email and a generated App Password:
-Code snippet
+## Table of Contents
 
+1. [Overview](#overview)  
+2. [Project Structure](#project-structure)  
+3. [Prerequisites](#prerequisites)  
+4. [Setup Instructions](#setup-instructions)  
+   - [1. Clone the Repository](#1-clone-the-repository)  
+   - [2. Firebase Setup](#2-firebase-setup)  
+     - [Android App Setup](#android-app-setup)  
+     - [Backend Service Account](#backend-service-account)  
+   - [3. Backend Setup (PHMS-Backend)](#3-backend-setup-phms-backend)  
+     - [Environment Variables (`.env`)](#environment-variables-env)  
+     - [Generating `GMAIL_APP_PASSWORD`](#generating-gmail_app_password)  
+     - [Build and Run](#build-and-run)  
+   - [4. Android Setup (PHMS-Android)](#4-android-setup-phms-android)  
+     - [Configure API Keys (`local.properties`)](#configure-api-keys-localproperties)  
+     - [Build and Run](#build-and-run-1)  
+   - [5. Emulator Setup for Biometrics](#5-emulator-setup-for-biometrics)  
+5. [Running the Application](#running-the-application)  
+6. [License](#license)  
+
+---
+
+## Overview
+
+This project provides a robust Personal Health Management System (PHMS) that enables users to:
+
+- **Track vital signs**: Heart rate, blood pressure, glucose, cholesterol, etc.  
+- **Receive alerts**: Email and in-app notifications for abnormal readings.  
+- **Manage health data**: Medications, diet logs, appointments, and custom notes.  
+- **Secure authentication**: Firebase Authentication with biometric (fingerprint) login support.  
+
+---
+
+## Project Structure
+
+```
+CSE-3310-PHMS/
+├── PHMS-Android/       # Android application code (Jetpack Compose)
+├── PHMS-Backend/       # Ktor backend server code
+├── Supporting/         # Scripts, docs, and utilities
+├── README.md           # Project documentation (this file)
+└── LICENSE.md          # License information
+```
+
+---
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- **Git**: Version control system  
+- **Java Development Kit (JDK) 11+**: Verify by running:
+  ```bash
+  java -version
+  ```
+- **Android Studio**: Official IDE for Android development  
+
+---
+
+## Setup Instructions
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/V-prajit/HealthDex
+cd CSE-3310-PHMS
+```
+
+
+
+### 2. Firebase Setup
+
+This project uses Firebase for authentication and backend services.
+
+#### Android App Setup
+
+1. Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project.  
+2. Add an Android app with package name `com.example.phms`.  
+3. Download the generated `google-services.json` file.  
+4. Place it in:
+   ```
+   CSE-3310-PHMS/PHMS-Android/app/google-services.json
+   ```
+
+#### Backend Service Account
+
+1. In Firebase Console > Project Settings > Service Accounts, generate a new private key.  
+2. Download and rename it to `serviceAccountKey.json`.  
+3. Place it in:
+   ```
+   CSE-3310-PHMS/PHMS-Backend/src/main/resources/serviceAccountKey.json
+   ```
+
+### 3. Backend Setup (PHMS-Backend)
+
+Navigate to the backend directory:
+
+```bash
+cd CSE-3310-PHMS/PHMS-Backend
+```
+
+#### Environment Variables (`.env`)
+
+Create a file named `.env` in the `PHMS-Backend` directory with:
+
+```env
 GMAIL_EMAIL=your_gmail_address@gmail.com
 GMAIL_APP_PASSWORD=your_16_digit_app_password
-How to get GMAIL_APP_PASSWORD:
-You cannot use your regular Gmail password here. You need an "App Password".
-Go to your Google Account management page (myaccount.google.com).
-Navigate to Security.
-Ensure 2-Step Verification is turned ON. App Passwords require this.
-Under "Signing in to Google", find and click on App passwords. You might need to sign in again.
-Select "Mail" for the app and "Other (Custom name)" for the device. Give it a name (e.g., "PHMS Backend").
-Click "Generate". Google will provide a 16-character password (like xxxx xxxx xxxx xxxx).
-Copy this 16-character password (without spaces) and paste it as the value for GMAIL_APP_PASSWORD in your .env file. Save this password somewhere safe, as Google won't show it again.
+```
+
+#### Generating `GMAIL_APP_PASSWORD`
+
+1. Go to [Google Account Security](https://myaccount.google.com/security).  
+2. Enable **2-Step Verification**.  
+3. Under **Signing in to Google**, click **App passwords**.  
+4. Select **Mail** as the app.  
+5. Choose **Other (Custom name)** and enter `PHMS Backend`.  
+6. Click **Generate** and copy the 16-character password (no spaces) into your `.env`.
+
+#### Build and Run
+
+```bash
+# macOS/Linux
+./gradlew run
+# Windows
+gradlew.bat run
+```
+
+The server starts on `http://0.0.0.0:8085` by default.
+
+### 4. Android Setup (PHMS-Android)
+
+1. Open Android Studio and select **Open an existing project**.  
+2. Navigate to `CSE-3310-PHMS/PHMS-Android` and open it.
+
+#### Configure API Keys (`local.properties`)
+
+In the `PHMS-Android` root (alongside `build.gradle.kts`), create `local.properties`:
+
+```properties
+# API Keys
+openai.api.key=YOUR_OPENAI_API_KEY
+FDC_API_KEY=YOUR_FDC_API_KEY
+
+# SDK location (auto-added by Android Studio)
+sdk.dir=/path/to/android/sdk
+```
+
+> **Note:** Features depending on OpenAI or FDC keys will not work without valid entries.
+
+#### Build and Run
+
+- Sync Gradle.  
+- Select an emulator or connected device.  
+- Click **Run 'app'** (green ▶️) in the toolbar.
+
+### 5. Emulator Setup for Biometrics
+
+To test fingerprint login on an Android Virtual Device (AVD):
+
+1. Launch your AVD.  
+2. In the emulator, go to **Settings > Security > Fingerprint**, and add a fingerprint.  
+3. When the app prompts for a fingerprint, open **Extended Controls** (`⋯`), select **Fingerprint**, and tap **Touch sensor** to simulate.
+
+---
+
+## Running the Application
+
+```bash
+# Start the backend server
+cd CSE-3310-PHMS/PHMS-Backend
+./gradlew run
+
+# In a new terminal, launch the Android app via Android Studio
+```
+
+1. Register/log in via Firebase; biometric login can be enabled after initial sign-in.  
+2. Begin tracking vital signs and managing your health data.
+
+---
+
+## License
+
+This project is licensed under the terms in `LICENSE.md`. Please review for details.
