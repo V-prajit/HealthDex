@@ -12,6 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
@@ -38,7 +40,8 @@ fun DietDialog(
     onSave: (Diet) -> Unit,
     onCancel: () -> Unit
 ) {
-    val mealTypes = listOf("Breakfast", "Lunch", "Dinner", "Snack", "Other")
+    val context = LocalContext.current
+    val mealTypes = listOf(stringResource(R.string.meal_type_breakfast), stringResource(R.string.meal_type_lunch), stringResource(R.string.meal_type_dinner), stringResource(R.string.meal_type_snack), stringResource(R.string.meal_type_other))
 
     var entryMode by remember { mutableStateOf(DietEntryMode.SEARCH) }
 
@@ -115,10 +118,10 @@ fun DietDialog(
                 searchResults = hits
                 entryMode = DietEntryMode.RESULTS
             } else {
-                // If no results, switch directly to manual mode and show a message
-                apiError = "No food found matching '$description'. Please enter details manually."
+
+                apiError = context.getString(R.string.error_no_food_found, description)
                 entryMode = DietEntryMode.MANUAL
-                // Clear potential old values from a previous search/manual entry
+
                 calories = ""
                 protein = ""
                 fats = ""
@@ -144,7 +147,7 @@ fun DietDialog(
                 carbs = details.carbs.toString()
                 weight = ""
             } else {
-                apiError = "Could not fetch details for ${hit.description}. Please enter manually."
+                apiError = context.getString(R.string.error_fetch_details, hit.description)
                 calories = ""
                 protein = ""
                 fats = ""
@@ -156,7 +159,7 @@ fun DietDialog(
 
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text(if (isEditing) "Edit Meal" else "Add Meal") },
+        title = { Text(if (isEditing) stringResource(R.string.edit_meal_title) else stringResource(R.string.add_meal_title)) },
         text = {
             Column(
                 modifier = Modifier
@@ -172,7 +175,7 @@ fun DietDialog(
                         value = mealType,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Meal Type") },
+                        label = { Text(stringResource(R.string.meal_type_label)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = mealTypeExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
@@ -190,9 +193,9 @@ fun DietDialog(
                         description = it
                         if (it.isNotBlank()) descriptionError = false
                     },
-                    label = { Text("Food Description") },
+                    label = { Text(stringResource(R.string.food_description_label)) },
                     isError = descriptionError,
-                    supportingText = { if (descriptionError) Text("Description cannot be empty") },
+                    supportingText = { if (descriptionError) Text(stringResource(R.string.error_description_empty)) },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         if (description.isNotEmpty()) {
@@ -207,7 +210,7 @@ fun DietDialog(
                                 carbs = ""
                                 weight = ""
                             }) {
-                                Icon(Icons.Default.Clear, "Clear description")
+                                Icon(Icons.Default.Clear, stringResource(R.string.clear_description))
                             }
                         }
                     }
@@ -223,11 +226,11 @@ fun DietDialog(
                         if (loading) {
                             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
-                            Text("Searching...")
+                            Text(stringResource(R.string.searching_food_button))
                         } else {
                             Icon(Icons.Default.Search, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Search Food")
+                            Text(stringResource(R.string.search_food_button))
                         }
                     }
                 }
@@ -237,7 +240,7 @@ fun DietDialog(
                         onClick = { entryMode = DietEntryMode.MANUAL },
                         modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
                     ) {
-                        Text("Enter Manually")
+                        Text(stringResource(R.string.enter_manually_button))
                     }
                 }
 
@@ -249,11 +252,11 @@ fun DietDialog(
                 AnimatedVisibility(visible = entryMode == DietEntryMode.RESULTS && searchResults.isNotEmpty()) {
                     Column {
                         Divider(modifier = Modifier.padding(vertical = 8.dp))
-                        Text("Select the best match:", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.select_match_title), style = MaterialTheme.typography.titleMedium)
                         Spacer(Modifier.height(4.dp))
                         LazyColumn(
                             modifier = Modifier
-                                .heightIn(max = 200.dp) // Limit height
+                                .heightIn(max = 200.dp)
                                 .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(0.dp))
                         ) {
                             items(searchResults) { hit ->
@@ -271,7 +274,7 @@ fun DietDialog(
                             onClick = { entryMode = DietEntryMode.MANUAL },
                             modifier = Modifier.align(Alignment.End)
                         ) {
-                            Text("Enter Manually Instead")
+                            Text(stringResource(R.string.enter_manually_instead_button))
                         }
                         Divider(modifier = Modifier.padding(vertical = 8.dp))
                     }
@@ -281,7 +284,7 @@ fun DietDialog(
                     Column {
                         if (entryMode == DietEntryMode.SEARCH && apiError != null && !apiError!!.contains("matching")) {
                             Divider(modifier = Modifier.padding(vertical=8.dp))
-                            Text("Enter Nutritional Info Manually:", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.manual_entry_title), style = MaterialTheme.typography.titleMedium)
                             Spacer(Modifier.height(8.dp))
                         }
 
@@ -291,9 +294,9 @@ fun DietDialog(
                                 calories = it
                                 caloriesError = it.toIntOrNull() == null
                             },
-                            label = { Text("Calories*") },
+                            label = { Text(stringResource(R.string.calories_label)) },
                             isError = caloriesError,
-                            supportingText = { if (caloriesError) Text("Calories must be a number") },
+                            supportingText = { if (caloriesError) Text(stringResource(R.string.error_calories_nan)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -303,18 +306,18 @@ fun DietDialog(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            OutlinedTextField(value = protein, onValueChange = { protein = it }, label = { Text("Protein (g)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                            OutlinedTextField(value = protein, onValueChange = { protein = it }, label = { Text(stringResource(R.string.protein_g_label)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                             Spacer(modifier = Modifier.width(8.dp))
-                            OutlinedTextField(value = fats, onValueChange = { fats = it }, label = { Text("Fats (g)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                            OutlinedTextField(value = fats, onValueChange = { fats = it }, label = { Text(stringResource(R.string.fats_g_label)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                             Spacer(modifier = Modifier.width(8.dp))
-                            OutlinedTextField(value = carbs, onValueChange = { carbs = it }, label = { Text("Carbs (g)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                            OutlinedTextField(value = carbs, onValueChange = { carbs = it }, label = { Text(stringResource(R.string.carbs_g_label)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                         }
                         Spacer(modifier = Modifier.height(16.dp))
 
                         OutlinedTextField(
                             value = weight,
                             onValueChange = { weight = it },
-                            label = { Text("Weight (g)") },
+                            label = { Text(stringResource(R.string.weight_g_label)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -328,12 +331,12 @@ fun DietDialog(
                 enabled = !loading && entryMode == DietEntryMode.MANUAL && description.isNotBlank() && calories.toIntOrNull() != null,
                 onClick = { validateAndSave() }
             ) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onCancel) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

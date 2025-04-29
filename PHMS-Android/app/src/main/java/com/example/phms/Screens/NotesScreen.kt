@@ -35,8 +35,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.GridView // Icon for Grid View
-import androidx.compose.material.icons.filled.List // Icon for List View
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SaveAs
@@ -141,7 +141,7 @@ fun NoteTagSmall(tag: String) {
     if (tag.isNotEmpty()) {
         val displayDotColor = NoteTagColors.getDotColor(tag)
         AssistChip(
-            onClick = { /* No action */ },
+            onClick = {  },
             colors = AssistChipDefaults.assistChipColors(
                 containerColor = MaterialTheme.colorScheme.surface,
                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -323,14 +323,14 @@ fun NotesListScreen(
 ) {
     val backLabel = stringResource(R.string.back)
     var isListLayout by remember { mutableStateOf(true) }
-    var selectedSortTag by remember { mutableStateOf("All") }
-
-    val displayedNotes = remember(notes, selectedSortTag) {
-        if (selectedSortTag == "All") {
+    val allTagsLabel = stringResource(R.string.all_tags)
+    var selectedSortTag by remember { mutableStateOf(allTagsLabel) }
+    val displayedNotes = remember(notes, selectedSortTag, allTagsLabel) {
+        if (selectedSortTag == allTagsLabel) {
             notes
         } else {
-            notes.filter { noteString ->
-                parseNoteContent(noteString).tag.equals(selectedSortTag, ignoreCase = true)
+            notes.filter {
+                parseNoteContent(it).tag.equals(selectedSortTag, ignoreCase = true)
             }
         }
     }
@@ -338,7 +338,7 @@ fun NotesListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Notes") },
+                title = { Text(stringResource(R.string.notes_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = backLabel)
@@ -348,7 +348,7 @@ fun NotesListScreen(
                     IconButton(onClick = { isListLayout = !isListLayout }) {
                         Icon(
                             imageVector = if (isListLayout) Icons.Default.GridView else Icons.Default.List,
-                            contentDescription = if (isListLayout) "Switch to Grid View" else "Switch to List View"
+                            contentDescription = if (isListLayout) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_list)
                         )
                     }
                     IconButton(onClick = onSettingsClick) {
@@ -373,7 +373,7 @@ fun NotesListScreen(
             .fillMaxSize()
             .padding(padding)) {
 
-            val tagOptions = listOf("All", "diet", "medication", "health", "misc", "images")
+            val tagOptions = listOf(stringResource(R.string.all_tags), "diet", "medication", "health", "misc", "images")
             var expandedSortMenu by remember { mutableStateOf(false) }
             Row(
                 modifier = Modifier
@@ -382,21 +382,21 @@ fun NotesListScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Filter by Tag: $selectedSortTag", style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(R.string.filter_by_tag, selectedSortTag), style = MaterialTheme.typography.bodyMedium)
                 IconButton(onClick = { expandedSortMenu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "Select tag")
+                    Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.select_tag))
                 }
                 DropdownMenu(
                     expanded = expandedSortMenu,
                     onDismissRequest = { expandedSortMenu = false }
                 ) {
                     tagOptions.forEach { tag ->
-                        val dotColor = if (tag == "All") Color.Transparent else NoteTagColors.getDotColor(tag)
+                        val dotColor = if (tag == stringResource(R.string.all_tags)) Color.Transparent else NoteTagColors.getDotColor(tag)
 
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (tag != "All") {
+                                    if (tag != stringResource(R.string.all_tags)) {
                                         Box(
                                             modifier = Modifier
                                                 .size(10.dp)
@@ -449,7 +449,7 @@ fun NotesListScreen(
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = parsedNote.title.ifBlank { "(Untitled)" },
+                                            text = parsedNote.title.ifBlank { stringResource(R.string.notes_untitled) },
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                     }
@@ -457,7 +457,7 @@ fun NotesListScreen(
                                         if (parsedNote.tag.isNotEmpty()) {
                                             Icon(
                                                 imageVector = Icons.Filled.CatchingPokemon,
-                                                contentDescription = "Tagged Note",
+                                                contentDescription = stringResource(R.string.tagged_note_desc),
                                                 modifier = Modifier
                                                     .size(20.dp)
                                                     .padding(end = 8.dp),
@@ -466,7 +466,7 @@ fun NotesListScreen(
                                         }
                                         var expanded by remember { mutableStateOf(false) }
                                         IconButton(onClick = { expanded = true }, modifier = Modifier.size(32.dp)) {
-                                            Icon(Icons.Default.MoreVert, contentDescription = "More options", modifier = Modifier.size(18.dp), tint = contentColor)
+                                            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.more_options), modifier = Modifier.size(18.dp), tint = contentColor)
                                         }
                                         DropdownMenu(
                                             expanded = expanded,
@@ -497,7 +497,7 @@ fun NotesListScreen(
                                         items(parsedNote.imageUris.take(3)) { uri ->
                                             Image(
                                                 painter = rememberAsyncImagePainter(uri),
-                                                contentDescription = "Note image preview",
+                                                contentDescription = stringResource(R.string.note_image_preview),
                                                 modifier = Modifier
                                                     .size(50.dp)
                                                     .clip(RoundedCornerShape(4.dp))
@@ -534,7 +534,7 @@ fun NotesListScreen(
                                         NoteTagSmall(parsedNote.tag)
                                     }
                                     if (parsedNote.imageUris.isNotEmpty()) {
-                                        NoteTagSmall(tag = "Images")
+                                        NoteTagSmall(tag = stringResource(R.string.images_tag))
                                     }
                                 }
                             }
@@ -573,7 +573,7 @@ fun NotesListScreen(
                                     verticalAlignment = Alignment.Top
                                 ) {
                                     Text(
-                                        text = parsedNote.title.ifBlank { "(Untitled)" },
+                                        text = parsedNote.title.ifBlank { stringResource(R.string.notes_untitled) },
                                         style = MaterialTheme.typography.titleMedium,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
@@ -585,7 +585,7 @@ fun NotesListScreen(
                                         if (parsedNote.tag.isNotEmpty()) {
                                             Icon(
                                                 imageVector = Icons.Filled.CatchingPokemon,
-                                                contentDescription = "Tagged Note",
+                                                contentDescription = stringResource(R.string.tagged_note_desc),
                                                 modifier = Modifier.size(18.dp),
                                                 tint = contentColor
                                             )
@@ -599,7 +599,7 @@ fun NotesListScreen(
                                             ) {
                                                 Icon(
                                                     Icons.Default.MoreVert,
-                                                    contentDescription = "More options",
+                                                    contentDescription = stringResource(R.string.more_options),
                                                     modifier = Modifier.size(16.dp),
                                                     tint = contentColor
                                                 )
@@ -650,7 +650,7 @@ fun NotesListScreen(
                                     ) {
                                         Image(
                                             painter = rememberAsyncImagePainter(previewImageUri),
-                                            contentDescription = "Image preview",
+                                            contentDescription = stringResource(R.string.note_image_preview),
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
@@ -686,7 +686,7 @@ fun NotesListScreen(
                                         NoteTagSmall(parsedNote.tag)
                                     }
                                     if (parsedNote.imageUris.isNotEmpty()) {
-                                        NoteTagSmall(tag = "Images")
+                                        NoteTagSmall(tag = stringResource(R.string.images_tag))
                                     }
                                 }
                             }
@@ -735,7 +735,26 @@ fun NotesEditScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val duplicateMsg = stringResource(R.string.duplicate_note_title)
+
+    // --- Fetch strings needed outside lambdas or in multiple places ---
+    val filenameEmptyMsg = stringResource(R.string.error_filename_empty)
+    val permissionDeniedText = stringResource(R.string.error_permission_denied_camera)
+    val addImageButtonText = stringResource(R.string.add_image_button)
+    val attachedImagesTitleText = stringResource(R.string.attached_images_title)
+    val saveAsButtonText = stringResource(R.string.save_as)
+    val saveIconDesc = stringResource(R.string.save)
+    val cancelIconDesc = stringResource(R.string.cancel_discard_desc)
+    val editNoteTitleText = stringResource(R.string.edit_note)
+    val createNoteTitleText = stringResource(R.string.create_note_title)
+    val backIconDesc = stringResource(R.string.back)
+    val fileNameLabelText = stringResource(R.string.file_name_label)
+    val noteTitleHintText = stringResource(R.string.note_title_hint)
+    val tagLabelText = stringResource(R.string.tag_label)
+    val tagOptionalHintText = stringResource(R.string.tag_optional_hint)
+    val fileContentLabelText = stringResource(R.string.file_content_label)
+    val noteDetailsHintText = stringResource(R.string.note_details_hint)
+    // --- End fetching common strings ---
+
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetMultipleContents()
@@ -759,19 +778,20 @@ fun NotesEditScreen(
                 captureImage()
             } else {
                 scope.launch {
-                    snackbarHostState.showSnackbar("Camera permission denied.")
+                    snackbarHostState.showSnackbar(permissionDeniedText) // Use variable
                 }
             }
         }
     )
 
+    // Define the lambda outside Scaffold if needed by multiple actions
     val performSaveAction = { action: (String) -> Unit, isSaveAs: Boolean ->
         val currentId = if (isSaveAs) null else originalId
         val trimmedFileName = fileName.trim()
         val noteToSave = formatNoteForSaving(currentId, trimmedFileName, fileBody, fileTag, imageUris)
 
         if (trimmedFileName.isBlank()) {
-            scope.launch { snackbarHostState.showSnackbar("Filename cannot be empty.") }
+            scope.launch { snackbarHostState.showSnackbar(filenameEmptyMsg) } // Use variable
         } else {
             val checkName = trimmedFileName
             val isDuplicate = existingNoteNames
@@ -790,20 +810,20 @@ fun NotesEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if(originalId != null) stringResource(R.string.edit_note) else "Create Note") },
+                title = { Text(if(originalId != null) editNoteTitleText else createNoteTitleText) },
                 navigationIcon = {
                     IconButton(onClick = onCancel) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(Icons.Default.ArrowBack, contentDescription = backIconDesc)
                     }
                 },
                 actions = {
                     if (fileName.isNotBlank()) {
                         IconButton(onClick = { performSaveAction(onSave, false) }) {
-                            Icon(Icons.Default.Save, contentDescription = stringResource(R.string.save))
+                            Icon(Icons.Default.Save, contentDescription = saveIconDesc)
                         }
                     }
                     IconButton(onClick = onCancel) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel / Discard")
+                        Icon(Icons.Default.Close, contentDescription = cancelIconDesc)
                     }
                 }
             )
@@ -822,8 +842,8 @@ fun NotesEditScreen(
             OutlinedTextField(
                 value = fileName,
                 onValueChange = { fileName = it },
-                label = { Text(stringResource(R.string.file_name)) },
-                placeholder = {Text("Enter note title")},
+                label = { Text(fileNameLabelText) },
+                placeholder = {Text(noteTitleHintText)},
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -833,10 +853,10 @@ fun NotesEditScreen(
                 onExpandedChange = { expandedTagMenu = !expandedTagMenu }
             ) {
                 OutlinedTextField(
-                    value = fileTag.ifBlank { "Select Tag (Optional)" },
+                    value = fileTag.ifBlank { tagOptionalHintText },
                     onValueChange = { },
                     readOnly = true,
-                    label = { Text("Tag") },
+                    label = { Text(tagLabelText) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTagMenu) },
                     modifier = Modifier
                         .menuAnchor()
@@ -866,8 +886,8 @@ fun NotesEditScreen(
                     fileBody = it
                     updateNoteContent(originalId, fileName, fileBody, fileTag, imageUris, onContentChange)
                 },
-                label = { Text(stringResource(R.string.file_content)) },
-                placeholder = {Text("Enter note details...")},
+                label = { Text(fileContentLabelText) },
+                placeholder = {Text(noteDetailsHintText)},
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
@@ -879,11 +899,11 @@ fun NotesEditScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.insert_image))
+                Text(addImageButtonText)
             }
 
             if (imageUris.isNotEmpty()) {
-                Text("Attached Images:", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top=8.dp))
+                Text(attachedImagesTitleText, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top=8.dp))
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth().padding(vertical=8.dp)
@@ -910,9 +930,9 @@ fun NotesEditScreen(
                 Button(
                     onClick = { performSaveAction(onSaveAs, true) },
                 ) {
-                    Icon(Icons.Default.SaveAs, null)
+                    Icon(Icons.Default.SaveAs, saveAsButtonText)
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.save))
+                    Text(saveAsButtonText)
                 }
             }
 
@@ -936,17 +956,21 @@ fun NotesEditScreen(
         if (showDuplicateDialog) {
             AlertDialog(
                 onDismissRequest = { showDuplicateDialog = false },
-                title = { Text(duplicateMsg) },
-                text = { Text("A note with the name \"$fileName\" already exists. Replace it or cancel to rename?") },
+                title = { Text(stringResource(R.string.duplicate_dialog_title)) }, // OK to use stringResource here
+                text = { Text(stringResource(R.string.duplicate_dialog_text, fileName)) }, // OK to use stringResource here
                 confirmButton = {
                     Button(onClick = {
                         val noteToSave = formatNoteForSaving(null, fileName.trim(), fileBody, fileTag, imageUris)
                         duplicateAction(noteToSave)
                         showDuplicateDialog = false
-                    }) { Text("Replace") }
+                    }) {
+                        Text(stringResource(R.string.replace_button)) // Fetch string inside Composable context
+                    }
                 },
                 dismissButton = {
-                    Button(onClick = { showDuplicateDialog = false }) { Text("Cancel (Rename)") }
+                    Button(onClick = { showDuplicateDialog = false }) {
+                        Text(stringResource(R.string.cancel_rename_button)) // Fetch string inside Composable context
+                    }
                 }
             )
         }

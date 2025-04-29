@@ -25,6 +25,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import android.util.Log
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun useNotesCamera(
@@ -34,6 +35,9 @@ fun useNotesCamera(
     val TAG = "NotesCamera"
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val failedCaptureMsg = stringResource(R.string.error_capture_failed)
+    val permissionDeniedMsg = stringResource(R.string.error_permission_denied_camera)
+    val cameraLaunchErrorMsg = stringResource(R.string.error_camera_launch)
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -54,14 +58,14 @@ fun useNotesCamera(
         } else {
             Log.e(TAG, "Camera capture failed. Success: $success, URI: $photoUri")
             coroutineScope.launch {
-                snackbarHostState.showSnackbar("Failed to capture image")
+                snackbarHostState.showSnackbar(failedCaptureMsg)
             }
         }
     }
 
     fun createImageUri(): Uri? {
         try {
-            // For API 29+ use MediaStore
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val contentValues = ContentValues().apply {
                     put(MediaStore.Images.Media.DISPLAY_NAME, "img_${System.currentTimeMillis()}.jpg")
@@ -73,7 +77,7 @@ fun useNotesCamera(
                     contentValues
                 )
             } else {
-                // For older versions, use the FileProvider approach
+
                 val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
                 val imageFile = File(
                     context.getExternalFilesDir("Pictures"),
@@ -96,7 +100,7 @@ fun useNotesCamera(
 
     fun launchCameraInternal(): Boolean {
         try {
-            // Create a new URI for each capture
+
             photoUri = createImageUri()
 
             if (photoUri != null) {
@@ -122,7 +126,7 @@ fun useNotesCamera(
             launchCameraInternal()
         } else {
             coroutineScope.launch {
-                snackbarHostState.showSnackbar("Camera permission required to take photos")
+                snackbarHostState.showSnackbar(permissionDeniedMsg)
             }
         }
     }
@@ -131,13 +135,11 @@ fun useNotesCamera(
         if (hasCameraPermission) {
             if (!launchCameraInternal()) {
                 coroutineScope.launch {
-                    snackbarHostState.showSnackbar(
-                        "Could not launch camera. Please check app permissions."
-                    )
+                    snackbarHostState.showSnackbar(cameraLaunchErrorMsg)
                 }
             }
         } else {
-            // Request permission
+
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }

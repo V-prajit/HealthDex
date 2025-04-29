@@ -15,7 +15,6 @@ object LocaleHelper {
         SupportedLanguage("es", "Español"),
         SupportedLanguage("fr", "Français"),
         SupportedLanguage("hi", "हिन्दी"),
-        SupportedLanguage("ar", "العربية"), // Arabic
         SupportedLanguage("bn", "বাংলা"), // Bengali
         SupportedLanguage("zh", "中文"), // Chinese (Simplified)
         SupportedLanguage("de", "Deutsch"), // German

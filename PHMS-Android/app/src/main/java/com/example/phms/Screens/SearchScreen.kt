@@ -1,13 +1,48 @@
 package com.example.phms.Screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocalPharmacy
+import androidx.compose.material.icons.filled.Note
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,12 +82,20 @@ fun SearchScreen(
     onNavigateToDiet: () -> Unit
 ) {
     val context = LocalContext.current
+    val allTagsStr = stringResource(R.string.all_tags) // Get string resource here
+    val notesStr = stringResource(R.string.notes)
+    val vitalsStr = stringResource(R.string.vitals_tab)
+    val appointmentsStr = stringResource(R.string.appointments)
+    val medicationStr = stringResource(R.string.medication)
+    val dietStr = stringResource(R.string.diet)
+    val doctorStr = stringResource(R.string.doctor)
+
     var query by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("All") }
+    var selectedCategory by remember { mutableStateOf(allTagsStr) }
 
     val recentSearchesState = remember { mutableStateListOf<String>() }
 
-    // Use produceState for cleaner async data loading, including Meds and Diet
+
     val allNotes by produceState(initialValue = emptyList<String>(), userToken) {
         value = if (!userToken.isNullOrEmpty()) {
             NotesRepositoryBackend.getNotes(userToken)
@@ -71,7 +114,7 @@ fun SearchScreen(
         value = userToken?.let { AppointmentRepository.getUpcomingAppointments(it) } ?: emptyList()
     }
 
-    // fetch medications
+
     val allMedications by produceState(initialValue = emptyList<Medication>(), userToken) {
         if (userToken != null) {
             value = suspendCoroutine { continuation ->
@@ -84,57 +127,57 @@ fun SearchScreen(
         }
     }
 
-    // fetching diet entries
+
     val allDiets by produceState(initialValue = emptyList<Diet>(), userToken) {
         value = userToken?.let { DietRepository.getDiets(it) } ?: emptyList()
     }
 
     val scope = rememberCoroutineScope()
 
-    val filteredNotes by remember(allNotes, query, selectedCategory) {
+    val filteredNotes by remember(allNotes, query, selectedCategory, allTagsStr, notesStr) { // Pass strings to remember
         derivedStateOf {
             allNotes.filter { note ->
                 note.contains(query, ignoreCase = true) &&
-                        (selectedCategory == "All" || selectedCategory == "Notes")
+                        (selectedCategory == allTagsStr || selectedCategory == notesStr) // Use variables
             }
         }
     }
-    val filteredVitals by remember(allVitals, query, selectedCategory) {
+    val filteredVitals by remember(allVitals, query, selectedCategory, allTagsStr, vitalsStr) { // Pass strings to remember
         derivedStateOf {
             allVitals.filter { vital ->
                 vital.contains(query, ignoreCase = true) &&
-                        (selectedCategory == "All" || selectedCategory == "Vital")
+                        (selectedCategory == allTagsStr || selectedCategory == vitalsStr) // Use variables
             }
         }
     }
-    val filteredAppointments by remember(allAppointments, query, selectedCategory) {
+    val filteredAppointments by remember(allAppointments, query, selectedCategory, allTagsStr, appointmentsStr) { // Pass strings to remember
         derivedStateOf {
             allAppointments.filter { appt ->
                 (appt.doctorName?.contains(query, ignoreCase = true) ?: false ||
-                        appt.reason.contains(query, ignoreCase = true)) && // Also search reason
-                        (selectedCategory == "All" || selectedCategory == "Appointments")
+                        appt.reason.contains(query, ignoreCase = true)) &&
+                        (selectedCategory == allTagsStr || selectedCategory == appointmentsStr) // Use variables
             }
         }
     }
 
-    // filter meds
-    val filteredMedications by remember(allMedications, query, selectedCategory) {
+
+    val filteredMedications by remember(allMedications, query, selectedCategory, allTagsStr, medicationStr) { // Pass strings to remember
         derivedStateOf {
             allMedications.filter { med ->
                 (med.name.contains(query, ignoreCase = true) ||
-                        med.category.contains(query, ignoreCase = true)) && // Search name and category
-                        (selectedCategory == "All" || selectedCategory == "Medication")
+                        med.category.contains(query, ignoreCase = true)) &&
+                        (selectedCategory == allTagsStr || selectedCategory == medicationStr) // Use variables
             }
         }
     }
 
-    // filtering diet entries
-    val filteredDiets by remember(allDiets, query, selectedCategory) {
+
+    val filteredDiets by remember(allDiets, query, selectedCategory, allTagsStr, dietStr) { // Pass strings to remember
         derivedStateOf {
             allDiets.filter { diet ->
                 (diet.mealType.contains(query, ignoreCase = true) ||
-                        (diet.description?.contains(query, ignoreCase = true) ?: false)) && // Search type and description
-                        (selectedCategory == "All" || selectedCategory == "Diet")
+                        (diet.description?.contains(query, ignoreCase = true) ?: false)) &&
+                        (selectedCategory == allTagsStr || selectedCategory == dietStr) // Use variables
             }
         }
     }
@@ -166,26 +209,26 @@ fun SearchScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp) // Apply horizontal padding here
+                .padding(horizontal = 16.dp)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp) // Spacing between sections/items
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
 
-                // Search Results Section (only shown when query is not blank)
+
                 if (query.isNotEmpty()) {
                     item {
                         Text(
-                            "Search results for \"$query\"",
+                            stringResource(R.string.search_results_for, query),
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 8.dp) // Add padding below title
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
 
-                    // Notes Results
+
                     if (filteredNotes.isNotEmpty()) {
-                        item { Text("Notes:", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(notesStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredNotes, key = { "note_${it.hashCode()}" }) { note ->
                             SearchResultCard(
                                 text = highlightQuery(note, query),
@@ -199,9 +242,9 @@ fun SearchScreen(
                         item { Spacer(modifier = Modifier.height(8.dp)) }
                     }
 
-                    // Vitals Results
+
                     if (filteredVitals.isNotEmpty()) {
-                        item { Text("Vitals:", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(vitalsStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredVitals, key = { "vital_${it.hashCode()}" }) { vital ->
                             SearchResultCard(
                                 text = highlightQuery(vital, query),
@@ -215,11 +258,11 @@ fun SearchScreen(
                         item { Spacer(modifier = Modifier.height(8.dp)) }
                     }
 
-                    // Appointments Results
+
                     if (filteredAppointments.isNotEmpty()) {
-                        item { Text("Appointments:", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(appointmentsStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredAppointments, key = { "appt_${it.id}" }) { appt ->
-                            val label = "${appt.date} ${appt.time} with ${appt.doctorName ?: "Doctor"} - ${appt.reason}"
+                            val label = stringResource(R.string.search_appointment_label, appt.date, appt.time, appt.doctorName ?: doctorStr, appt.reason)
                             SearchResultCard(
                                 text = highlightQuery(label, query),
                                 icon = Icons.Default.EventNote,
@@ -229,14 +272,14 @@ fun SearchScreen(
                                 }
                             )
                         }
-                        item { Spacer(modifier = Modifier.height(8.dp)) } // Spacer after section
+                        item { Spacer(modifier = Modifier.height(8.dp)) }
                     }
 
-                    // medications results
+
                     if (filteredMedications.isNotEmpty()) {
-                        item { Text("Medications:", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(medicationStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredMedications, key = { "med_${it.id ?: it.hashCode()}" }) { med ->
-                            val label = "${med.name} (${med.dosage})"
+                            val label = stringResource(R.string.search_medication_label, med.name, med.dosage)
                             SearchResultCard(
                                 text = highlightQuery(label, query),
                                 icon = Icons.Default.LocalPharmacy,
@@ -249,21 +292,21 @@ fun SearchScreen(
                         item { Spacer(modifier = Modifier.height(8.dp)) }
                     }
 
-                    // Diet Results
+
                     if (filteredDiets.isNotEmpty()) {
-                        item { Text("Diet:", style = MaterialTheme.typography.titleSmall) }
+                        item { Text(dietStr + ":", style = MaterialTheme.typography.titleSmall) } // Use variable
                         items(filteredDiets, key = { "diet_${it.id ?: it.hashCode()}" }) { diet ->
-                            val label = "${diet.mealType}: ${diet.description ?: ""} (${diet.calories} kcal)" // Example label
+                            val label = stringResource(R.string.search_diet_label, diet.mealType, diet.description ?: "", diet.calories)
                             SearchResultCard(
                                 text = highlightQuery(label, query),
                                 icon = Icons.Default.Restaurant,
                                 onClick = {
                                     scope.launch { updateRecentSearches(query, recentSearchesState) }
-                                    onNavigateToDiet() // Use the new navigation function
+                                    onNavigateToDiet()
                                 }
                             )
                         }
-                        item { Spacer(modifier = Modifier.height(8.dp)) } // Spacer after section
+                        item { Spacer(modifier = Modifier.height(8.dp)) }
                     }
 
 
@@ -280,7 +323,7 @@ fun SearchScreen(
                     item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
 
-                // Recent Searches and Categories Section
+
                 if (query.isBlank()) {
                     item {
                         Row(
@@ -288,13 +331,13 @@ fun SearchScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Recent", style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.recent_searches_title), style = MaterialTheme.typography.titleMedium)
                             IconButton(onClick = { recentSearchesState.clear() }) {
-                                Icon(Icons.Default.Refresh, contentDescription = "Clear Recent")
+                                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.clear_recent_desc))
                             }
                         }
                     }
-                    // Recent Searches List
+
                     if (recentSearchesState.isNotEmpty()) {
                         items(recentSearchesState, key = { "recent_$it" }) { item ->
                             Text(
@@ -302,36 +345,77 @@ fun SearchScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        query = item // Set query on click
+                                        query = item
                                     }
-                                    .padding(vertical = 8.dp), // Add padding
+                                    .padding(vertical = 8.dp),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     } else {
-                        item { Text("No recent searches", style = MaterialTheme.typography.bodyMedium) }
+                        item { Text(stringResource(R.string.no_recent_searches), style = MaterialTheme.typography.bodyMedium) }
                     }
 
 
-                    item { Spacer(modifier = Modifier.height(16.dp)) } // Spacer before categories
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
 
-                    // Categories Section
-                    item { Text("Search by category", style = MaterialTheme.typography.titleMedium) }
+
+                    item { Text(stringResource(R.string.search_by_category_title), style = MaterialTheme.typography.titleMedium) }
                     item { Spacer(modifier = Modifier.height(8.dp)) }
-                    item { CategoryChips(selectedCategory) { selectedCategory = it } }
+                    item {
+                        CategoryChips(
+                            selected = selectedCategory,
+                            onSelect = { selectedCategory = it },
+                            categories = listOf(allTagsStr, notesStr, vitalsStr, appointmentsStr, medicationStr, dietStr) // Pass fetched strings
+                        )
+                    }
                 }
-                item { Spacer(modifier = Modifier.height(16.dp)) } // Bottom padding
+                item { Spacer(modifier = Modifier.height(16.dp)) }
             }
         }
     }
 }
 
-// function to update recent searches
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun CategoryChips(
+    selected: String,
+    onSelect: (String) -> Unit,
+    categories: List<String>
+) {
+    val context = LocalContext.current
+
+    val icons = mapOf(
+        stringResource(R.string.all_tags) to Icons.Default.Search,
+        stringResource(R.string.notes) to Icons.Default.Note,
+        stringResource(R.string.vitals_tab) to Icons.Default.Favorite,
+        stringResource(R.string.appointments) to Icons.Default.EventNote,
+        stringResource(R.string.medication) to Icons.Default.LocalPharmacy,
+        stringResource(R.string.diet) to Icons.Default.Restaurant
+    )
+
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        categories.forEach { cat ->
+            FilterChip(
+                selected = (selected == cat),
+                onClick = { onSelect(cat) },
+                leadingIcon = { icons[cat]?.let { Icon(it, contentDescription = null) } },
+                label = { Text(cat) }
+            )
+        }
+    }
+}
+
+
 private fun updateRecentSearches(query: String, recentSearchesState: SnapshotStateList<String>) {
     if (query.isNotBlank()) {
-        recentSearchesState.remove(query) //avoding duplicates and move to top
-        recentSearchesState.add(0, query) //adding at top
-        // limit the size of recent searches
+        recentSearchesState.remove(query)
+        recentSearchesState.add(0, query)
+
         while (recentSearchesState.size > 5) {
             recentSearchesState.removeAt(recentSearchesState.lastIndex)
         }
@@ -343,7 +427,7 @@ private fun SearchResultCard(text: AnnotatedString, icon: ImageVector, onClick: 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp) // Adding pading between cards
+            .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -358,42 +442,8 @@ private fun SearchResultCard(text: AnnotatedString, icon: ImageVector, onClick: 
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2, // Limit lines
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-@Composable
-private fun CategoryChips(
-    selected: String,
-    onSelect: (String) -> Unit
-) {
-    //categories
-    val categories = listOf("All", "Notes", "Vital", "Appointments", "Medication", "Diet")
-    val icons = mapOf(
-        "All" to Icons.Default.Search,
-        "Notes" to Icons.Default.Note,
-        "Vital" to Icons.Default.Favorite,
-        "Appointments" to Icons.Default.EventNote,
-        "Medication" to Icons.Default.LocalPharmacy,
-        "Diet" to Icons.Default.Restaurant
-    )
-
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp), // Horizontal spacing
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Vertical spacing for wrapped rows
-    ) {
-        categories.forEach { cat ->
-            FilterChip(
-                selected = (selected == cat),
-                onClick = { onSelect(cat) },
-                leadingIcon = { Icon(icons[cat]!!, contentDescription = null) },
-                label = { Text(cat) }
             )
         }
     }
@@ -411,7 +461,7 @@ private fun highlightQuery(text: String, query: String): AnnotatedString {
             addStyle(
                 style = SpanStyle(
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary // Highlight color
+                    color = MaterialTheme.colorScheme.primary
                 ),
                 start = startIndex,
                 end = endIndex
