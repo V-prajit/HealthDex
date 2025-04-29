@@ -499,7 +499,7 @@ fun AppointmentSummaryCard(appointment: Appointment?, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    stringResource(R.string.doctor_prefix, appointment.doctorName ?: stringResource(R.string.doctor_unknown)),
+                    "${stringResource(R.string.doctor_prefix)} ${appointment.doctorName ?: stringResource(R.string.doctor_unknown)}",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -555,7 +555,6 @@ fun DietSummaryCard(
     carbGoal: Int,
     onClick: () -> Unit
 ) {
-    val titleText = stringResource(R.string.diet)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -568,9 +567,11 @@ fun DietSummaryCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxSize(),
+            modifier = Modifier
+                .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             Text(
                 stringResource(R.string.calories_progress_short, calories, calorieGoal),
@@ -581,7 +582,9 @@ fun DietSummaryCard(
             )
             LinearProgressIndicator(
                 progress = { (calories.toFloat() / calorieGoal.toFloat()).coerceIn(0f, 1f) },
-                modifier = Modifier.width(60.dp).padding(top = 2.dp),
+                modifier = Modifier
+                    .width(90.dp)
+                    .padding(top = 2.dp),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
             )

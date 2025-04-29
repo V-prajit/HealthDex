@@ -545,8 +545,6 @@ fun DoctorDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2
                 )
-                Spacer(Modifier.height(8.dp))
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(

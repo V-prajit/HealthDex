@@ -62,7 +62,7 @@ fun SettingScreen(
         mutableStateOf(prefs.getBoolean("LAST_USER_BIOMETRIC", false))
     }
     var darkModeEnabled by remember {
-        mutableStateOf(prefs.getBoolean("DARK_MODE", false))
+        mutableStateOf(prefs.getBoolean("DARK_MODE", true))
     }
 
     // Fetch string resources outside lambdas where needed

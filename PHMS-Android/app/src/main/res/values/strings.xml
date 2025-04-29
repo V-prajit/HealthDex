@@ -145,7 +145,7 @@
     <string name="next_image">Next image</string>
     <string name="zoom_pan_instructions">Pinch to zoom, drag to pan</string>
     <string name="images_tag">Images</string>
-    <string name="note_image_content_desc">Note Image</string> <string name="cancel_discard_desc">Cancel / Discard Changes</string> <string name="health_chat">Health Chat</string> <string name="send_message">Send message</string>
+    <string name="note_image_content_desc">Note Image</string> <string name="cancel_discard_desc">Cancel / Discard Changes</string> <string name="health_chat">Nurse Joy</string> <string name="send_message">Send message</string>
     <string name="type_health_question">Type your health question…</string>
     <string name="chat_welcome_title">Welcome to Health Chat</string>
     <string name="chat_welcome_message">Ask me any health-related questions, and I\'ll provide helpful information. Remember, I\'m not a substitute for professional medical advice.</string>
