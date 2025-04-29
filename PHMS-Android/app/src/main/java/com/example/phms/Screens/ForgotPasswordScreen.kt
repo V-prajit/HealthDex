@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -36,12 +37,16 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
     var userId by remember { mutableStateOf("") }
     var securityQuestionId by remember { mutableStateOf(0) }
 
-    // Store string resources in local variables
+    val context = LocalContext.current
     val emailRequiredMessage = stringResource(R.string.error_empty_email)
     val passwordResetSentMessage = stringResource(R.string.password_reset_email_sent)
     val passwordResetFailedMessage = stringResource(R.string.password_reset_failed)
-    val securityAnswerRequiredMessage = "Security answer is required"
-    val securityAnswerWrongMessage = "Security answer is incorrect"
+    val securityAnswerRequiredMessage = stringResource(R.string.error_security_answer_required)
+    val securityAnswerWrongMessage = stringResource(R.string.error_security_answer_incorrect)
+    val userNotFoundMessage = stringResource(R.string.error_user_not_found_email)
+    val findAccountErrorTemplate = stringResource(R.string.error_find_account)
+    val verifyErrorTemplate = stringResource(R.string.error_verify_security)
+    val noErrorDetailsText = stringResource(R.string.error_no_details)
 
     Scaffold(
         topBar = {
@@ -95,7 +100,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
 
                         Log.d("ForgotPassword", "Finding user with email: $email")
 
-                        // Find user by email to get security question
+
                         RetrofitClient.apiService.findUserByEmail(email).enqueue(object : Callback<UserDTO> {
                             override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
                                 isLoading = false
@@ -109,28 +114,28 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
                                     securityQuestion = SecurityQuestions.questions.find { it.id == securityQuestionId }?.question ?: ""
                                     userFound = true
                                 } else {
-                                    val errorBody = response.errorBody()?.string() ?: "No error details"
+                                    val errorBody = response.errorBody()?.string() ?: noErrorDetailsText
                                     Log.e("ForgotPassword", "Error finding user: $errorBody")
-                                    message = "User not found with this email"
+                                    message = userNotFoundMessage
                                 }
                             }
 
                             override fun onFailure(call: Call<UserDTO>, t: Throwable) {
                                 isLoading = false
                                 Log.e("ForgotPassword", "Request failed", t)
-                                message = "Error: ${t.message}"
+                                message = String.format(findAccountErrorTemplate, t.message)
                             }
                         })
                     },
                     modifier = Modifier.fillMaxWidth(0.6f),
                     enabled = !isLoading && !isSuccess && !userFound
                 ) {
-                    Text("Find Account")
+                    Text(stringResource(R.string.find_account_button))
                 }
             } else {
-                // Show security question
+
                 Text(
-                    text = "Security Question:",
+                    text = stringResource(R.string.security_question_title),
                     style = MaterialTheme.typography.bodyLarge
                 )
 
@@ -143,7 +148,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
                 OutlinedTextField(
                     value = securityAnswer,
                     onValueChange = { securityAnswer = it },
-                    label = { Text("Your Answer") },
+                    label = { Text(stringResource(R.string.your_answer_label)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     modifier = Modifier.fillMaxWidth(),
@@ -166,7 +171,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
                             .enqueue(object : Callback<VerificationResponse> {
                                 override fun onResponse(call: Call<VerificationResponse>, response: Response<VerificationResponse>) {
                                     if (response.isSuccessful && response.body()?.verified == true) {
-                                        // If verified, send password reset email
+
                                         FirebaseAuth.getInstance().sendPasswordResetEmail(email)
                                             .addOnCompleteListener { task ->
                                                 isLoading = false
@@ -185,7 +190,7 @@ fun ForgotPasswordScreen(onBackClick: () -> Unit) {
 
                                 override fun onFailure(call: Call<VerificationResponse>, t: Throwable) {
                                     isLoading = false
-                                    message = "Error: ${t.message}"
+                                    message = String.format(verifyErrorTemplate, t.message)
                                 }
                             })
                     },

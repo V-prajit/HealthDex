@@ -10,9 +10,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
-/**
- * Data class to hold notification information
- */
+
 data class MedicationNotificationData(
     val id: Int,
     val name: String,
@@ -34,8 +32,8 @@ class MedicationNotificationManager(private val context: Context) {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Medication Reminders"
-            val descriptionText = "Notifications for medication reminders"
+            val name = context.getString(R.string.med_notification_channel_name)
+            val descriptionText = context.getString(R.string.med_notification_channel_desc)
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -48,7 +46,7 @@ class MedicationNotificationManager(private val context: Context) {
     }
 
     fun showMedicationReminder(data: MedicationNotificationData) {
-        // Check notification permission for Android 13+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 Log.w("MedicationNotificationManager", "No permission to post notifications")
@@ -56,7 +54,7 @@ class MedicationNotificationManager(private val context: Context) {
             }
         }
 
-        // Create an intent to open the medications screen
+
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("OPEN_MEDICATIONS", true)
@@ -69,16 +67,16 @@ class MedicationNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Build a notification with the medication details
+
         val contentText = if (data.dosage.isNotEmpty()) {
-            "Take ${data.dosage} of ${data.name}"
+            context.getString(R.string.med_notification_content_with_dosage, data.dosage, data.name)
         } else {
-            "Time to take your ${data.name}"
+            context.getString(R.string.med_notification_content_no_dosage, data.name)
         }
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Medication Reminder")
+            .setContentTitle(context.getString(R.string.med_notification_title))
             .setContentText(contentText)
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText("$contentText\n${data.instructions}"))
@@ -86,7 +84,7 @@ class MedicationNotificationManager(private val context: Context) {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-        // Show the notification
+
         val notificationId = NOTIFICATION_ID_PREFIX + data.id * 10 + data.timeIndex
 
         try {
