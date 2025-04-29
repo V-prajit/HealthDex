@@ -383,6 +383,7 @@ fun NotesListScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = stringResource(R.string.filter_by_tag, selectedSortTag), style = MaterialTheme.typography.bodyMedium)
+                Box {
                 IconButton(onClick = { expandedSortMenu = true }) {
                     Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.select_tag))
                 }
@@ -414,6 +415,7 @@ fun NotesListScreen(
                         )
                     }
                 }
+            }
             }
 
             val listModifier = Modifier
