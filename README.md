@@ -1,8 +1,22 @@
 # HealthDex
 
-**Personal Health Management System**
+Project: PHMS  
+Team No.: 9  
+Course: CSE 3310  
 
-A full-stack application composed of an Android client and a Ktor backend server to help users track vital signs, manage medications, diet, appointments, and receive real-time alerts.
+**Team Members:**  
+- Vikash Mall – 
+- Prajit Viswanadha – 
+- Ved Dharmatti –  
+- Daksh Khuttan –  
+
+**Contact Number:** 
+
+**Exceptions / Known Issues:**  
+- Heart rate is currently simulated and not read from an Apple Watch.
+
+**Login Credentials:**  
+No login credentials needed; register for a new account.
 
 ---
 
