@@ -1,8 +1,22 @@
 # HealthDex
 
-**Personal Health Management System**
+Project: PHMS  
+Team No.: 9  
+Course: CSE 3310  
 
-A full-stack application composed of an Android client and a Ktor backend server to help users track vital signs, manage medications, diet, appointments, and receive real-time alerts.
+**Team Members:**  
+- Vikash Mall – vxm5886@mavs.uta.edu
+- Prajit Viswanadha – pxv0106@mavs.uta.edu
+- Ved Dharmatti – vsd8623@mavs.uta.edu 
+- Daksh Khuttan – dxk0278@mavs.uta.edu 
+
+**Contact Number:** (817) 371-5240
+
+**Exceptions / Known Issues:**  
+- Heart rate is currently simulated and not read from an Apple Watch.
+
+**Login Credentials:**  
+No login credentials needed; register for a new account.
 
 ---
 
