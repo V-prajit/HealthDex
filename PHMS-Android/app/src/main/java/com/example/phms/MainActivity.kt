@@ -111,11 +111,7 @@ class MainActivity : FragmentActivity() {
         AppointmentReminderWorker.initialize(this)
 
         val appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val isFirstLaunch = !appPrefs.contains("has_launched_before")
-
-        if (isFirstLaunch) {
-            // Don't set has_launched_before yet - we'll set it after language selection
-        } else {
+        if (!appPrefs.contains("has_launched_before")) {
             appPrefs.edit().putBoolean("has_launched_before", true).apply()
         }
 
@@ -144,7 +140,7 @@ class MainActivity : FragmentActivity() {
                 var firstName by remember { mutableStateOf<String?>(null) }
                 var showSettings by remember { mutableStateOf(false) }
                 var returnToTab by remember { mutableStateOf<String?>(null) }
-                var showFirstTimeLaunch by remember { mutableStateOf(isFirstLaunch) }
+
 
                 val biometricAuth = remember {
                     BiometricAuth(this@MainActivity) { success, name ->
@@ -157,6 +153,7 @@ class MainActivity : FragmentActivity() {
                         }
                     }
                 }
+
 
                 LaunchedEffect(auth.currentUser) {
                     val currentUser = auth.currentUser
@@ -174,6 +171,7 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
+
                 LaunchedEffect(showSettings) {
                     if (!showSettings) {
                         returnToTab = null
@@ -184,14 +182,7 @@ class MainActivity : FragmentActivity() {
                     "MainActivity",
                     "Rendering: isLoggedIn=$isLoggedIn, showSettings=$showSettings, returnToTab=$returnToTab, localeVersion=$currentLocaleVersion"
                 )
-
                 when {
-                    showFirstTimeLaunch -> {
-                        FirstTimeLanguageScreen {
-                            showFirstTimeLaunch = false
-                            appPrefs.edit().putBoolean("has_launched_before", true).apply()
-                        }
-                    }
                     showSettings -> {
                         Log.d("MainActivity", "Showing Settings Screen")
                         SettingScreen(
@@ -237,6 +228,10 @@ class MainActivity : FragmentActivity() {
                                 isLoggedIn = true
                                 userToken = token
                                 firstName = name
+                            },
+                            onSettingsClick = {
+                                showSettings = true
+                                returnToTab = null
                             }
                         )
                     }
@@ -244,6 +239,7 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+
 
     fun updateTheme(darkMode: Boolean) {
         AppCompatDelegate.setDefaultNightMode(
@@ -254,6 +250,7 @@ class MainActivity : FragmentActivity() {
 
         val prefs = getSharedPreferences("user_prefs", MODE_PRIVATE)
         prefs.edit().putBoolean("DARK_MODE", darkMode).apply()
+
     }
 
     fun forceLocaleRecomposition(languageCode: String? = null) {
@@ -261,71 +258,13 @@ class MainActivity : FragmentActivity() {
     }
 }
 
-@Composable
-fun FirstTimeLanguageScreen(onLanguageSelected: () -> Unit) {
-    val context = LocalContext.current
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Welcome to PHMS",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
-            Text(
-                text = "Please select your language",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                items(LocaleHelper.supportedLanguages) { language ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                LocaleHelper.applyLanguageWithoutRecreation(
-                                    context,
-                                    language.code
-                                )
-                                onLanguageSelected()
-                            }
-                            .padding(vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = language.displayName,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-
-                    if (language != LocaleHelper.supportedLanguages.last()) {
-                        Divider()
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
+@Composable1
 fun AuthScreen(
     auth: FirebaseAuth,
     biometricAuth: BiometricAuth,
-    onLoginSuccess: (String, String?) -> Unit
+    onLoginSuccess: (String, String?) -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -335,12 +274,6 @@ fun AuthScreen(
         var showForgotPassword by remember { mutableStateOf(false) }
         var userToken by remember { mutableStateOf<String?>(null) }
         var showUserDetailsScreen by remember { mutableStateOf(false) }
-        var showLanguageSelector by remember { mutableStateOf(false) }
-        val context = LocalContext.current
-        val currentLanguageCode = remember { LocaleHelper.getCurrentLanguageCode(context) }
-        val currentLanguage = remember(currentLanguageCode) {
-            LocaleHelper.supportedLanguages.find { it.code == currentLanguageCode } ?: LocaleHelper.supportedLanguages[0]
-        }
 
         Column(modifier = Modifier
             .fillMaxSize()
@@ -349,8 +282,8 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                IconButton(onClick = { showLanguageSelector = true }) {
-                    Icon(Icons.Default.Language, contentDescription = stringResource(R.string.language))
+                IconButton(onClick = onSettingsClick) {
+                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                 }
             }
             when {
@@ -378,52 +311,6 @@ fun AuthScreen(
                     )
                 }
             }
-        }
-
-        if (showLanguageSelector) {
-            AlertDialog(
-                onDismissRequest = { showLanguageSelector = false },
-                title = { Text(stringResource(R.string.select_language)) },
-                text = {
-                    LazyColumn {
-                        items(LocaleHelper.supportedLanguages) { language ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        LocaleHelper.applyLanguageWithoutRecreation(
-                                            context,
-                                            language.code
-                                        )
-                                        showLanguageSelector = false
-                                    }
-                                    .padding(vertical = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(language.displayName)
-
-                                if (language.code == currentLanguageCode) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-
-                            if (language != LocaleHelper.supportedLanguages.last()) {
-                                Divider()
-                            }
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showLanguageSelector = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                }
-            )
         }
     }
 }
