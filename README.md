@@ -1,17 +1,5 @@
 # HealthDex
 
-Project: PHMS  
-Team No.: 9  
-Course: CSE 3310  
-
-**Team Members:**  
-- Vikash Mall – 
-- Prajit Viswanadha – 
-- Ved Dharmatti –  
-- Daksh Khuttan –  
-
-**Contact Number:** 
-
 **Exceptions / Known Issues:**  
 - Heart rate is currently simulated and not read from an Apple Watch.
 
@@ -228,6 +216,12 @@ docker-compose up -d
 2. Begin tracking vital signs and managing your health data in your preferred language.
 
 ---
+
+## Team Members
+- Vikash Mall 
+- Prajit Viswanadha  
+- Ved Dharmatti 
+- Daksh Khuttan 
 
 ## License
 
